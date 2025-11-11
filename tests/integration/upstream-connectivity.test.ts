@@ -8,7 +8,7 @@ import { UpstreamClient } from '../../src/core/upstream-client.js';
 import { TranslationHelpsClient } from '../../src/core/index.js';
 
 // Get upstream URL from environment or use default
-const UPSTREAM_URL = process.env.UPSTREAM_MCP_URL || 'https://translation-helps.door43.org/api/mcp';
+const UPSTREAM_URL = process.env.UPSTREAM_MCP_URL || 'https://translation-helps-mcp.pages.dev/api/mcp';
 
 describe('Upstream Server Connectivity (Integration)', () => {
   let upstreamClient: UpstreamClient;
