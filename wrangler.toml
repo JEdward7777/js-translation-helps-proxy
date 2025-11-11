@@ -1,14 +1,39 @@
 name = "js-translation-helps-proxy"
-main = "dist/mcp-server/index.js"
+main = "dist/openai-api/index.js"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
 NODE_ENV = "production"
+# Upstream Translation Helps API
+UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp"
+TIMEOUT = "30000"
+LOG_LEVEL = "info"
 
-[[kv_namespaces]]
-binding = "TRANSLATION_CACHE"
-id = "your_kv_namespace_id_here"
+# OpenAI API baked-in filters (Interface 4)
+OPENAI_LANGUAGE = "en"
+OPENAI_ORGANIZATION = "unfoldingWord"
+OPENAI_FILTER_NOTES = "true"
+OPENAI_MAX_ITERATIONS = "5"
+
+# Optional: KV namespace for caching (if needed in future)
+# [[kv_namespaces]]
+# binding = "TRANSLATION_CACHE"
+# id = "your_kv_namespace_id_here"
 
 [build]
 command = "npm run build"
+
+# Routes configuration for CloudFlare Workers
+# Uncomment and configure if deploying to a custom domain
+# routes = [
+#   { pattern = "translation-helps.example.com/*", zone_name = "example.com" }
+# ]
+
+# Development configuration
+[env.development]
+vars = { LOG_LEVEL = "debug" }
+
+# Production configuration
+[env.production]
+vars = { LOG_LEVEL = "info" }

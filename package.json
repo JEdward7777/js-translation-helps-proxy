@@ -14,6 +14,7 @@
     "build": "tsc && npm run postbuild",
     "postbuild": "chmod +x dist/stdio-server/index.js",
     "dev": "tsx watch src/stdio-server/index.ts",
+    "dev:http": "wrangler dev",
     "test": "vitest",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
@@ -24,7 +25,8 @@
     "format": "prettier --write src tests",
     "start:stdio": "tsx src/stdio-server/index.ts",
     "start:http": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "deploy:production": "wrangler deploy --env production"
   },
   "keywords": [
     "mcp",
