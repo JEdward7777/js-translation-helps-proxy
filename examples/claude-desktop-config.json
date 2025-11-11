@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": [
+        "js-translation-helps-proxy"
+      ]
+    }
+  }
+}

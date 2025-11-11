@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "translation-helps-filtered": {
+      "command": "npx",
+      "args": [
+        "js-translation-helps-proxy",
+        "--enabled-tools",
+        "fetch_scripture,fetch_translation_notes,fetch_translation_questions",
+        "--hide-params",
+        "language,organization",
+        "--filter-book-chapter-notes"
+      ]
+    }
+  }
+}

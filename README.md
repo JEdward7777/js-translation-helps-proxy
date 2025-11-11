@@ -82,17 +82,67 @@ npm run deploy
 
 ## Usage
 
-### stdio MCP Server
+### Interface 3: stdio MCP Server (npx executable)
+
+The stdio MCP server allows desktop applications like Claude Desktop and Cline to use the proxy via the MCP protocol over standard input/output.
+
+**Quick Start:**
 
 ```bash
+# Show help
+npx js-translation-helps-proxy --help
+
+# List available tools
+npx js-translation-helps-proxy --list-tools
+
+# Start the server
 npx js-translation-helps-proxy
 ```
 
-### HTTP MCP Server
+**Configuration Options:**
+
+```bash
+# Enable specific tools only
+npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+
+# Hide parameters from tool schemas
+npx js-translation-helps-proxy --hide-params "language,organization"
+
+# Filter book/chapter notes
+npx js-translation-helps-proxy --filter-book-chapter-notes
+
+# Set log level
+npx js-translation-helps-proxy --log-level debug
+```
+
+**MCP Client Setup:**
+
+For Claude Desktop, add to your config file:
+
+```json
+{
+  "mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": ["js-translation-helps-proxy"]
+    }
+  }
+}
+```
+
+**Documentation:**
+- [stdio Server Documentation](docs/STDIO_SERVER.md) - Complete guide
+- [Example Configurations](examples/README.md) - MCP client configs
+
+### Interface 2: HTTP MCP Server
 
 ```bash
 npm run start:http
 ```
+
+### Interface 1: Core API
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for programmatic usage of the core API.
 
 ## Contributing
 

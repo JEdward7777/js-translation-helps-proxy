@@ -1,0 +1,533 @@
+# stdio MCP Server Documentation
+
+The stdio MCP server provides a standard input/output interface for the Translation Helps Proxy, making it compatible with MCP clients like Claude Desktop and Cline.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Command-Line Options](#command-line-options)
+- [MCP Client Setup](#mcp-client-setup)
+- [Usage Examples](#usage-examples)
+- [Troubleshooting](#troubleshooting)
+- [Advanced Topics](#advanced-topics)
+
+## Installation
+
+### Prerequisites
+
+- Node.js 20.17.0 or higher
+- npm or npx
+
+### Install via npm
+
+```bash
+npm install -g js-translation-helps-proxy
+```
+
+### Use via npx (No Installation Required)
+
+```bash
+npx js-translation-helps-proxy --help
+```
+
+## Quick Start
+
+### 1. Test the Server
+
+```bash
+# Show help
+npx js-translation-helps-proxy --help
+
+# List available tools
+npx js-translation-helps-proxy --list-tools
+
+# Start the server (for testing)
+npx js-translation-helps-proxy
+```
+
+### 2. Configure Your MCP Client
+
+Add to your MCP client configuration (e.g., Claude Desktop):
+
+```json
+{
+  "mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": ["js-translation-helps-proxy"]
+    }
+  }
+}
+```
+
+### 3. Restart Your MCP Client
+
+Restart Claude Desktop or your MCP client to load the new server.
+
+## Configuration
+
+### Basic Configuration
+
+The simplest configuration enables all tools with default settings:
+
+```json
+{
+  "mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": ["js-translation-helps-proxy"]
+    }
+  }
+}
+```
+
+### Filtered Configuration
+
+Enable only specific tools and hide certain parameters:
+
+```json
+{
+  "mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": [
+        "js-translation-helps-proxy",
+        "--enabled-tools",
+        "fetch_scripture,fetch_translation_notes,fetch_translation_questions",
+        "--hide-params",
+        "language,organization",
+        "--filter-book-chapter-notes"
+      ]
+    }
+  }
+}
+```
+
+## Command-Line Options
+
+### `--enabled-tools <tools>`
+
+Comma-separated list of tools to enable. By default, all tools are enabled.
+
+**Example:**
+```bash
+npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+```
+
+**Available Tools:**
+- `fetch_scripture` - Fetch Bible scripture text
+- `fetch_translation_notes` - Get translation notes
+- `fetch_translation_questions` - Get translation questions
+- `get_translation_word` - Get translation word definitions
+- `browse_translation_words` - Browse translation words
+- `get_context` - Get contextual information
+- `extract_references` - Extract Bible references from text
+- `get_system_prompt` - Get system prompt and constraints
+- And more (use `--list-tools` to see all)
+
+### `--hide-params <params>`
+
+Comma-separated list of parameters to hide from tool schemas. This simplifies the tool interface by removing optional parameters.
+
+**Example:**
+```bash
+npx js-translation-helps-proxy --hide-params "language,organization"
+```
+
+**Common Parameters to Hide:**
+- `language` - Language code (defaults to "en")
+- `organization` - Organization name (defaults to "unfoldingWord")
+
+### `--filter-book-chapter-notes`
+
+Filter out book-level and chapter-level notes from translation notes responses, keeping only verse-specific notes.
+
+**Example:**
+```bash
+npx js-translation-helps-proxy --filter-book-chapter-notes
+```
+
+### `--log-level <level>`
+
+Set the logging level. Logs are written to stderr (not stdout, which is used for MCP protocol).
+
+**Levels:** `debug`, `info`, `warn`, `error`
+
+**Example:**
+```bash
+npx js-translation-helps-proxy --log-level debug
+```
+
+### `--list-tools`
+
+List all available tools from the upstream server and exit.
+
+**Example:**
+```bash
+npx js-translation-helps-proxy --list-tools
+```
+
+### `--help`, `-h`
+
+Show help message with all available options.
+
+**Example:**
+```bash
+npx js-translation-helps-proxy --help
+```
+
+## MCP Client Setup
+
+### Claude Desktop
+
+**Configuration File Locations:**
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+**Basic Setup:**
+
+1. Open or create the configuration file
+2. Add the server configuration:
+
+```json
+{
+  "mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": ["js-translation-helps-proxy"]
+    }
+  }
+}
+```
+
+3. Save the file
+4. Restart Claude Desktop
+
+**Verify Setup:**
+- Open Claude Desktop
+- Look for the MCP server indicator
+- Try asking: "What tools do you have available?"
+- Test a tool: "Fetch John 3:16 scripture"
+
+### Cline (VS Code Extension)
+
+**Setup in VS Code Settings:**
+
+1. Open VS Code settings (JSON)
+2. Add the MCP server configuration:
+
+```json
+{
+  "cline.mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": ["js-translation-helps-proxy"],
+      "disabled": false
+    }
+  }
+}
+```
+
+3. Reload VS Code
+4. Open Cline and verify the server is connected
+
+### Other MCP Clients
+
+For other MCP clients that support stdio transport:
+
+1. Use `npx js-translation-helps-proxy` as the command
+2. Ensure the client can execute Node.js commands
+3. Configure any client-specific options as needed
+
+## Usage Examples
+
+### Example 1: All Tools Enabled
+
+```json
+{
+  "mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": ["js-translation-helps-proxy"]
+    }
+  }
+}
+```
+
+**Use Case:** Full access to all translation helps tools.
+
+### Example 2: Scripture and Notes Only
+
+```json
+{
+  "mcpServers": {
+    "translation-helps-scripture": {
+      "command": "npx",
+      "args": [
+        "js-translation-helps-proxy",
+        "--enabled-tools",
+        "fetch_scripture,fetch_translation_notes"
+      ]
+    }
+  }
+}
+```
+
+**Use Case:** Simplified interface for scripture reading and notes.
+
+### Example 3: Simplified Parameters
+
+```json
+{
+  "mcpServers": {
+    "translation-helps-simple": {
+      "command": "npx",
+      "args": [
+        "js-translation-helps-proxy",
+        "--hide-params",
+        "language,organization"
+      ]
+    }
+  }
+}
+```
+
+**Use Case:** Hide language/organization parameters for English-only users.
+
+### Example 4: Verse Notes Only
+
+```json
+{
+  "mcpServers": {
+    "translation-helps-verses": {
+      "command": "npx",
+      "args": [
+        "js-translation-helps-proxy",
+        "--enabled-tools",
+        "fetch_translation_notes",
+        "--filter-book-chapter-notes"
+      ]
+    }
+  }
+}
+```
+
+**Use Case:** Get only verse-specific translation notes, excluding book/chapter introductions.
+
+### Example 5: Debug Mode
+
+```json
+{
+  "mcpServers": {
+    "translation-helps-debug": {
+      "command": "npx",
+      "args": [
+        "js-translation-helps-proxy",
+        "--log-level",
+        "debug"
+      ]
+    }
+  }
+}
+```
+
+**Use Case:** Troubleshooting connection or tool issues.
+
+## Troubleshooting
+
+### Server Won't Start
+
+**Problem:** MCP client shows server connection error.
+
+**Solutions:**
+
+1. **Check Node.js version:**
+   ```bash
+   node --version  # Should be 20.17.0 or higher
+   ```
+
+2. **Test server manually:**
+   ```bash
+   npx js-translation-helps-proxy --help
+   ```
+
+3. **Check for errors:**
+   ```bash
+   npx js-translation-helps-proxy --log-level debug
+   ```
+
+4. **Verify npx is available:**
+   ```bash
+   which npx  # Unix/macOS
+   where npx  # Windows
+   ```
+
+### Tools Not Appearing
+
+**Problem:** MCP client doesn't show any tools.
+
+**Solutions:**
+
+1. **List tools manually:**
+   ```bash
+   npx js-translation-helps-proxy --list-tools
+   ```
+
+2. **Check enabled-tools filter:**
+   - Remove `--enabled-tools` argument to enable all tools
+   - Verify tool names are spelled correctly
+
+3. **Check upstream connectivity:**
+   - Ensure internet connection is available
+   - Verify firewall isn't blocking connections
+
+### Tool Calls Failing
+
+**Problem:** Tool calls return errors or empty results.
+
+**Solutions:**
+
+1. **Enable debug logging:**
+   ```json
+   {
+     "args": ["js-translation-helps-proxy", "--log-level", "debug"]
+   }
+   ```
+
+2. **Check parameter requirements:**
+   - Ensure required parameters are provided
+   - Verify parameter formats (e.g., "John 3:16" for references)
+
+3. **Test upstream server:**
+   - Visit https://translation-helps-mcp.pages.dev/
+   - Verify the upstream service is operational
+
+### Performance Issues
+
+**Problem:** Slow response times or timeouts.
+
+**Solutions:**
+
+1. **Check network connection:**
+   - Ensure stable internet connection
+   - Test upstream server response time
+
+2. **Reduce tool count:**
+   - Use `--enabled-tools` to limit available tools
+   - This reduces initialization time
+
+3. **Check client logs:**
+   - Review MCP client logs for timeout settings
+   - Increase timeout if configurable
+
+### Configuration Not Loading
+
+**Problem:** Changes to configuration don't take effect.
+
+**Solutions:**
+
+1. **Restart MCP client:**
+   - Fully quit and restart the application
+   - Don't just reload the window
+
+2. **Verify configuration file location:**
+   - Check you're editing the correct file
+   - Ensure proper JSON syntax (use a validator)
+
+3. **Check file permissions:**
+   - Ensure the config file is readable
+   - Verify no syntax errors in JSON
+
+## Advanced Topics
+
+### Custom Upstream URL
+
+While not exposed as a command-line option, you can modify the source code to use a custom upstream URL:
+
+```typescript
+// In src/stdio-server/server.ts
+this.client = new TranslationHelpsClient({
+  upstreamUrl: 'https://your-custom-server.com/api/mcp',
+  // ... other config
+});
+```
+
+### Multiple Server Instances
+
+You can run multiple instances with different configurations:
+
+```json
+{
+  "mcpServers": {
+    "translation-helps-full": {
+      "command": "npx",
+      "args": ["js-translation-helps-proxy"]
+    },
+    "translation-helps-simple": {
+      "command": "npx",
+      "args": [
+        "js-translation-helps-proxy",
+        "--enabled-tools",
+        "fetch_scripture",
+        "--hide-params",
+        "language,organization"
+      ]
+    }
+  }
+}
+```
+
+### Environment Variables
+
+The server respects standard Node.js environment variables:
+
+- `NODE_ENV` - Set to "development" for additional debugging
+- `NODE_OPTIONS` - Pass Node.js runtime options
+
+### Logging
+
+Logs are written to stderr to avoid interfering with the MCP protocol on stdout. To capture logs:
+
+```bash
+npx js-translation-helps-proxy 2> server.log
+```
+
+### Building from Source
+
+If you want to modify the server:
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/js-translation-helps-proxy.git
+cd js-translation-helps-proxy
+
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Run locally
+node dist/stdio-server/index.js
+```
+
+## See Also
+
+- [Main README](../README.md) - Project overview
+- [Architecture Documentation](../ARCHITECTURE.md) - Technical details
+- [Example Configurations](../examples/README.md) - More configuration examples
+- [API Documentation](./API.md) - Core API reference
+
+## Support
+
+For issues, questions, or contributions:
+
+- GitHub Issues: https://github.com/yourusername/js-translation-helps-proxy/issues
+- Documentation: https://github.com/yourusername/js-translation-helps-proxy/docs
+
+## License
+
+See [LICENSE](../LICENSE) file for details.

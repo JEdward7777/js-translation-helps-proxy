@@ -1,6 +1,7 @@
 {
   "name": "js-translation-helps-proxy",
   "version": "0.1.0",
+  "type": "module",
   "description": "TypeScript MCP proxy for translation-helps with multiple interfaces",
   "main": "dist/stdio-server.js",
   "bin": {
@@ -10,7 +11,8 @@
     "node": ">=20.17.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run postbuild",
+    "postbuild": "chmod +x dist/stdio-server/index.js",
     "dev": "tsx watch src/stdio-server/index.ts",
     "test": "vitest",
     "test:unit": "vitest run tests/unit",

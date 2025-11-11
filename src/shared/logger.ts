@@ -24,6 +24,20 @@ export class Logger {
     this.prefix = config.prefix || '[TranslationHelps]';
   }
 
+  setLevel(level: LogLevel | 'debug' | 'info' | 'warn' | 'error'): void {
+    if (typeof level === 'string') {
+      const levelMap: Record<string, LogLevel> = {
+        debug: LogLevel.DEBUG,
+        info: LogLevel.INFO,
+        warn: LogLevel.WARN,
+        error: LogLevel.ERROR
+      };
+      this.level = levelMap[level] ?? LogLevel.INFO;
+    } else {
+      this.level = level;
+    }
+  }
+
   private shouldLog(level: LogLevel): boolean {
     return level >= this.level;
   }
