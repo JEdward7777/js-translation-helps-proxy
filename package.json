@@ -1,0 +1,51 @@
+{
+  "name": "js-translation-helps-proxy",
+  "version": "0.1.0",
+  "description": "TypeScript MCP proxy for translation-helps with multiple interfaces",
+  "main": "dist/stdio-server.js",
+  "bin": {
+    "js-translation-helps-proxy": "dist/stdio-server.js"
+  },
+  "engines": {
+    "node": ">=20.17.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/stdio-server/index.ts",
+    "test": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e",
+    "test:all": "vitest run",
+    "test:watch": "vitest watch tests/unit",
+    "lint": "eslint src tests",
+    "format": "prettier --write src tests",
+    "start:stdio": "tsx src/stdio-server/index.ts",
+    "start:http": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [
+    "mcp",
+    "translation",
+    "proxy",
+    "typescript",
+    "cloudflare"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.21.1",
+    "hono": "^4.10.5",
+    "openai": "^6.8.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8",
+    "wrangler": "^4.47.0"
+  }
+}
