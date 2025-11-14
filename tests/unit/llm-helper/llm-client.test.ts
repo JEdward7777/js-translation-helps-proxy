@@ -7,7 +7,20 @@ import { LLMHelper } from '../../../src/llm-helper/index.js';
 import { ChatCompletionHandler } from '../../../src/openai-api/chat-completion.js';
 
 // Mock the ChatCompletionHandler
-vi.mock('../../../src/openai-api/chat-completion.js');
+vi.mock('../../../src/openai-api/chat-completion.js', () => {
+  // Create a proper constructor function mock
+  const MockChatCompletionHandler = vi.fn(function(this: any, config: any) {
+    // Return the mock handler instance that will be set in beforeEach
+    return mockHandlerInstance;
+  });
+  
+  return {
+    ChatCompletionHandler: MockChatCompletionHandler,
+  };
+});
+
+// Store mock handler instance at module level so the mock factory can access it
+let mockHandlerInstance: any;
 
 describe('LLMHelper', () => {
   let mockHandler: any;
@@ -22,8 +35,8 @@ describe('LLMHelper', () => {
       updateConfig: vi.fn(),
     };
     
-    // Mock the constructor to return our mock handler
-    vi.mocked(ChatCompletionHandler).mockImplementation(() => mockHandler);
+    // Update the module-level instance
+    mockHandlerInstance = mockHandler;
   });
 
   describe('constructor', () => {
