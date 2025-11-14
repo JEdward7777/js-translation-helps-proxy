@@ -93,24 +93,26 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:8787/v1",
-    api_key="not-needed"
+    api_key="sk-YOUR-OPENAI-KEY"  # Your actual OpenAI API key
 )
 
 response = client.chat.completions.create(
-    model="translation-helps-proxy",
+    model="gpt-4o-mini",  # Use any OpenAI model
     messages=[{"role": "user", "content": "Fetch John 3:16"}]
 )
 ```
 
-**Best for:** Integration with existing OpenAI-compatible tools and workflows
+**Best for:** Proxying to OpenAI with automatic Translation Helps tool injection
 
 ---
 
 ## 📖 Interface Comparison
 
-| Feature | Core API | MCP HTTP | stdio | LLM Helper | OpenAI API |
-|---------|----------|----------|-------|------------|------------|
+| Feature | Core API | MCP HTTP | stdio | LLM Helper | OpenAI Proxy |
+|---------|----------|----------|-------|------------|--------------|
 | **Language** | TypeScript/JS | Any (HTTP) | Any (MCP) | TypeScript | Any (HTTP) |
+| **Backend** | Direct | Direct | Direct | Calls LLM APIs | **Proxies to OpenAI** |
+| **API Key** | Not required | Not required | Not required | Required (LLM) | **Required (OpenAI)** |
 | **Deployment** | Library | CloudFlare Workers | Local process | Library | CloudFlare Workers |
 | **Filters** | Configurable | Client-controlled | Client-controlled | Baked-in | Baked-in |
 | **Tool Execution** | Manual | Manual | Manual | Automatic | Automatic |

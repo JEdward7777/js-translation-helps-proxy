@@ -1,17 +1,27 @@
 # OpenAI-Compatible API (Interface 4)
 
-The OpenAI-Compatible API provides a familiar REST interface for accessing Translation Helps tools, with automatic tool execution and baked-in filters for consistent behavior.
+The OpenAI-Compatible API provides a **proxy to OpenAI's API** with automatic Translation Helps tool injection and baked-in filters for consistent behavior.
 
 ## Overview
 
-**Interface 4** provides an OpenAI-compatible REST API with:
-- `/v1/chat/completions` endpoint for chat-based interactions
-- Automatic tool calling and execution
-- **Baked-in filters**: `language=en`, `organization=unfoldingWord`, filter book/chapter notes
-- Compatible with OpenAI client libraries
+**Interface 4** provides an OpenAI-compatible REST API that acts as a **proxy** to OpenAI's API with:
+- Automatic injection of Translation Helps tools
+- Iterative tool calling with local execution
+- **Baked-in filters**: `language=en`, `organization=unfoldingWord`
+- Compatible with any OpenAI model (gpt-4o-mini, gpt-4, gpt-3.5-turbo, etc.)
 - Runs on CloudFlare Workers
 
 ## Key Features
+
+### OpenAI API Proxy
+
+Interface 4 **proxies requests to OpenAI's actual API**, not a fake model:
+
+- Uses your OpenAI API key from the `Authorization` header
+- Supports any OpenAI model you have access to
+- Returns real OpenAI responses
+- Automatically injects Translation Helps tools into requests
+- Executes tool calls locally with baked-in filters
 
 ### Baked-In Filters
 
@@ -25,7 +35,32 @@ These filters are applied automatically to all tool calls and cannot be overridd
 
 ### Automatic Tool Execution
 
-The API automatically executes tool calls in chat completions, following the iterative tool execution pattern from MCP-Bridge.
+The API automatically executes tool calls in chat completions, following the iterative tool execution pattern:
+
+1. Client sends request with OpenAI API key
+2. Proxy injects Translation Helps tools
+3. Forwards request to OpenAI
+4. If OpenAI requests tool calls, executes them locally
+5. Feeds results back to OpenAI
+6. Repeats until final response or max iterations
+
+### Support for Advanced Features
+
+- **n > 1**: When multiple responses are requested, if any response has tool calls, the first tool call is executed
+- **Structured Outputs**: Full support for `response_format` parameter
+- **All OpenAI Parameters**: Temperature, max_tokens, top_p, etc.
+
+## Configuration
+
+### API Key (Required)
+
+Pass your OpenAI API key in the `Authorization` header:
+
+```bash
+Authorization: Bearer sk-YOUR-OPENAI-KEY
+```
+
+The proxy uses **your API key** to call OpenAI's API on your behalf.
 
 ## Endpoints
 
@@ -33,35 +68,16 @@ The API automatically executes tool calls in chat completions, following the ite
 
 **POST** `/v1/chat/completions`
 
-Create a chat completion with automatic tool execution.
+Create a chat completion with automatic tool injection and execution.
 
 **Request Body:**
 ```json
 {
-  "model": "translation-helps-proxy",
+  "model": "gpt-4o-mini",
   "messages": [
     {
       "role": "user",
       "content": "Fetch scripture for John 3:16"
-    }
-  ],
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "fetch_scripture",
-        "description": "Fetch Bible scripture text",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "reference": {
-              "type": "string",
-              "description": "Bible reference"
-            }
-          },
-          "required": ["reference"]
-        }
-      }
     }
   ]
 }
@@ -73,13 +89,13 @@ Create a chat completion with automatic tool execution.
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "translation-helps-proxy",
+  "model": "gpt-4o-mini",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Tool execution completed..."
+        "content": "For God so loved the world..."
       },
       "finish_reason": "stop"
     }
@@ -94,10 +110,11 @@ Create a chat completion with automatic tool execution.
 
 **Example with curl:**
 ```bash
-curl -X POST http://localhost:8000/v1/chat/completions \
+curl -X POST http://localhost:8787/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
   -d '{
-    "model": "translation-helps-proxy",
+    "model": "gpt-4o-mini",
     "messages": [
       {"role": "user", "content": "Fetch John 3:16"}
     ]
@@ -108,7 +125,7 @@ curl -X POST http://localhost:8000/v1/chat/completions \
 
 **GET** `/v1/models`
 
-List available models (returns the proxy as a model).
+List available OpenAI models (proxies to OpenAI's models endpoint).
 
 **Response:**
 ```json
@@ -116,13 +133,31 @@ List available models (returns the proxy as a model).
   "object": "list",
   "data": [
     {
-      "id": "translation-helps-proxy",
+      "id": "gpt-4o-mini",
       "object": "model",
       "created": 1234567890,
-      "owned_by": "translation-helps"
+      "owned_by": "openai"
+    },
+    {
+      "id": "gpt-4",
+      "object": "model",
+      "created": 1234567890,
+      "owned_by": "openai"
+    },
+    {
+      "id": "gpt-3.5-turbo",
+      "object": "model",
+      "created": 1234567890,
+      "owned_by": "openai"
     }
   ]
 }
+```
+
+**Example with curl:**
+```bash
+curl -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
+  http://localhost:8787/v1/models
 ```
 
 ### List Tools
@@ -186,13 +221,15 @@ Get API information and capabilities.
 **Response:**
 ```json
 {
-  "name": "translation-helps-openai-bridge",
+  "name": "translation-helps-openai-proxy",
   "version": "1.0.0",
   "api": "openai-compatible",
+  "description": "OpenAI API proxy with automatic Translation Helps tool injection",
   "capabilities": {
     "chat_completions": true,
     "tool_calling": true,
-    "streaming": false
+    "streaming": false,
+    "models_proxy": true
   },
   "config": {
     "language": "en",
@@ -210,19 +247,19 @@ Get API information and capabilities.
 ```python
 from openai import OpenAI
 
-# Configure client to use your proxy
+# Configure client to use the proxy
 client = OpenAI(
-    base_url="http://localhost:8000/v1",
-    api_key="not-needed"  # API key not required for proxy
+    base_url="http://localhost:8787/v1",
+    api_key="sk-YOUR-OPENAI-KEY"  # Your actual OpenAI API key
 )
 
-# List available tools
-response = client.get("/tools")
-print("Available tools:", response.json())
+# List available models (proxied from OpenAI)
+models = client.models.list()
+print("Available models:", [m.id for m in models.data])
 
-# Create chat completion
+# Create chat completion with any OpenAI model
 response = client.chat.completions.create(
-    model="translation-helps-proxy",
+    model="gpt-4o-mini",  # Use any OpenAI model
     messages=[
         {"role": "user", "content": "Fetch scripture for John 3:16"}
     ]
@@ -237,13 +274,13 @@ print(response.choices[0].message.content)
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'http://localhost:8000/v1',
-  apiKey: 'not-needed', // API key not required
+  baseURL: 'http://localhost:8787/v1',
+  apiKey: 'sk-YOUR-OPENAI-KEY', // Your actual OpenAI API key
 });
 
 // Create chat completion
 const completion = await client.chat.completions.create({
-  model: 'translation-helps-proxy',
+  model: 'gpt-4o-mini',
   messages: [
     { role: 'user', content: 'Fetch scripture for John 3:16' }
   ],
@@ -256,10 +293,11 @@ console.log(completion.choices[0].message.content);
 
 ```bash
 # Chat completion
-curl -X POST http://localhost:8000/v1/chat/completions \
+curl -X POST http://localhost:8787/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
   -d '{
-    "model": "translation-helps-proxy",
+    "model": "gpt-4o-mini",
     "messages": [
       {
         "role": "user",
@@ -268,33 +306,92 @@ curl -X POST http://localhost:8000/v1/chat/completions \
     ]
   }'
 
+# List models
+curl -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
+  http://localhost:8787/v1/models
+
 # List tools
-curl http://localhost:8000/v1/tools
+curl http://localhost:8787/v1/tools
 
 # Health check
-curl http://localhost:8000/health
+curl http://localhost:8787/health
+```
+
+### With Structured Outputs
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8787/v1",
+    api_key="sk-YOUR-OPENAI-KEY"
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "user", "content": "Fetch John 3:16 and format as JSON"}
+    ],
+    response_format={"type": "json_object"}
+)
+```
+
+### With Multiple Responses (n > 1)
+
+```python
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "user", "content": "Explain John 3:16"}
+    ],
+    n=3  # Request 3 different responses
+)
+
+# If any response has tool calls, the first one is executed
+for choice in response.choices:
+    print(f"Response {choice.index}: {choice.message.content}")
 ```
 
 ## Tool Execution Flow
 
 The API follows an iterative tool execution pattern:
 
-1. **Receive Request**: Client sends chat completion request
-2. **Extract Tool Calls**: Parse any tool calls from messages
-3. **Apply Filters**: Automatically apply baked-in filters (language=en, etc.)
-4. **Execute Tools**: Call tools via TranslationHelpsClient
-5. **Format Results**: Convert results to OpenAI tool message format
-6. **Return Response**: Send completion with tool results
+1. **Receive Request**: Client sends chat completion request with Authorization header
+2. **Extract API Key**: Extract OpenAI API key from Authorization header
+3. **Inject Tools**: Add Translation Helps tools to request
+4. **Call OpenAI**: Forward request to OpenAI with client's API key and model
+5. **Check for Tool Calls**: If OpenAI requests tool execution, proceed to step 6
+6. **Apply Filters**: Automatically apply baked-in filters (language=en, etc.)
+7. **Execute Tools**: Call tools locally via TranslationHelpsClient
+8. **Feed Back Results**: Send tool results back to OpenAI
+9. **Repeat**: Continue loop until final response or max iterations
+10. **Return Response**: Send OpenAI's actual response to client
 
 ### Example Flow
 
 ```
 User Request:
   "Fetch scripture for John 3:16"
+  Authorization: Bearer sk-abc123
+  Model: gpt-4o-mini
 
 ↓
 
-Tool Call Detected:
+Proxy Injects Tools:
+  + fetch_scripture
+  + fetch_translation_notes
+  + fetch_translation_questions
+  + ...
+
+↓
+
+Call OpenAI API:
+  Using client's API key (sk-abc123)
+  Using client's model (gpt-4o-mini)
+
+↓
+
+OpenAI Requests Tool Call:
   fetch_scripture(reference="John 3:16")
 
 ↓
@@ -308,13 +405,23 @@ Filters Applied:
 
 ↓
 
-Tool Executed:
+Tool Executed Locally:
   Result: "For God so loved the world..."
 
 ↓
 
-Response Returned:
-  Assistant message with scripture text
+Results Fed Back to OpenAI:
+  Tool result added to conversation
+
+↓
+
+OpenAI Returns Final Response:
+  "John 3:16 says: For God so loved the world..."
+
+↓
+
+Response Returned to Client:
+  Real OpenAI response with scripture
 ```
 
 ## Configuration
@@ -379,9 +486,12 @@ npm run dev:http
 
 ## Comparison with Interface 2 (MCP)
 
-| Feature | Interface 4 (OpenAI) | Interface 2 (MCP) |
-|---------|---------------------|-------------------|
+| Feature | Interface 4 (OpenAI Proxy) | Interface 2 (MCP) |
+|---------|---------------------------|-------------------|
 | API Style | REST (OpenAI-compatible) | MCP over HTTP |
+| Backend | **Proxies to OpenAI** | Direct tool execution |
+| Models | **Any OpenAI model** | N/A |
+| API Key | **Required (your OpenAI key)** | Not required |
 | Filters | **Baked-in** (language=en) | Client-controlled |
 | Tool Execution | Automatic | Manual |
 | Use Case | LLM integrations | MCP clients |
@@ -391,20 +501,35 @@ npm run dev:http
 
 ### 1. Use for LLM Integrations
 
-Interface 4 is ideal for integrating with LLMs that support OpenAI-compatible APIs:
+Interface 4 is ideal for integrating with LLMs using OpenAI-compatible APIs:
 
 ```python
-# Works with any OpenAI-compatible LLM
-client = OpenAI(base_url="http://your-proxy.com/v1")
+# Works with any OpenAI-compatible LLM client
+client = OpenAI(
+    base_url="http://your-proxy.com/v1",
+    api_key="sk-YOUR-OPENAI-KEY"
+)
 ```
 
-### 2. Rely on Baked-In Filters
+### 2. Choose Cost-Effective Models
+
+Use cheaper models like `gpt-4o-mini` or `gpt-3.5-turbo` for development and testing:
+
+```python
+response = client.chat.completions.create(
+    model="gpt-4o-mini",  # Cheapest option
+    messages=[{"role": "user", "content": "Fetch John 3:16"}]
+)
+```
+
+### 3. Rely on Baked-In Filters
 
 Don't try to override the baked-in filters - they ensure consistent behavior:
 
 ```typescript
 // ✅ Good - filters applied automatically
 await client.chat.completions.create({
+  model: 'gpt-4o-mini',
   messages: [{ role: 'user', content: 'Fetch John 3:16' }]
 });
 
@@ -412,13 +537,13 @@ await client.chat.completions.create({
 // Filters are baked-in and cannot be changed
 ```
 
-### 3. Handle Tool Results
+### 4. Handle Tool Results
 
 Tool execution is automatic, but you can access results in the response:
 
 ```typescript
 const response = await client.chat.completions.create({
-  model: 'translation-helps-proxy',
+  model: 'gpt-4o-mini',
   messages: [
     { role: 'user', content: 'Fetch scripture for John 3:16' }
   ],
@@ -428,15 +553,68 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content);
 ```
 
+### 5. Secure Your API Key
+
+Never expose your OpenAI API key in client-side code:
+
+```typescript
+// ✅ Good - API key on server
+const client = new OpenAI({
+  baseURL: 'http://your-proxy.com/v1',
+  apiKey: process.env.OPENAI_API_KEY, // From environment
+});
+
+// ❌ Bad - API key in client code
+// Never hardcode API keys in frontend code
+```
+
 ## Limitations
 
 - **No Streaming**: Streaming responses not yet supported
 - **Fixed Filters**: Language and organization cannot be changed per request
 - **English Only**: Baked-in language filter set to English
 - **Max Iterations**: Tool execution limited to 5 iterations by default
+- **Requires OpenAI API Key**: You must provide your own OpenAI API key
+
+## Error Handling
+
+### Missing Authorization Header
+
+```json
+{
+  "error": {
+    "message": "Missing or invalid Authorization header. Expected: Authorization: Bearer sk-...",
+    "type": "invalid_request_error"
+  }
+}
+```
+
+### Invalid API Key
+
+```json
+{
+  "error": {
+    "message": "Invalid API key",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key"
+  }
+}
+```
+
+### Invalid Model
+
+```json
+{
+  "error": {
+    "message": "The model 'invalid-model' does not exist",
+    "type": "invalid_request_error"
+  }
+}
+```
 
 ## See Also
 
 - [MCP Server Documentation](./MCP_SERVER.md) - Interface 2 with client-controlled filters
 - [stdio Server Documentation](./STDIO_SERVER.md) - Interface 3 for CLI usage
+- [LLM Helper Documentation](./LLM_HELPER.md) - Interface 3.5 for TypeScript LLM integration
 - [Main README](../README.md) - Project overview

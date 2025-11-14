@@ -5,10 +5,25 @@
 
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import OpenAI from 'openai';
 import { ChatCompletionHandler } from './chat-completion.js';
 import { OpenAIBridgeConfig, ChatCompletionRequest, OpenAIAPIError } from './types.js';
 import { mcpToolsToOpenAI } from './tool-mapper.js';
 import { logger } from '../shared/index.js';
+
+/**
+ * Extract API key from Authorization header
+ */
+function extractApiKey(authHeader: string | undefined): string {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new OpenAIAPIError(
+      'Missing or invalid Authorization header. Expected: Authorization: Bearer sk-...',
+      401,
+      'invalid_request_error'
+    );
+  }
+  return authHeader.substring(7); // Remove 'Bearer ' prefix
+}
 
 /**
  * Create Hono routes for OpenAI API
@@ -36,10 +51,14 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
 
   /**
    * POST /v1/chat/completions
-   * Main chat completion endpoint
+   * Main chat completion endpoint - proxies to OpenAI with tool injection
    */
   app.post('/v1/chat/completions', async (c) => {
     try {
+      // Extract API key from Authorization header
+      const authHeader = c.req.header('Authorization');
+      const apiKey = extractApiKey(authHeader);
+
       const body = await c.req.json() as ChatCompletionRequest;
       
       logger.debug('Received chat completion request', {
@@ -47,8 +66,8 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
         messageCount: body.messages?.length,
       });
 
-      // Handle the request
-      const response = await handler.handleChatCompletion(body);
+      // Handle the request with user's API key
+      const response = await handler.handleChatCompletion(body, apiKey);
 
       return c.json(response);
     } catch (error) {
@@ -69,24 +88,37 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
 
   /**
    * GET /v1/models
-   * List available models
+   * List available models - proxies to OpenAI's models endpoint
    */
   app.get('/v1/models', async (c) => {
     try {
-      // Return a list of "models" (actually just our proxy)
-      return c.json({
-        object: 'list',
-        data: [
-          {
-            id: 'translation-helps-proxy',
-            object: 'model',
-            created: Math.floor(Date.now() / 1000),
-            owned_by: 'translation-helps',
-          },
-        ],
-      });
+      // Extract API key from Authorization header
+      const authHeader = c.req.header('Authorization');
+      const apiKey = extractApiKey(authHeader);
+
+      // Proxy to OpenAI's models endpoint
+      const openai = new OpenAI({ apiKey });
+      const models = await openai.models.list();
+
+      return c.json(models);
     } catch (error) {
       logger.error('Error listing models', error);
+
+      if (error instanceof OpenAIAPIError) {
+        return c.json(error.toJSON(), error.statusCode as any);
+      }
+
+      // Handle OpenAI SDK errors
+      if (error && typeof error === 'object' && 'status' in error) {
+        const openaiError = error as any;
+        return c.json({
+          error: {
+            message: openaiError.message || 'OpenAI API error',
+            type: openaiError.type || 'api_error',
+          },
+        }, openaiError.status || 500);
+      }
+
       return c.json({
         error: {
           message: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -156,13 +188,15 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
    */
   app.get('/v1/info', (c) => {
     return c.json({
-      name: 'translation-helps-openai-bridge',
+      name: 'translation-helps-openai-proxy',
       version: '1.0.0',
       api: 'openai-compatible',
+      description: 'OpenAI API proxy with automatic Translation Helps tool injection',
       capabilities: {
         chat_completions: true,
         tool_calling: true,
         streaming: false,
+        models_proxy: true,
       },
       config: {
         language: config.language || 'en',

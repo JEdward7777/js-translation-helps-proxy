@@ -99,8 +99,9 @@ Both options start the server at `http://localhost:8787`. Test the endpoints:
 # Health check
 curl http://localhost:8787/health
 
-# List models (OpenAI API)
-curl http://localhost:8787/v1/models
+# List models (OpenAI API - requires API key)
+curl -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
+  http://localhost:8787/v1/models
 
 # MCP server info
 curl http://localhost:8787/mcp/info
@@ -136,11 +137,12 @@ WORKER_URL="https://js-translation-helps-proxy.your-subdomain.workers.dev"
 # Health check
 curl $WORKER_URL/health
 
-# Test OpenAI API
+# Test OpenAI API (requires your OpenAI API key)
 curl -X POST $WORKER_URL/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
   -d '{
-    "model": "translation-helps-proxy",
+    "model": "gpt-4o-mini",
     "messages": [{"role": "user", "content": "Fetch John 3:16"}]
   }'
 ```
@@ -571,24 +573,28 @@ jobs:
 
 ### Secrets Management
 
-For sensitive data (API keys, etc.):
+For sensitive data like API keys:
+
+**Note:** Interface 4 (OpenAI API) uses the client's API key from the `Authorization` header, not a server-side key. The proxy passes the client's key to OpenAI.
+
+If you need to store other secrets:
 
 ```bash
 # Set secret in CloudFlare Workers
-npx wrangler secret put OPENAI_API_KEY
+npx wrangler secret put MY_SECRET_KEY
 
 # List secrets
 npx wrangler secret list
 
 # Delete secret
-npx wrangler secret delete OPENAI_API_KEY
+npx wrangler secret delete MY_SECRET_KEY
 ```
 
 Access secrets in code:
 
 ```typescript
 // In CloudFlare Workers environment
-const apiKey = env.OPENAI_API_KEY;
+const secretKey = env.MY_SECRET_KEY;
 ```
 
 ---

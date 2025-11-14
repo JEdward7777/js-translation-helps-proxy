@@ -291,7 +291,7 @@ console.log(response.message.content);
 
 ### Interface 4: OpenAI-Compatible API
 
-REST API with OpenAI-compatible endpoints and **baked-in filters** for consistent behavior.
+REST API that **proxies to OpenAI** with automatic Translation Helps tool injection and **baked-in filters**.
 
 **Start Server:**
 
@@ -309,7 +309,7 @@ npm run deploy
 **Endpoints:**
 
 - `POST /v1/chat/completions` - Chat completions with tool execution
-- `GET /v1/models` - List available models
+- `GET /v1/models` - List available OpenAI models (proxied)
 - `GET /v1/tools` - List available tools
 - `GET /health` - Health check
 
@@ -320,11 +320,11 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:8787/v1",
-    api_key="not-needed"
+    api_key="sk-YOUR-OPENAI-KEY"  # Your actual OpenAI API key
 )
 
 response = client.chat.completions.create(
-    model="translation-helps-proxy",
+    model="gpt-4o-mini",  # Use any OpenAI model
     messages=[
         {"role": "user", "content": "Fetch scripture for John 3:16"}
     ]
@@ -338,8 +338,9 @@ print(response.choices[0].message.content)
 ```bash
 curl -X POST http://localhost:8787/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
   -d '{
-    "model": "translation-helps-proxy",
+    "model": "gpt-4o-mini",
     "messages": [
       {"role": "user", "content": "Fetch John 3:16"}
     ]
@@ -347,9 +348,11 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 ```
 
 **Key Features:**
+- ✅ **Proxies to OpenAI**: Uses real OpenAI models and API
+- ✅ **Automatic tool injection**: Translation Helps tools added automatically
 - ✅ **Baked-in filters**: `language=en`, `organization=unfoldingWord`
-- ✅ Automatic tool execution
-- ✅ OpenAI-compatible (works with OpenAI SDKs)
+- ✅ **Iterative tool execution**: Handles tool calling loops
+- ✅ **Supports n > 1 and structured outputs**
 - ✅ CloudFlare Workers compatible
 
 **Documentation:** [OpenAI API Guide](docs/OPENAI_API.md)
@@ -358,14 +361,16 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 
 ## Interface Comparison
 
-| Feature | Interface 1 (Core) | Interface 2 (MCP HTTP) | Interface 3 (stdio) | Interface 3.5 (LLM Helper) | Interface 4 (OpenAI) |
-|---------|-------------------|----------------------|-------------------|---------------------------|---------------------|
+| Feature | Interface 1 (Core) | Interface 2 (MCP HTTP) | Interface 3 (stdio) | Interface 3.5 (LLM Helper) | Interface 4 (OpenAI Proxy) |
+|---------|-------------------|----------------------|-------------------|---------------------------|---------------------------|
 | **Transport** | Direct API | HTTP | stdio | TypeScript API | REST |
+| **Backend** | Direct | Direct | Direct | Calls LLM APIs | **Proxies to OpenAI** |
+| **API Key** | Not required | Not required | Not required | Required (LLM) | **Required (OpenAI)** |
+| **Models** | N/A | N/A | N/A | OpenAI, Anthropic | **Any OpenAI model** |
 | **Filters** | Configurable | Client-controlled | Client-controlled | **Baked-in** | **Baked-in** |
 | **Use Case** | TypeScript apps | Web services | Desktop apps | LLM integrations (code) | LLM integrations (REST) |
 | **Deployment** | Library | CloudFlare Workers | Local process | Library | CloudFlare Workers |
 | **Tool Execution** | Manual | Manual | Manual | **Automatic** | **Automatic** |
-| **LLM Provider** | N/A | N/A | N/A | OpenAI, Anthropic | Any (OpenAI-compatible) |
 
 **Choose Interface 2 or 3** when you need client-controlled filters.
 **Choose Interface 3.5** when you need programmatic LLM integration with automatic tools (TypeScript).

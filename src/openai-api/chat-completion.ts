@@ -1,8 +1,9 @@
 /**
- * Chat completion handler with tool execution
- * Based on MCP-Bridge sampler logic for iterative tool calling
+ * Chat completion handler with OpenAI proxy and tool execution
+ * Proxies requests to OpenAI's API with automatic Translation Helps tool injection
  */
 
+import OpenAI from 'openai';
 import { TranslationHelpsClient } from '../core/index.js';
 import {
   ChatCompletionRequest,
@@ -17,12 +18,11 @@ import {
   openaiToolCallToMCP,
   mcpResultToOpenAI,
   applyBakedInFilters,
-  extractToolCallsFromMessages,
 } from './tool-mapper.js';
 import { logger } from '../shared/index.js';
 
 /**
- * Chat completion handler with automatic tool execution
+ * Chat completion handler with OpenAI proxy and automatic tool execution
  */
 export class ChatCompletionHandler {
   private client: TranslationHelpsClient;
@@ -39,7 +39,7 @@ export class ChatCompletionHandler {
       timeout: config.timeout || 30000,
     };
 
-    // Initialize client with baked-in filters
+    // Initialize translation helps client with baked-in filters
     this.client = new TranslationHelpsClient({
       upstreamUrl: this.config.upstreamUrl,
       timeout: this.config.timeout,
@@ -54,14 +54,18 @@ export class ChatCompletionHandler {
   }
 
   /**
-   * Handle chat completion request
+   * Handle chat completion request - proxies to OpenAI with tool injection
    */
-  async handleChatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+  async handleChatCompletion(
+    request: ChatCompletionRequest,
+    apiKey: string
+  ): Promise<ChatCompletionResponse> {
     try {
       logger.debug('Handling chat completion request', {
         model: request.model,
         messageCount: request.messages.length,
         hasTools: !!request.tools,
+        n: request.n,
       });
 
       // Validate request
@@ -72,26 +76,21 @@ export class ChatCompletionHandler {
         throw new OpenAIAPIError('Streaming is not yet supported', 400, 'invalid_request_error');
       }
 
-      // Get available tools
+      // Initialize OpenAI client with user's API key
+      const openai = new OpenAI({ apiKey });
+
+      // Get translation helps tools
       const mcpTools = await this.client.listTools();
       const openaiTools = mcpToolsToOpenAI(mcpTools);
 
-      // Execute tool calls if present in messages
-      if (this.config.enableToolExecution) {
-        const toolCalls = extractToolCallsFromMessages(request.messages);
-        
-        if (toolCalls.length > 0) {
-          logger.info(`Found ${toolCalls.length} tool calls to execute`);
-          const updatedMessages = await this.executeToolCalls(
-            request.messages,
-            toolCalls
-          );
-          request.messages = updatedMessages;
-        }
-      }
+      logger.info(`Injecting ${openaiTools.length} translation helps tools`);
 
-      // Create response
-      const response = this.createResponse(request, openaiTools);
+      // Execute iterative tool calling loop
+      const response = await this.executeToolCallingLoop(
+        openai,
+        request,
+        openaiTools
+      );
 
       logger.info('Chat completion completed successfully');
       return response;
@@ -100,6 +99,16 @@ export class ChatCompletionHandler {
       
       if (error instanceof OpenAIAPIError) {
         throw error;
+      }
+      
+      // Handle OpenAI SDK errors
+      if (error && typeof error === 'object' && 'status' in error) {
+        const openaiError = error as any;
+        throw new OpenAIAPIError(
+          openaiError.message || 'OpenAI API error',
+          openaiError.status || 500,
+          openaiError.type || 'api_error'
+        );
       }
       
       throw new OpenAIAPIError(
@@ -111,22 +120,86 @@ export class ChatCompletionHandler {
   }
 
   /**
-   * Execute tool calls iteratively
+   * Execute iterative tool calling loop with OpenAI
+   * Supports n > 1 and structured outputs
    */
-  private async executeToolCalls(
-    messages: ChatCompletionMessage[],
-    toolCalls: ToolCall[]
-  ): Promise<ChatCompletionMessage[]> {
-    const updatedMessages = [...messages];
+  private async executeToolCallingLoop(
+    openai: OpenAI,
+    request: ChatCompletionRequest,
+    tools: any[]
+  ): Promise<ChatCompletionResponse> {
+    let currentMessages = [...request.messages];
     let iteration = 0;
+    const n = request.n || 1;
 
-    while (toolCalls.length > 0 && iteration < this.config.maxToolIterations) {
+    while (iteration < this.config.maxToolIterations) {
       iteration++;
-      logger.debug(`Tool execution iteration ${iteration}/${this.config.maxToolIterations}`);
+      logger.debug(`Tool calling iteration ${iteration}/${this.config.maxToolIterations}`);
+
+      // Build request parameters, preserving all OpenAI options including structured outputs
+      const requestParams: any = {
+        model: request.model,
+        messages: currentMessages as any,
+        tools: tools,
+        n: n, // Preserve n parameter
+      };
+
+      // Add optional parameters if present
+      if (request.tool_choice !== undefined) requestParams.tool_choice = request.tool_choice;
+      if (request.temperature !== undefined) requestParams.temperature = request.temperature;
+      if (request.top_p !== undefined) requestParams.top_p = request.top_p;
+      if (request.max_tokens !== undefined) requestParams.max_tokens = request.max_tokens;
+      if (request.presence_penalty !== undefined) requestParams.presence_penalty = request.presence_penalty;
+      if (request.frequency_penalty !== undefined) requestParams.frequency_penalty = request.frequency_penalty;
+      if (request.stop !== undefined) requestParams.stop = request.stop;
+      if (request.user !== undefined) requestParams.user = request.user;
+      if (request.logit_bias !== undefined) requestParams.logit_bias = request.logit_bias;
+      
+      // Support for structured outputs (response_format)
+      if ((request as any).response_format !== undefined) {
+        requestParams.response_format = (request as any).response_format;
+      }
+
+      // Call OpenAI with tools
+      const response = await openai.chat.completions.create(requestParams);
+
+      // Check if any of the n responses has tool calls
+      let hasToolCalls = false;
+      let firstToolCallChoice = null;
+
+      for (const choice of response.choices) {
+        if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
+          hasToolCalls = true;
+          firstToolCallChoice = choice;
+          break;
+        }
+      }
+
+      // If no tool calls in any response, return the response
+      if (!hasToolCalls) {
+        logger.info('No tool calls requested in any response, returning');
+        return response as ChatCompletionResponse;
+      }
+
+      // Tool calls requested - execute them if enabled
+      if (!this.config.enableToolExecution) {
+        logger.info('Tool execution disabled, returning response with tool calls');
+        return response as ChatCompletionResponse;
+      }
+
+      const message = firstToolCallChoice!.message;
+      logger.info(`Executing ${message.tool_calls!.length} tool calls from first choice`);
+
+      // Add assistant message with tool calls to conversation
+      currentMessages.push({
+        role: 'assistant',
+        content: message.content,
+        tool_calls: message.tool_calls as ToolCall[],
+      });
 
       // Execute all tool calls in parallel
       const toolResults = await Promise.all(
-        toolCalls.map(async (toolCall) => {
+        message.tool_calls!.map(async (toolCall: any) => {
           try {
             const mcpCall = openaiToolCallToMCP(toolCall);
             
@@ -162,69 +235,30 @@ export class ChatCompletionHandler {
       );
 
       // Add tool results to messages
-      updatedMessages.push(...toolResults);
-
-      // Check if there are more tool calls to execute
-      // In a real implementation, this would involve calling an LLM
-      // For now, we just execute the tools and return
-      break;
+      currentMessages.push(...toolResults);
     }
 
-    if (iteration >= this.config.maxToolIterations) {
-      logger.warn(`Reached maximum tool iterations (${this.config.maxToolIterations})`);
-    }
-
-    return updatedMessages;
-  }
-
-  /**
-   * Create chat completion response
-   */
-  private createResponse(
-    request: ChatCompletionRequest,
-    tools: any[]
-  ): ChatCompletionResponse {
-    // Get the last message or create a default response
-    const lastMessage = request.messages[request.messages.length - 1];
+    // Max iterations reached - return final response
+    logger.warn(`Reached maximum tool iterations (${this.config.maxToolIterations})`);
     
-    let responseMessage: ChatCompletionMessage;
-    
-    if (lastMessage.role === 'tool') {
-      // If last message is a tool result, create assistant response
-      responseMessage = {
-        role: 'assistant',
-        content: 'Tool execution completed. The results are available in the conversation history.',
-      };
-    } else {
-      // Otherwise, provide tools information
-      responseMessage = {
-        role: 'assistant',
-        content: `I have access to ${tools.length} translation helps tools. You can ask me to fetch scripture, translation notes, translation questions, translation words, and more.`,
-      };
-    }
-
-    const response: ChatCompletionResponse = {
-      id: `chatcmpl-${this.generateId()}`,
-      object: 'chat.completion',
-      created: Math.floor(Date.now() / 1000),
+    // Make one final call to get a response (without tools to avoid infinite loop)
+    const finalRequestParams: any = {
       model: request.model,
-      choices: [
-        {
-          index: 0,
-          message: responseMessage,
-          finish_reason: 'stop',
-        },
-      ],
-      usage: {
-        prompt_tokens: this.estimateTokens(request.messages),
-        completion_tokens: this.estimateTokens([responseMessage]),
-        total_tokens: 0,
-      },
+      messages: currentMessages as any,
+      n: n, // Preserve n parameter
     };
 
-    response.usage!.total_tokens = response.usage!.prompt_tokens + response.usage!.completion_tokens;
+    // Add optional parameters for final call
+    if (request.temperature !== undefined) finalRequestParams.temperature = request.temperature;
+    if (request.top_p !== undefined) finalRequestParams.top_p = request.top_p;
+    if (request.max_tokens !== undefined) finalRequestParams.max_tokens = request.max_tokens;
+    if ((request as any).response_format !== undefined) {
+      finalRequestParams.response_format = (request as any).response_format;
+    }
 
-    return response;
+    const finalResponse = await openai.chat.completions.create(finalRequestParams);
+
+    return finalResponse as ChatCompletionResponse;
   }
 
   /**
@@ -258,30 +292,6 @@ export class ChatCompletionHandler {
         );
       }
     }
-  }
-
-  /**
-   * Generate unique ID for responses
-   */
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 15) + 
-           Math.random().toString(36).substring(2, 15);
-  }
-
-  /**
-   * Estimate token count (rough approximation)
-   */
-  private estimateTokens(messages: ChatCompletionMessage[]): number {
-    let total = 0;
-    for (const message of messages) {
-      if (message.content) {
-        // Rough estimate: ~4 characters per token
-        total += Math.ceil(message.content.length / 4);
-      }
-      // Add overhead for message structure
-      total += 4;
-    }
-    return total;
   }
 
   /**
