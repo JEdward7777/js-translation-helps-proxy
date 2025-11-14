@@ -15,6 +15,7 @@
     "postbuild": "chmod +x dist/stdio-server/index.js",
     "dev": "tsx watch src/stdio-server/index.ts",
     "dev:http": "wrangler dev",
+    "dev:node": "tsx watch src/openai-api/start-node.ts",
     "test": "vitest",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
@@ -25,6 +26,7 @@
     "format": "prettier --write src tests",
     "start:stdio": "tsx src/stdio-server/index.ts",
     "start:http": "wrangler dev",
+    "start:node": "node dist/openai-api/start-node.js",
     "deploy": "wrangler deploy",
     "deploy:production": "wrangler deploy --env production"
   },
@@ -38,6 +40,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hono/node-server": "^1.19.6",
     "@modelcontextprotocol/sdk": "^1.21.1",
     "hono": "^4.10.5",
     "openai": "^6.8.1",

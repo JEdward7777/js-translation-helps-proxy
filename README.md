@@ -92,8 +92,14 @@ npm install
 # Build the project
 npm run build
 
-# Run in development mode
+# Run in development mode (stdio server)
 npm run dev
+
+# Run HTTP server in development mode (Wrangler)
+npm run dev:http
+
+# Run HTTP server in development mode (Native Node.js with debugging)
+npm run dev:node
 
 # Run tests
 npm run test
@@ -143,8 +149,11 @@ Web-based MCP server with client-controlled filters, perfect for web services an
 **Start Server:**
 
 ```bash
-# Development
+# Development (Wrangler - CloudFlare Workers local runtime)
 npm run dev:http
+
+# Development (Native Node.js - better for debugging)
+npm run dev:node
 
 # Production (CloudFlare Workers)
 npm run deploy
@@ -289,8 +298,11 @@ REST API with OpenAI-compatible endpoints and **baked-in filters** for consisten
 **Start Server:**
 
 ```bash
-# Development
+# Development (Wrangler - CloudFlare Workers local runtime)
 npm run dev:http
+
+# Development (Native Node.js - better for debugging)
+npm run dev:node
 
 # Production (CloudFlare Workers)
 npm run deploy
@@ -378,7 +390,12 @@ npx js-translation-helps-proxy
 Use **Interface 2** (MCP HTTP):
 
 ```bash
+# Using Wrangler (CloudFlare Workers runtime)
 npm run dev:http
+# Access at http://localhost:8787/mcp/*
+
+# Using Native Node.js (better for debugging)
+npm run dev:node
 # Access at http://localhost:8787/mcp/*
 ```
 
@@ -387,7 +404,12 @@ npm run dev:http
 Use **Interface 4** (OpenAI API):
 
 ```bash
+# Using Wrangler (CloudFlare Workers runtime)
 npm run dev:http
+# Access at http://localhost:8787/v1/*
+
+# Using Native Node.js (better for debugging)
+npm run dev:node
 # Access at http://localhost:8787/v1/*
 ```
 
@@ -469,12 +491,31 @@ See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete deployment guide.
 ### Local Development
 
 ```bash
-# Start HTTP server
+# Start HTTP server (Wrangler - CloudFlare Workers runtime)
 npm run dev:http
+
+# Start HTTP server (Native Node.js - better for debugging)
+npm run dev:node
 
 # Start stdio server
 npm run dev
 ```
+
+### VSCode Debugging
+
+The project includes VSCode launch configurations for debugging:
+
+1. **Debug Node.js Server (Interface 4)** - Debug the HTTP server with breakpoints
+2. **Debug stdio Server (Interface 3)** - Debug the stdio server
+3. **Debug Current Test File** - Debug the currently open test file
+
+To use:
+1. Open the file you want to debug
+2. Set breakpoints by clicking in the gutter
+3. Press `F5` or go to Run > Start Debugging
+4. Select the appropriate debug configuration
+
+The server will start with `LOG_LEVEL=debug` for detailed logging.
 
 ## 🤝 Contributing
 

@@ -81,11 +81,19 @@ This compiles TypeScript to JavaScript in the `dist/` directory.
 
 ### Step 5: Test Locally
 
+You can test locally using either Wrangler (CloudFlare Workers runtime) or Native Node.js:
+
+**Option A: Using Wrangler (CloudFlare Workers runtime)**
 ```bash
 npm run dev:http
 ```
 
-The server will start at `http://localhost:8787`. Test the endpoints:
+**Option B: Using Native Node.js (better for debugging)**
+```bash
+npm run dev:node
+```
+
+Both options start the server at `http://localhost:8787`. Test the endpoints:
 
 ```bash
 # Health check
@@ -143,12 +151,27 @@ curl -X POST $WORKER_URL/v1/chat/completions \
 
 ### Development Server
 
+You have three options for local development:
+
+**Option 1: Wrangler (CloudFlare Workers runtime)**
 ```bash
 # Start development server with hot reload
 npm run dev:http
 
 # Or use wrangler directly
 npx wrangler dev
+```
+
+**Option 2: Native Node.js (better for debugging)**
+```bash
+# Start development server with hot reload and debugging support
+npm run dev:node
+```
+
+**Option 3: stdio Server (for MCP clients)**
+```bash
+# Start stdio server for Claude Desktop/Cline
+npm run dev
 ```
 
 ### Development with stdio Server
@@ -175,6 +198,37 @@ npm run test:e2e
 # Watch mode for development
 npm run test:watch
 ```
+
+### Debugging with VSCode
+
+The project includes VSCode launch configurations for debugging. To debug:
+
+1. **Set breakpoints** in your code by clicking in the gutter next to line numbers
+2. **Open the Run and Debug panel** (Ctrl+Shift+D or Cmd+Shift+D)
+3. **Select a debug configuration:**
+   - `Debug Node.js Server (Interface 4)` - Debug HTTP server with hot reload
+   - `Debug Node.js Server (Built)` - Debug compiled HTTP server
+   - `Debug stdio Server (Interface 3)` - Debug stdio server
+   - `Debug Current Test File` - Debug the currently open test file
+4. **Press F5** or click the green play button to start debugging
+
+The debugger will:
+- Stop at your breakpoints
+- Allow you to inspect variables
+- Step through code execution
+- View call stacks
+- Evaluate expressions in the debug console
+
+**Example debugging workflow:**
+```bash
+# 1. Open src/openai-api/start-node.ts
+# 2. Set a breakpoint on line 35 (where the server starts)
+# 3. Press F5 and select "Debug Node.js Server (Interface 4)"
+# 4. The debugger will stop at your breakpoint
+# 5. Use the debug toolbar to step through code
+```
+
+**Note:** The Native Node.js server (`npm run dev:node`) is recommended for debugging as it provides better source map support and faster reload times than Wrangler.
 
 ---
 
