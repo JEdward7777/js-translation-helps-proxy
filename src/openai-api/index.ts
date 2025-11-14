@@ -16,11 +16,11 @@ export interface UnifiedServerConfig {
     filterBookChapterNotes?: boolean;
   };
   
-  // OpenAI API config (Interface 4) - baked-in filters
+  // OpenAI API config (Interface 4) - now uses same filter approach as Interface 3.5
   openai?: {
-    language?: string; // Default: 'en'
+    enabledTools?: string[]; // Limit which tools are available
+    hiddenParams?: string[]; // Hide parameters from LLM (e.g., ['language', 'organization'])
     filterBookChapterNotes?: boolean; // Default: true
-    organization?: string; // Default: 'unfoldingWord'
     maxToolIterations?: number;
     enableToolExecution?: boolean;
   };
@@ -63,11 +63,11 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
   });
 
   // Mount OpenAI routes (Interface 4)
-  // Baked-in filters: language=en, filterBookChapterNotes=true
+  // Now uses FilterEngine like Interface 3.5
   const openaiRoutes = createOpenAIRoutes({
-    language: config.openai?.language || 'en',
+    enabledTools: config.openai?.enabledTools,
+    hiddenParams: config.openai?.hiddenParams,
     filterBookChapterNotes: config.openai?.filterBookChapterNotes ?? true,
-    organization: config.openai?.organization || 'unfoldingWord',
     maxToolIterations: config.openai?.maxToolIterations || 5,
     enableToolExecution: config.openai?.enableToolExecution ?? true,
     upstreamUrl: config.upstreamUrl,
@@ -77,9 +77,9 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
 
   logger.info('OpenAI-compatible API interface mounted', {
     endpoints: ['/v1/chat/completions', '/v1/models', '/v1/tools', '/health'],
-    bakedInFilters: {
-      language: config.openai?.language || 'en',
-      organization: config.openai?.organization || 'unfoldingWord',
+    filters: {
+      enabledTools: config.openai?.enabledTools?.length || 'all',
+      hiddenParams: config.openai?.hiddenParams?.length || 'none',
       filterBookChapterNotes: config.openai?.filterBookChapterNotes ?? true,
     },
   });
@@ -100,7 +100,7 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
           },
         },
         openai: {
-          description: 'OpenAI-compatible API with baked-in filters',
+          description: 'OpenAI-compatible API with configurable filters',
           endpoints: {
             chatCompletions: '/v1/chat/completions',
             models: '/v1/models',
@@ -108,9 +108,9 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
             health: '/health',
             info: '/v1/info',
           },
-          bakedInFilters: {
-            language: config.openai?.language || 'en',
-            organization: config.openai?.organization || 'unfoldingWord',
+          filters: {
+            enabledTools: config.openai?.enabledTools?.length || 'all',
+            hiddenParams: config.openai?.hiddenParams?.length || 'none',
             filterBookChapterNotes: config.openai?.filterBookChapterNotes ?? true,
           },
         },
@@ -151,8 +151,8 @@ export default {
       timeout: env.TIMEOUT ? parseInt(env.TIMEOUT) : undefined,
       logLevel: env.LOG_LEVEL as any,
       openai: {
-        language: env.OPENAI_LANGUAGE || 'en',
-        organization: env.OPENAI_ORGANIZATION || 'unfoldingWord',
+        enabledTools: env.OPENAI_ENABLED_TOOLS ? env.OPENAI_ENABLED_TOOLS.split(',') : undefined,
+        hiddenParams: env.OPENAI_HIDDEN_PARAMS ? env.OPENAI_HIDDEN_PARAMS.split(',') : undefined,
         filterBookChapterNotes: env.OPENAI_FILTER_NOTES !== 'false',
         maxToolIterations: env.OPENAI_MAX_ITERATIONS ? parseInt(env.OPENAI_MAX_ITERATIONS) : 5,
       },

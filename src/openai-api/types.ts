@@ -190,10 +190,10 @@ export interface ToolExecutionContext {
 // ============================================================================
 
 export interface OpenAIBridgeConfig {
-  // Baked-in filters for OpenAI interface
-  language?: string; // Default: 'en'
+  // Filter configuration (consistent with Interface 3.5)
+  enabledTools?: string[]; // Limit which tools are available
+  hiddenParams?: string[]; // Hide parameters from LLM (e.g., ['language', 'organization'])
   filterBookChapterNotes?: boolean; // Default: true
-  organization?: string; // Default: 'unfoldingWord'
   
   // Tool execution settings
   maxToolIterations?: number; // Default: 5

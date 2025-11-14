@@ -93,58 +93,6 @@ export function mcpResultToOpenAI(
 }
 
 /**
- * Apply baked-in filters to tool arguments for OpenAI interface
- * Ensures language=en and organization=unfoldingWord
- */
-export function applyBakedInFilters(
-  toolName: string,
-  args: Record<string, any>,
-  config: { language?: string; organization?: string }
-): Record<string, any> {
-  const filtered = { ...args };
-
-  // Tools that accept language parameter
-  const languageTools = [
-    'fetch_scripture',
-    'fetch_translation_notes',
-    'fetch_translation_questions',
-    'get_translation_word',
-    'browse_translation_words',
-    'get_context',
-    'fetch_resources',
-    'get_words_for_reference',
-    'search_resources',
-  ];
-
-  // Tools that accept organization parameter
-  const organizationTools = [
-    'fetch_scripture',
-    'fetch_translation_notes',
-    'fetch_translation_questions',
-    'get_translation_word',
-    'browse_translation_words',
-    'get_context',
-    'fetch_resources',
-    'get_words_for_reference',
-    'search_resources',
-  ];
-
-  // Apply language filter (default: 'en')
-  if (languageTools.includes(toolName)) {
-    filtered.language = config.language || 'en';
-    logger.debug(`Applied language filter: ${filtered.language} for tool ${toolName}`);
-  }
-
-  // Apply organization filter (default: 'unfoldingWord')
-  if (organizationTools.includes(toolName)) {
-    filtered.organization = config.organization || 'unfoldingWord';
-    logger.debug(`Applied organization filter: ${filtered.organization} for tool ${toolName}`);
-  }
-
-  return filtered;
-}
-
-/**
  * Validate OpenAI tool call structure
  */
 export function validateToolCall(toolCall: any): toolCall is ToolCall {

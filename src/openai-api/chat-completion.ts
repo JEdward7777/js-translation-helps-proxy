@@ -17,7 +17,6 @@ import {
   mcpToolsToOpenAI,
   openaiToolCallToMCP,
   mcpResultToOpenAI,
-  applyBakedInFilters,
 } from './tool-mapper.js';
 import { logger } from '../shared/index.js';
 
@@ -26,29 +25,37 @@ import { logger } from '../shared/index.js';
  */
 export class ChatCompletionHandler {
   private client: TranslationHelpsClient;
-  private config: Required<OpenAIBridgeConfig>;
+  private config: OpenAIBridgeConfig & {
+    filterBookChapterNotes: boolean;
+    maxToolIterations: number;
+    enableToolExecution: boolean;
+    upstreamUrl: string;
+    timeout: number;
+  };
 
   constructor(config: OpenAIBridgeConfig = {}) {
     this.config = {
-      language: config.language || 'en',
+      enabledTools: config.enabledTools,
+      hiddenParams: config.hiddenParams,
       filterBookChapterNotes: config.filterBookChapterNotes ?? true,
-      organization: config.organization || 'unfoldingWord',
       maxToolIterations: config.maxToolIterations || 5,
       enableToolExecution: config.enableToolExecution ?? true,
       upstreamUrl: config.upstreamUrl || 'https://translation-helps-mcp.pages.dev/api/mcp',
       timeout: config.timeout || 30000,
     };
 
-    // Initialize translation helps client with baked-in filters
+    // Initialize translation helps client with filter configuration
     this.client = new TranslationHelpsClient({
       upstreamUrl: this.config.upstreamUrl,
       timeout: this.config.timeout,
+      enabledTools: this.config.enabledTools,
+      hiddenParams: this.config.hiddenParams,
       filterBookChapterNotes: this.config.filterBookChapterNotes,
     });
 
     logger.info('ChatCompletionHandler initialized', {
-      language: this.config.language,
-      organization: this.config.organization,
+      enabledTools: this.config.enabledTools?.length || 'all',
+      hiddenParams: this.config.hiddenParams?.length || 'none',
       filterBookChapterNotes: this.config.filterBookChapterNotes,
     });
   }
@@ -145,15 +152,15 @@ export class ChatCompletionHandler {
       };
 
       // Add optional parameters if present
-      if (request.tool_choice !== undefined) requestParams.tool_choice = request.tool_choice;
-      if (request.temperature !== undefined) requestParams.temperature = request.temperature;
-      if (request.top_p !== undefined) requestParams.top_p = request.top_p;
-      if (request.max_tokens !== undefined) requestParams.max_tokens = request.max_tokens;
-      if (request.presence_penalty !== undefined) requestParams.presence_penalty = request.presence_penalty;
+      if (request.tool_choice       !== undefined) requestParams.tool_choice       = request.tool_choice;
+      if (request.temperature       !== undefined) requestParams.temperature       = request.temperature;
+      if (request.top_p             !== undefined) requestParams.top_p             = request.top_p;
+      if (request.max_tokens        !== undefined) requestParams.max_tokens        = request.max_tokens;
+      if (request.presence_penalty  !== undefined) requestParams.presence_penalty  = request.presence_penalty;
       if (request.frequency_penalty !== undefined) requestParams.frequency_penalty = request.frequency_penalty;
-      if (request.stop !== undefined) requestParams.stop = request.stop;
-      if (request.user !== undefined) requestParams.user = request.user;
-      if (request.logit_bias !== undefined) requestParams.logit_bias = request.logit_bias;
+      if (request.stop              !== undefined) requestParams.stop              = request.stop;
+      if (request.user              !== undefined) requestParams.user              = request.user;
+      if (request.logit_bias        !== undefined) requestParams.logit_bias        = request.logit_bias;
       
       // Support for structured outputs (response_format)
       if ((request as any).response_format !== undefined) {
@@ -202,21 +209,11 @@ export class ChatCompletionHandler {
         message.tool_calls!.map(async (toolCall: any) => {
           try {
             const mcpCall = openaiToolCallToMCP(toolCall);
-            
-            // Apply baked-in filters
-            const filteredArgs = applyBakedInFilters(
-              mcpCall.name,
-              mcpCall.arguments,
-              {
-                language: this.config.language,
-                organization: this.config.organization,
-              }
-            );
 
-            logger.debug(`Executing tool: ${mcpCall.name}`, filteredArgs);
+            logger.debug(`Executing tool: ${mcpCall.name}`, mcpCall.arguments);
 
-            // Execute the tool
-            const result = await this.client.callTool(mcpCall.name, filteredArgs);
+            // Execute the tool - upstream will apply defaults for any missing parameters
+            const result = await this.client.callTool(mcpCall.name, mcpCall.arguments);
 
             // Convert result to OpenAI format
             return mcpResultToOpenAI(toolCall.id, mcpCall.name, result);

@@ -38,11 +38,11 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
     allowHeaders: ['Content-Type', 'Authorization'],
   }));
 
-  // Create chat completion handler with baked-in filters
+  // Create chat completion handler with filter configuration
   const handler = new ChatCompletionHandler({
-    language: config.language || 'en',
+    enabledTools: config.enabledTools,
+    hiddenParams: config.hiddenParams,
     filterBookChapterNotes: config.filterBookChapterNotes ?? true,
-    organization: config.organization || 'unfoldingWord',
     maxToolIterations: config.maxToolIterations || 5,
     enableToolExecution: config.enableToolExecution ?? true,
     upstreamUrl: config.upstreamUrl,
@@ -167,8 +167,8 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
         upstreamConnected: isConnected,
         timestamp: new Date().toISOString(),
         config: {
-          language: config.language || 'en',
-          organization: config.organization || 'unfoldingWord',
+          enabledTools: config.enabledTools?.length || 'all',
+          hiddenParams: config.hiddenParams?.length || 'none',
           filterBookChapterNotes: config.filterBookChapterNotes ?? true,
         },
       });
@@ -199,8 +199,8 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
         models_proxy: true,
       },
       config: {
-        language: config.language || 'en',
-        organization: config.organization || 'unfoldingWord',
+        enabledTools: config.enabledTools?.length || 'all',
+        hiddenParams: config.hiddenParams?.length || 'none',
         filterBookChapterNotes: config.filterBookChapterNotes ?? true,
         maxToolIterations: config.maxToolIterations || 5,
       },

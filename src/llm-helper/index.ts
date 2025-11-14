@@ -9,8 +9,8 @@ import { TranslationHelpsClient } from '../core/index.js';
 export interface LLMHelperConfig {
   apiKey: string;
   model: string;
-  language?: string;
-  organization?: string;
+  enabledTools?: string[];
+  hiddenParams?: string[];
   maxToolIterations?: number;
   upstreamUrl?: string;
   timeout?: number;
@@ -51,8 +51,8 @@ export class LLMHelper {
 
     // Reuse Interface 4's ChatCompletionHandler
     this.handler = new ChatCompletionHandler({
-      language: config.language || 'en',
-      organization: config.organization || 'unfoldingWord',
+      enabledTools: config.enabledTools,
+      hiddenParams: config.hiddenParams,
       maxToolIterations: config.maxToolIterations || 5,
       enableToolExecution: true,
       upstreamUrl: config.upstreamUrl,

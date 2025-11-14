@@ -48,8 +48,8 @@ describe('LLMHelper', () => {
 
       expect(helper).toBeDefined();
       expect(ChatCompletionHandler).toHaveBeenCalledWith({
-        language: 'en',
-        organization: 'unfoldingWord',
+        enabledTools: undefined,
+        hiddenParams: undefined,
         maxToolIterations: 5,
         enableToolExecution: true,
         upstreamUrl: undefined,
@@ -61,8 +61,8 @@ describe('LLMHelper', () => {
       const helper = new LLMHelper({
         apiKey: 'test-key',
         model: 'gpt-4o-mini',
-        language: 'es',
-        organization: 'custom-org',
+        enabledTools: ['fetch_scripture'],
+        hiddenParams: ['language', 'organization'],
         maxToolIterations: 10,
         upstreamUrl: 'https://custom.url',
         timeout: 60000,
@@ -70,8 +70,8 @@ describe('LLMHelper', () => {
 
       expect(helper).toBeDefined();
       expect(ChatCompletionHandler).toHaveBeenCalledWith({
-        language: 'es',
-        organization: 'custom-org',
+        enabledTools: ['fetch_scripture'],
+        hiddenParams: ['language', 'organization'],
         maxToolIterations: 10,
         enableToolExecution: true,
         upstreamUrl: 'https://custom.url',
