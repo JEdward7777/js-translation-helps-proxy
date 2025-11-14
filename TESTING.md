@@ -144,7 +144,7 @@ ANTHROPIC_API_KEY=your-key npm test
 - **Integration Tests:** 22 tests passing
 - **Status:** Fully tested and working
 
-### Interface 2: SSE/HTTP MCP Server ✅
+### Interface 2: HTTP MCP Server ✅
 - **Unit Tests:** N/A (tested via integration)
 - **Integration Tests:** 9 tests passing
 - **Status:** Validated, ready for deployment

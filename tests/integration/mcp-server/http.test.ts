@@ -1,6 +1,6 @@
 /**
  * Integration tests for HTTP MCP Server
- * Tests the SSE/HTTP MCP interface (Interface 2)
+ * Tests the HTTP MCP interface (Interface 2)
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -91,14 +91,6 @@ describe('HTTP MCP Server (Integration)', () => {
       });
 
       expect(queryParams.get('filterBookChapterNotes')).toBe('true');
-    });
-  });
-
-  describe('SSE Endpoint', () => {
-    it('should have SSE endpoint available', async () => {
-      // SSE endpoint should be at /mcp/sse
-      const sseEndpoint = '/mcp/sse';
-      expect(sseEndpoint).toBe('/mcp/sse');
     });
   });
 

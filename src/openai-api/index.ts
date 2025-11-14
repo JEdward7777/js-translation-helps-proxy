@@ -1,5 +1,5 @@
 /**
- * Unified HTTP server combining MCP SSE/HTTP and OpenAI-compatible API
+ * Unified HTTP server combining MCP HTTP and OpenAI-compatible API
  * Runs both Interface 2 (MCP) and Interface 4 (OpenAI) in a single Hono process
  */
 
@@ -58,8 +58,8 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
   });
   app.route('/', mcpRoutes);
 
-  logger.info('MCP SSE/HTTP interface mounted', {
-    endpoints: ['/mcp/sse', '/mcp/message', '/mcp/health', '/mcp/info'],
+  logger.info('MCP HTTP interface mounted', {
+    endpoints: ['/mcp/message', '/mcp/health', '/mcp/info'],
   });
 
   // Mount OpenAI routes (Interface 4)
@@ -92,9 +92,8 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
       description: 'Unified HTTP server with MCP and OpenAI-compatible interfaces',
       interfaces: {
         mcp: {
-          description: 'MCP SSE/HTTP server with client-controlled filters',
+          description: 'MCP HTTP server with client-controlled filters',
           endpoints: {
-            sse: '/mcp/sse',
             message: '/mcp/message',
             health: '/mcp/health',
             info: '/mcp/info',

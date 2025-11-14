@@ -1,6 +1,6 @@
 /**
- * Hono routes for MCP SSE/HTTP endpoints
- * Provides SSE and HTTP endpoints for MCP protocol
+ * Hono routes for MCP HTTP endpoints
+ * Provides HTTP endpoints for MCP protocol
  */
 
 import { Hono } from 'hono';
@@ -102,7 +102,7 @@ export function createMCPRoutes(config: MCPRoutesConfig = {}): Hono {
       name: 'js-translation-helps-proxy',
       version: '1.0.0',
       protocol: 'mcp',
-      transport: 'sse/http',
+      transport: 'http',
       capabilities: {
         tools: true,
       },

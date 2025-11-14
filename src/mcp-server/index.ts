@@ -1,5 +1,5 @@
 /**
- * MCP Server module - SSE/HTTP transport
+ * MCP Server module - HTTP transport
  * Exports server and routes for use in HTTP applications
  */
 

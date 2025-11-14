@@ -15,7 +15,7 @@ The OpenAI-Compatible API provides a familiar REST interface for accessing Trans
 
 ### Baked-In Filters
 
-Unlike Interface 2 (MCP SSE/HTTP) which allows client-controlled filters, Interface 4 has **baked-in filters** for consistency:
+Unlike Interface 2 (MCP HTTP) which allows client-controlled filters, Interface 4 has **baked-in filters** for consistency:
 
 - **Language**: Always `en` (English)
 - **Organization**: Always `unfoldingWord`
@@ -381,7 +381,7 @@ npm run dev:http
 
 | Feature | Interface 4 (OpenAI) | Interface 2 (MCP) |
 |---------|---------------------|-------------------|
-| API Style | REST (OpenAI-compatible) | MCP over HTTP/SSE |
+| API Style | REST (OpenAI-compatible) | MCP over HTTP |
 | Filters | **Baked-in** (language=en) | Client-controlled |
 | Tool Execution | Automatic | Manual |
 | Use Case | LLM integrations | MCP clients |

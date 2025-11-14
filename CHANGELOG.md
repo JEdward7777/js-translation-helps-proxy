@@ -17,10 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Caching support
   - Comprehensive error handling
 
-- **Interface 2: SSE/HTTP MCP Server** - Web-based MCP server
+- **Interface 2: HTTP MCP Server** - Web-based MCP server
   - HTTP POST endpoint for MCP messages
-  - SSE endpoint for real-time communication
-  - Client-controlled filters via query parameters
+  - Client-controlled filters via configuration
   - Health check and info endpoints
   - CloudFlare Workers compatible
 
@@ -82,8 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive error types
 
 #### Interface 2: MCP HTTP Server
-- Client-controlled filters via query parameters
-- SSE streaming support
+- Client-controlled filters via configuration
 - HTTP POST for request/response
 - Health monitoring
 - Server information endpoint

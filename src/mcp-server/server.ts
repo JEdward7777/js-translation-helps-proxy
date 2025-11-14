@@ -1,6 +1,6 @@
 /**
- * MCP Server implementation for SSE/HTTP transport
- * Uses @modelcontextprotocol/sdk Server class with SSE transport
+ * MCP Server implementation for HTTP transport
+ * Uses @modelcontextprotocol/sdk Server class
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -21,7 +21,7 @@ export interface SSEServerConfig {
 }
 
 /**
- * MCP Server implementation for SSE/HTTP transport
+ * MCP Server implementation for HTTP transport
  */
 export class SSEMCPServer {
   private server: Server;

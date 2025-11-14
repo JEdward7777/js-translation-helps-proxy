@@ -57,7 +57,7 @@ See [`ARCHITECTURE.md`](ARCHITECTURE.md) for detailed system design and componen
 ```
 src/
 ├── core/           # Interface 1: Core API
-├── mcp-server/     # Interface 2: SSE/HTTP MCP
+├── mcp-server/     # Interface 2: HTTP MCP
 ├── stdio-server/   # Interface 3: stdio MCP
 ├── llm-helper/     # Interface 3.5: TypeScript LLM interface
 ├── openai-api/     # Interface 4: OpenAI-compatible API
@@ -503,7 +503,7 @@ npm run dev
 
 The project includes VSCode launch configurations for debugging:
 
-1. **Debug HTTP Server - Native Node.js (Interfaces 2 & 4)** - Debug MCP HTTP/SSE and OpenAI API servers
+1. **Debug HTTP Server - Native Node.js (Interfaces 2 & 4)** - Debug MCP HTTP and OpenAI API servers
 2. **Debug HTTP Server - Built (Interfaces 2 & 4)** - Debug compiled HTTP servers
 3. **Debug stdio Server (Interface 3)** - Debug stdio MCP server (uses stdin/stdout, not HTTP)
 4. **Debug Current Test File** - Debug the currently open test file

@@ -49,8 +49,8 @@ graph TB
             Core[TypeScript API<br/>Direct Functions]
         end
         
-        subgraph "Interface 2: SSE/HTTP MCP"
-            SSE[Hono Server<br/>SSE Endpoint]
+        subgraph "Interface 2: HTTP MCP"
+            HTTP[Hono Server<br/>HTTP Endpoint]
         end
         
         subgraph "Interface 3: stdio MCP"
@@ -77,12 +77,12 @@ graph TB
     end
     
     CLI --> Stdio
-    WebUI --> SSE
+    WebUI --> HTTP
     LLM --> Helper
     OpenAI --> OpenAI_API
     
     Core --> Upstream
-    SSE --> Core
+    HTTP --> Core
     Stdio --> Core
     Helper --> Core
     OpenAI_API --> Core
@@ -134,10 +134,10 @@ const result = await client.callTool('get_system_prompt', {
 
 ---
 
-### Interface 2: SSE/HTTP MCP Server
+### Interface 2: HTTP MCP Server
 
-**Purpose**: MCP-over-HTTP for web clients  
-**Use Case**: Web applications, browser-based LLM interfaces  
+**Purpose**: MCP-over-HTTP for web clients
+**Use Case**: Web applications, browser-based LLM interfaces
 **Framework**: Hono (CloudFlare Workers compatible)
 
 ```typescript
@@ -153,12 +153,7 @@ const mcpServer = createMCPServer({
   filterBookChapterNotes: process.env.FILTER_NOTES === 'true'
 });
 
-// SSE endpoint
-app.get('/mcp/sse', async (c) => {
-  return mcpServer.handleSSE(c);
-});
-
-// HTTP POST endpoint for messages
+// HTTP POST endpoint for MCP messages
 app.post('/mcp/message', async (c) => {
   const message = await c.req.json();
   return c.json(await mcpServer.handleMessage(message));
@@ -167,32 +162,35 @@ app.post('/mcp/message', async (c) => {
 
 **Client Usage:**
 ```typescript
-// Using @modelcontextprotocol/sdk
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
-
-const transport = new SSEClientTransport(
-  new URL('http://localhost:8000/mcp/sse')
-);
-
-const client = new Client({
-  name: 'translation-helps-client',
-  version: '1.0.0'
-}, {
-  capabilities: {}
+// Using HTTP POST for MCP messages
+const response = await fetch('http://localhost:8787/mcp/message', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    method: 'tools/list'
+  })
 });
+const { tools } = await response.json();
 
-await client.connect(transport);
-const tools = await client.listTools();
-const result = await client.callTool('fetch_scripture', { reference: 'John 3:16' });
+// Call a tool
+const result = await fetch('http://localhost:8787/mcp/message', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    method: 'tools/call',
+    params: {
+      name: 'fetch_scripture',
+      arguments: { reference: 'John 3:16' }
+    }
+  })
+});
+const { content } = await result.json();
 ```
 
 **Protocol Flow:**
-1. Client connects via SSE
-2. Server sends initialization
-3. Client sends tool requests via POST
-4. Server streams responses via SSE
-5. Client-controlled filtering via connection params
+1. Client sends MCP request via HTTP POST
+2. Server processes request and returns JSON response
+3. Client-controlled filtering via configuration
 
 ---
 
@@ -1072,7 +1070,7 @@ js-translation-helps-proxy/
 │   │   ├── tool-registry.ts       # Dynamic tool discovery
 │   │   └── types.ts               # Shared TypeScript types (12 tools)
 │   │
-│   ├── mcp-server/                # Interface 2: SSE/HTTP MCP
+│   ├── mcp-server/                # Interface 2: HTTP MCP
 │   │   ├── index.ts
 │   │   ├── server.ts
 │   │   └── routes.ts
@@ -1151,7 +1149,7 @@ js-translation-helps-proxy/
 
 **@modelcontextprotocol/sdk** (v1.21.1)
 - Purpose: MCP protocol implementation
-- Used by: Interfaces 2, 3 (SSE/HTTP and stdio servers)
+- Used by: Interfaces 2, 3 (HTTP and stdio servers)
 - Components needed:
   - `@modelcontextprotocol/sdk/server` - Server implementation
   - `@modelcontextprotocol/sdk/client` - Client utilities
@@ -1159,10 +1157,9 @@ js-translation-helps-proxy/
 
 **hono** (v4.10.5)
 - Purpose: Lightweight web framework
-- Used by: Interfaces 2, 4 (SSE/HTTP and OpenAI API)
+- Used by: Interfaces 2, 4 (HTTP and OpenAI API)
 - Features needed:
   - CloudFlare Workers support
-  - SSE streaming
   - JSON body parsing
   - Middleware support
 - Why Hono: CloudFlare Workers compatible, minimal overhead
@@ -1526,8 +1523,8 @@ The project has been successfully implemented with all planned features:
 - Example configurations for Claude Desktop and Cline
 - E2E tests passing
 
-**Phase 4: Interface 2 - SSE/HTTP MCP Server** ✅
-- Hono-based SSE/HTTP server implemented
+**Phase 4: Interface 2 - HTTP MCP Server** ✅
+- Hono-based HTTP server implemented
 - Ready for CloudFlare Workers deployment
 - Integration tests passing
 
