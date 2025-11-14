@@ -50,6 +50,7 @@ export class LLMHelper {
     this.model = config.model;
 
     // Reuse Interface 4's ChatCompletionHandler
+    // Defaults are applied in ChatCompletionHandler constructor
     this.handler = new ChatCompletionHandler({
       enabledTools: config.enabledTools,
       hiddenParams: config.hiddenParams,

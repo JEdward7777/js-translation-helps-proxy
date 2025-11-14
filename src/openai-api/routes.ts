@@ -39,12 +39,13 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
   }));
 
   // Create chat completion handler with filter configuration
+  // Interface 4 defaults: only fetch_translation_notes tool, hide language/organization params
   const handler = new ChatCompletionHandler({
-    enabledTools: config.enabledTools,
-    hiddenParams: config.hiddenParams,
-    filterBookChapterNotes: config.filterBookChapterNotes ?? true,
-    maxToolIterations: config.maxToolIterations || 5,
-    enableToolExecution: config.enableToolExecution ?? true,
+    enabledTools: config.enabledTools ?? ['fetch_translation_notes'],
+    hiddenParams: config.hiddenParams ?? ['language', 'organization'],
+    filterBookChapterNotes: config.filterBookChapterNotes,
+    maxToolIterations: config.maxToolIterations,
+    enableToolExecution: config.enableToolExecution,
     upstreamUrl: config.upstreamUrl,
     timeout: config.timeout,
   });

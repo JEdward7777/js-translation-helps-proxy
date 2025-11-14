@@ -64,12 +64,13 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
 
   // Mount OpenAI routes (Interface 4)
   // Now uses FilterEngine like Interface 3.5
+  // Defaults are applied in createOpenAIRoutes()
   const openaiRoutes = createOpenAIRoutes({
     enabledTools: config.openai?.enabledTools,
     hiddenParams: config.openai?.hiddenParams,
-    filterBookChapterNotes: config.openai?.filterBookChapterNotes ?? true,
-    maxToolIterations: config.openai?.maxToolIterations || 5,
-    enableToolExecution: config.openai?.enableToolExecution ?? true,
+    filterBookChapterNotes: config.openai?.filterBookChapterNotes,
+    maxToolIterations: config.openai?.maxToolIterations,
+    enableToolExecution: config.openai?.enableToolExecution,
     upstreamUrl: config.upstreamUrl,
     timeout: config.timeout,
   });
