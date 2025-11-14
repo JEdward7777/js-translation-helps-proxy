@@ -242,7 +242,7 @@ curl http://localhost:8787/v1/models
 
 **Important Notes:**
 - **Interface 3 (stdio)** uses standard input/output for communication, NOT HTTP/REST
-- **Interfaces 2 & 4** are HTTP/REST servers (MCP HTTP/SSE and OpenAI API)
+- **Interfaces 2 & 4** are HTTP/REST servers (MCP HTTP and OpenAI API)
 - The Native Node.js server (`npm run dev:node`) is recommended for debugging HTTP servers as it provides better source map support and faster reload times than Wrangler
 
 ---

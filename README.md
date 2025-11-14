@@ -142,7 +142,7 @@ const scripture = await client.fetchScripture({
 
 ---
 
-### Interface 2: SSE/HTTP MCP Server
+### Interface 2: HTTP MCP Server
 
 Web-based MCP server with client-controlled filters, perfect for web services and APIs.
 
@@ -161,7 +161,6 @@ npm run deploy
 
 **Endpoints:**
 
-- `GET /mcp/sse` - SSE endpoint for MCP protocol
 - `POST /mcp/message` - HTTP endpoint for MCP messages
 - `GET /mcp/health` - Health check
 - `GET /mcp/info` - Server information
@@ -187,8 +186,7 @@ curl -X POST http://localhost:8787/mcp/message \
 ```
 
 **Key Features:**
-- ✅ Client-controlled filters (via query params or config)
-- ✅ SSE for real-time communication
+- ✅ Client-controlled filters (via configuration)
 - ✅ HTTP POST for request/response
 - ✅ CloudFlare Workers compatible
 
@@ -362,7 +360,7 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 
 | Feature | Interface 1 (Core) | Interface 2 (MCP HTTP) | Interface 3 (stdio) | Interface 3.5 (LLM Helper) | Interface 4 (OpenAI) |
 |---------|-------------------|----------------------|-------------------|---------------------------|---------------------|
-| **Transport** | Direct API | HTTP/SSE | stdio | TypeScript API | REST |
+| **Transport** | Direct API | HTTP | stdio | TypeScript API | REST |
 | **Filters** | Configurable | Client-controlled | Client-controlled | **Baked-in** | **Baked-in** |
 | **Use Case** | TypeScript apps | Web services | Desktop apps | LLM integrations (code) | LLM integrations (REST) |
 | **Deployment** | Library | CloudFlare Workers | Local process | Library | CloudFlare Workers |

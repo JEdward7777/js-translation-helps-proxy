@@ -1,32 +1,15 @@
-# MCP SSE/HTTP Server (Interface 2)
+# MCP HTTP Server (Interface 2)
 
-The MCP SSE/HTTP Server provides a web-based interface to the Translation Helps proxy using the Model Context Protocol over HTTP and Server-Sent Events (SSE).
+The MCP HTTP Server provides a web-based interface to the Translation Helps proxy using the Model Context Protocol over HTTP.
 
 ## Overview
 
 **Interface 2** runs as an HTTP server using Hono, providing:
-- SSE endpoint for real-time MCP communication
 - HTTP POST endpoint for MCP messages
-- Client-controlled filtering via query parameters or configuration
+- Client-controlled filtering via configuration
 - Compatible with CloudFlare Workers
 
 ## Endpoints
-
-### SSE Endpoint
-
-**GET** `/mcp/sse`
-
-Establishes a Server-Sent Events connection for MCP protocol communication.
-
-**Query Parameters:**
-- `enabledTools` (optional): Comma-separated list of enabled tools
-- `hiddenParams` (optional): Comma-separated list of parameters to hide
-- `filterBookChapterNotes` (optional): `true` or `false` to filter book/chapter notes
-
-**Example:**
-```bash
-curl -N "http://localhost:8000/mcp/sse?enabledTools=fetch_scripture,fetch_translation_notes&filterBookChapterNotes=true"
-```
 
 ### HTTP Message Endpoint
 
@@ -58,12 +41,12 @@ or
 **Example:**
 ```bash
 # List tools
-curl -X POST http://localhost:8000/mcp/message \
+curl -X POST http://localhost:8787/mcp/message \
   -H "Content-Type: application/json" \
   -d '{"method": "tools/list"}'
 
 # Call a tool
-curl -X POST http://localhost:8000/mcp/message \
+curl -X POST http://localhost:8787/mcp/message \
   -H "Content-Type: application/json" \
   -d '{
     "method": "tools/call",
@@ -101,7 +84,7 @@ Get server information and capabilities.
   "name": "js-translation-helps-proxy",
   "version": "1.0.0",
   "protocol": "mcp",
-  "transport": "sse/http",
+  "transport": "http",
   "capabilities": {
     "tools": true
   }
@@ -114,21 +97,16 @@ Get server information and capabilities.
 
 Unlike the OpenAI interface (Interface 4) which has baked-in filters, the MCP server allows clients to control filtering:
 
-1. **Via Query Parameters** (SSE endpoint):
-   ```
-   /mcp/sse?enabledTools=fetch_scripture&filterBookChapterNotes=true
-   ```
+**Via Server Configuration:**
+```typescript
+import { createMCPRoutes } from './mcp-server';
 
-2. **Via Server Configuration**:
-   ```typescript
-   import { createMCPRoutes } from './mcp-server';
-   
-   const routes = createMCPRoutes({
-     enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
-     hiddenParams: ['organization'],
-     filterBookChapterNotes: true,
-   });
-   ```
+const routes = createMCPRoutes({
+  enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
+  hiddenParams: ['organization'],
+  filterBookChapterNotes: true,
+});
+```
 
 ### Environment Variables
 
@@ -166,38 +144,30 @@ const result = await server.getClient().callTool('fetch_scripture', {
 console.log('Result:', result);
 ```
 
-### Using with MCP Clients
-
-The SSE endpoint is compatible with standard MCP clients:
+### HTTP Client Example
 
 ```typescript
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
-
-const transport = new SSEClientTransport(
-  new URL('http://localhost:8000/mcp/sse')
-);
-
-const client = new Client({
-  name: 'my-mcp-client',
-  version: '1.0.0',
-}, {
-  capabilities: {},
+// List available tools
+const toolsResponse = await fetch('http://localhost:8787/mcp/message', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ method: 'tools/list' })
 });
-
-await client.connect(transport);
-
-// List tools
-const { tools } = await client.request({ method: 'tools/list' }, {});
+const { tools } = await toolsResponse.json();
 
 // Call a tool
-const result = await client.request({
-  method: 'tools/call',
-  params: {
-    name: 'fetch_scripture',
-    arguments: { reference: 'John 3:16' },
-  },
-}, {});
+const resultResponse = await fetch('http://localhost:8787/mcp/message', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    method: 'tools/call',
+    params: {
+      name: 'fetch_scripture',
+      arguments: { reference: 'John 3:16' }
+    }
+  })
+});
+const { content } = await resultResponse.json();
 ```
 
 ## Development
@@ -205,8 +175,11 @@ const result = await client.request({
 ### Local Development
 
 ```bash
-# Start development server
+# Start development server (Wrangler)
 npm run dev:http
+
+# Start development server (Native Node.js - better for debugging)
+npm run dev:node
 
 # Server will be available at http://localhost:8787
 ```
@@ -214,13 +187,16 @@ npm run dev:http
 ### Testing
 
 ```bash
-# Test SSE connection
-curl -N http://localhost:8787/mcp/sse
-
 # Test message endpoint
 curl -X POST http://localhost:8787/mcp/message \
   -H "Content-Type: application/json" \
   -d '{"method": "tools/list"}'
+
+# Test health check
+curl http://localhost:8787/mcp/health
+
+# Test server info
+curl http://localhost:8787/mcp/info
 ```
 
 ## Deployment
@@ -250,9 +226,9 @@ LOG_LEVEL = "info"
 
 ## Differences from Interface 3 (stdio)
 
-| Feature | Interface 2 (SSE/HTTP) | Interface 3 (stdio) |
-|---------|----------------------|---------------------|
-| Transport | HTTP/SSE | stdio streams |
+| Feature | Interface 2 (HTTP) | Interface 3 (stdio) |
+|---------|-------------------|---------------------|
+| Transport | HTTP | stdio streams |
 | Use Case | Web services, APIs | CLI tools, desktop apps |
 | Filtering | Client-controlled | Client-controlled |
 | Deployment | CloudFlare Workers | Local process |

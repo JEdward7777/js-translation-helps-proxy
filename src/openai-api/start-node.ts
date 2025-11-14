@@ -42,7 +42,6 @@ logger.info(`Server running at http://localhost:${port}`);
 logger.info('Available endpoints:');
 logger.info('  - GET  /                      - Server info');
 logger.info('  - GET  /health                - Health check');
-logger.info('  - GET  /mcp/sse               - MCP SSE endpoint');
 logger.info('  - POST /mcp/message           - MCP HTTP endpoint');
 logger.info('  - GET  /mcp/health            - MCP health check');
 logger.info('  - GET  /mcp/info              - MCP server info');

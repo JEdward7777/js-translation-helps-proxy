@@ -11,7 +11,7 @@ Welcome to the JS Translation Helps Proxy documentation! This guide will help yo
 
 ### Interface Documentation
 - [Interface 1: Core API](#interface-1-core-api) - Direct TypeScript/JavaScript API
-- [Interface 2: MCP HTTP Server](MCP_SERVER.md) - SSE/HTTP MCP server
+- [Interface 2: MCP HTTP Server](MCP_SERVER.md) - HTTP MCP server
 - [Interface 3: stdio Server](STDIO_SERVER.md) - Desktop application interface
 - [Interface 3.5: LLM Helper](LLM_HELPER.md) - TypeScript LLM integration
 - [Interface 4: OpenAI API](OPENAI_API.md) - OpenAI-compatible REST API
