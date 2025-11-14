@@ -1161,15 +1161,15 @@ const { Readable } = require('stream'); // ❌ Not available in CF Workers
 
 ```
         E2E Tests (5%)
-       ┌─────────────┐
-      │  Full workflows │
-     └─────────────────┘
+     ┌──────────────────┐
+     │  Full workflows  │
+     └──────────────────┘
            │
     Integration Tests (25%)
-   ┌────────────────────────┐
+  ┌─────────────────────────┐
   │ Component interactions  │
   │ Upstream connectivity   │
- └─────────────────────────┘
+  └─────────────────────────┘
           │
    Unit Tests (70%)
 ┌──────────────────────────────┐
