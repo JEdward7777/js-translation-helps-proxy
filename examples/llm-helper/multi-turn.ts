@@ -8,11 +8,8 @@ import { LLMHelper, ChatMessage } from '../../src/llm-helper/index.js';
 async function main() {
   // Create LLM Helper instance
   const helper = new LLMHelper({
-    provider: 'openai',
     apiKey: process.env.OPENAI_API_KEY!,
-    model: 'gpt-4',
-    language: 'en',
-    organization: 'unfoldingWord',
+    model: 'gpt-4o-mini',
   });
 
   console.log('Multi-Turn Conversation Example');

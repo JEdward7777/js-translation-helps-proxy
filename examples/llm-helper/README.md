@@ -40,34 +40,12 @@ OPENAI_API_KEY=your-key tsx examples/llm-helper/multi-turn.ts
 2. Set up your API key:
    ```bash
    export OPENAI_API_KEY=your-openai-key
-   # or
-   export ANTHROPIC_API_KEY=your-anthropic-key
    ```
 
-### Using OpenAI
+### Running with OpenAI
 
 ```bash
 OPENAI_API_KEY=sk-... tsx examples/llm-helper/basic-chat.ts
-```
-
-### Using Anthropic
-
-Modify the example to use Anthropic:
-
-```typescript
-const helper = new LLMHelper({
-  provider: 'anthropic',
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-  model: 'claude-3-opus-20240229',
-  language: 'en',
-  organization: 'unfoldingWord',
-});
-```
-
-Then run:
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-... tsx examples/llm-helper/basic-chat.ts
 ```
 
 ## Example Output
@@ -76,12 +54,10 @@ ANTHROPIC_API_KEY=sk-ant-... tsx examples/llm-helper/basic-chat.ts
 
 ```
 LLM Helper initialized
-Provider: openai
-Model: gpt-4
+Model: gpt-4o-mini
 
 Sending chat request...
 Response: Hello! I'd be happy to help you study the Bible...
-Finish reason: stop
 Tokens used: 150
 ```
 
@@ -90,36 +66,24 @@ Tokens used: 150
 ```
 LLM Helper initialized with automatic tool execution
 
-Available tools: 12
-Tools: fetch_scripture, fetch_translation_notes, ...
-
 Sending request that will trigger tool calls...
 User: "What does John 3:16 say and what are the translation notes?"
 
-🔧 Calling tool: fetch_scripture
-   Arguments: {
-     "reference": "John 3:16"
-   }
-✅ Tool result: fetch_scripture
-   Content preview: For God so loved the world that he gave his one and only Son...
-
-🔧 Calling tool: fetch_translation_notes
-   Arguments: {
-     "reference": "John 3:16"
-   }
-✅ Tool result: fetch_translation_notes
-   Content preview: Translation Notes for John 3:16:
-
-1. "For God so loved the world"...
+🔧 Tool execution in progress...
 
 === Final Response ===
 John 3:16 says: "For God so loved the world that he gave his one and only Son..."
 
 The translation notes explain that...
 
-Finish reason: stop
 Tokens used: 450
 ```
+
+## Notes
+
+- The LLM Helper uses the same OpenAI integration as Interface 4
+- Tools are automatically executed and results fed back to the LLM
+- Baked-in filters apply: `language=en`, `organization=unfoldingWord`
 
 ## See Also
 

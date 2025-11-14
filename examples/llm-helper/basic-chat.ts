@@ -8,16 +8,12 @@ import { LLMHelper } from '../../src/llm-helper/index.js';
 async function main() {
   // Create LLM Helper instance
   const helper = new LLMHelper({
-    provider: 'openai',
     apiKey: process.env.OPENAI_API_KEY!,
-    model: 'gpt-4',
-    language: 'en',
-    organization: 'unfoldingWord',
+    model: 'gpt-4o-mini',
   });
 
   console.log('LLM Helper initialized');
-  console.log(`Provider: ${helper.getProvider()}`);
-  console.log(`Model: ${helper.getModel()}`);
+  console.log(`Model: gpt-4o-mini`);
   console.log();
 
   // Simple chat
@@ -34,7 +30,6 @@ async function main() {
   ]);
 
   console.log('Response:', response.message.content);
-  console.log('Finish reason:', response.finishReason);
   console.log('Tokens used:', response.usage?.totalTokens);
 }
 

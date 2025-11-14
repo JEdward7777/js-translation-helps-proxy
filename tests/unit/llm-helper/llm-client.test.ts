@@ -1,90 +1,97 @@
 /**
- * Unit tests for LLM Client
+ * Unit tests for LLM Helper
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LLMClient } from '../../../src/llm-helper/llm-client.js';
-import { LLMProviderError, InvalidConfigError } from '../../../src/llm-helper/types.js';
+import { LLMHelper } from '../../../src/llm-helper/index.js';
+import { ChatCompletionHandler } from '../../../src/openai-api/chat-completion.js';
 
-// Mock fetch globally
-globalThis.fetch = vi.fn() as any;
+// Mock the ChatCompletionHandler
+vi.mock('../../../src/openai-api/chat-completion.js');
 
-describe('LLMClient', () => {
+describe('LLMHelper', () => {
+  let mockHandler: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Create a mock handler instance
+    mockHandler = {
+      handleChatCompletion: vi.fn(),
+      getClient: vi.fn(),
+      updateConfig: vi.fn(),
+    };
+    
+    // Mock the constructor to return our mock handler
+    vi.mocked(ChatCompletionHandler).mockImplementation(() => mockHandler);
   });
 
   describe('constructor', () => {
-    it('should create client with valid OpenAI config', () => {
-      const client = new LLMClient({
-        provider: 'openai',
+    it('should create helper with valid config', () => {
+      const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
       });
 
-      expect(client.getProvider()).toBe('openai');
-      expect(client.getModel()).toBe('gpt-4');
+      expect(helper).toBeDefined();
+      expect(ChatCompletionHandler).toHaveBeenCalledWith({
+        language: 'en',
+        organization: 'unfoldingWord',
+        maxToolIterations: 5,
+        enableToolExecution: true,
+        upstreamUrl: undefined,
+        timeout: undefined,
+      });
     });
 
-    it('should create client with valid Anthropic config', () => {
-      const client = new LLMClient({
-        provider: 'anthropic',
+    it('should create helper with custom config', () => {
+      const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'claude-3-opus-20240229',
+        model: 'gpt-4o-mini',
+        language: 'es',
+        organization: 'custom-org',
+        maxToolIterations: 10,
+        upstreamUrl: 'https://custom.url',
+        timeout: 60000,
       });
 
-      expect(client.getProvider()).toBe('anthropic');
-      expect(client.getModel()).toBe('claude-3-opus-20240229');
-    });
-
-    it('should throw error for missing provider', () => {
-      expect(() => {
-        new LLMClient({
-          provider: '' as any,
-          apiKey: 'test-key',
-          model: 'gpt-4',
-        });
-      }).toThrow(InvalidConfigError);
-    });
-
-    it('should throw error for invalid provider', () => {
-      expect(() => {
-        new LLMClient({
-          provider: 'invalid' as any,
-          apiKey: 'test-key',
-          model: 'gpt-4',
-        });
-      }).toThrow(InvalidConfigError);
+      expect(helper).toBeDefined();
+      expect(ChatCompletionHandler).toHaveBeenCalledWith({
+        language: 'es',
+        organization: 'custom-org',
+        maxToolIterations: 10,
+        enableToolExecution: true,
+        upstreamUrl: 'https://custom.url',
+        timeout: 60000,
+      });
     });
 
     it('should throw error for missing API key', () => {
       expect(() => {
-        new LLMClient({
-          provider: 'openai',
+        new LLMHelper({
           apiKey: '',
-          model: 'gpt-4',
+          model: 'gpt-4o-mini',
         });
-      }).toThrow(InvalidConfigError);
+      }).toThrow('API key is required');
     });
 
     it('should throw error for missing model', () => {
       expect(() => {
-        new LLMClient({
-          provider: 'openai',
+        new LLMHelper({
           apiKey: 'test-key',
           model: '',
         });
-      }).toThrow(InvalidConfigError);
+      }).toThrow('Model is required');
     });
   });
 
-  describe('chat - OpenAI', () => {
-    it('should make successful chat request', async () => {
+  describe('chat', () => {
+    it('should call ChatCompletionHandler and return formatted response', async () => {
       const mockResponse = {
         id: 'chatcmpl-123',
         object: 'chat.completion',
         created: 1234567890,
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         choices: [
           {
             index: 0,
@@ -102,230 +109,78 @@ describe('LLMClient', () => {
         },
       };
 
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
+      mockHandler.handleChatCompletion.mockResolvedValue(mockResponse);
 
-      const client = new LLMClient({
-        provider: 'openai',
+      const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
       });
 
-      const response = await client.chat([
+      const response = await helper.chat([
         { role: 'user', content: 'Hello' },
       ]);
 
+      expect(mockHandler.handleChatCompletion).toHaveBeenCalledWith(
+        {
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: 'Hello' }],
+        },
+        'test-key'
+      );
+
+      expect(response.message.role).toBe('assistant');
       expect(response.message.content).toBe('Hello! How can I help you?');
-      expect(response.finishReason).toBe('stop');
+      expect(response.usage?.promptTokens).toBe(10);
+      expect(response.usage?.completionTokens).toBe(20);
       expect(response.usage?.totalTokens).toBe(30);
     });
 
-    it('should handle tool calls in response', async () => {
+    it('should handle response without usage', async () => {
       const mockResponse = {
         id: 'chatcmpl-123',
         object: 'chat.completion',
         created: 1234567890,
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         choices: [
           {
             index: 0,
             message: {
               role: 'assistant',
-              content: null,
-              tool_calls: [
-                {
-                  id: 'call_123',
-                  type: 'function',
-                  function: {
-                    name: 'fetch_scripture',
-                    arguments: '{"reference":"John 3:16"}',
-                  },
-                },
-              ],
+              content: 'Response',
             },
-            finish_reason: 'tool_calls',
+            finish_reason: 'stop',
           },
         ],
       };
 
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
+      mockHandler.handleChatCompletion.mockResolvedValue(mockResponse);
 
-      const client = new LLMClient({
-        provider: 'openai',
+      const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
       });
 
-      const response = await client.chat([
-        { role: 'user', content: 'Fetch John 3:16' },
+      const response = await helper.chat([
+        { role: 'user', content: 'Hello' },
       ]);
 
-      expect(response.toolCalls).toBeDefined();
-      expect(response.toolCalls?.length).toBe(1);
-      expect(response.toolCalls?.[0].name).toBe('fetch_scripture');
-      expect(response.toolCalls?.[0].arguments).toEqual({ reference: 'John 3:16' });
-    });
-
-    it('should handle API errors', async () => {
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        statusText: 'Unauthorized',
-        json: async () => ({
-          error: {
-            message: 'Invalid API key',
-          },
-        }),
-      });
-
-      const client = new LLMClient({
-        provider: 'openai',
-        apiKey: 'invalid-key',
-        model: 'gpt-4',
-      });
-
-      await expect(client.chat([
-        { role: 'user', content: 'Hello' },
-      ])).rejects.toThrow(LLMProviderError);
-    });
-
-    it('should handle timeout', async () => {
-      (globalThis.fetch as any).mockImplementationOnce(() =>
-        new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('AbortError')), 100);
-        })
-      );
-
-      const client = new LLMClient({
-        provider: 'openai',
-        apiKey: 'test-key',
-        model: 'gpt-4',
-        timeout: 50,
-      });
-
-      await expect(client.chat([
-        { role: 'user', content: 'Hello' },
-      ])).rejects.toThrow();
+      expect(response.usage).toBeUndefined();
     });
   });
 
-  describe('chat - Anthropic', () => {
-    it('should make successful chat request', async () => {
-      const mockResponse = {
-        id: 'msg_123',
-        type: 'message',
-        role: 'assistant',
-        content: [
-          {
-            type: 'text',
-            text: 'Hello! How can I help you?',
-          },
-        ],
-        model: 'claude-3-opus-20240229',
-        stop_reason: 'end_turn',
-        usage: {
-          input_tokens: 10,
-          output_tokens: 20,
-        },
-      };
+  describe('getClient', () => {
+    it('should return Translation Helps client', () => {
+      const mockClient = { listTools: vi.fn() };
+      mockHandler.getClient.mockReturnValue(mockClient);
 
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
-
-      const client = new LLMClient({
-        provider: 'anthropic',
+      const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'claude-3-opus-20240229',
+        model: 'gpt-4o-mini',
       });
 
-      const response = await client.chat([
-        { role: 'user', content: 'Hello' },
-      ]);
-
-      expect(response.message.content).toBe('Hello! How can I help you?');
-      expect(response.finishReason).toBe('stop');
-      expect(response.usage?.totalTokens).toBe(30);
-    });
-
-    it('should handle system messages', async () => {
-      const mockResponse = {
-        id: 'msg_123',
-        type: 'message',
-        role: 'assistant',
-        content: [{ type: 'text', text: 'Response' }],
-        model: 'claude-3-opus-20240229',
-        stop_reason: 'end_turn',
-        usage: { input_tokens: 10, output_tokens: 20 },
-      };
-
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
-
-      const client = new LLMClient({
-        provider: 'anthropic',
-        apiKey: 'test-key',
-        model: 'claude-3-opus-20240229',
-      });
-
-      await client.chat([
-        { role: 'system', content: 'You are a helpful assistant' },
-        { role: 'user', content: 'Hello' },
-      ]);
-
-      const fetchCall = (globalThis.fetch as any).mock.calls[0];
-      const body = JSON.parse(fetchCall[1].body);
-      
-      expect(body.system).toBe('You are a helpful assistant');
-      expect(body.messages.length).toBe(1);
-      expect(body.messages[0].role).toBe('user');
-    });
-
-    it('should handle tool use in response', async () => {
-      const mockResponse = {
-        id: 'msg_123',
-        type: 'message',
-        role: 'assistant',
-        content: [
-          {
-            type: 'tool_use',
-            id: 'toolu_123',
-            name: 'fetch_scripture',
-            input: { reference: 'John 3:16' },
-          },
-        ],
-        model: 'claude-3-opus-20240229',
-        stop_reason: 'tool_use',
-        usage: { input_tokens: 10, output_tokens: 20 },
-      };
-
-      (globalThis.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
-
-      const client = new LLMClient({
-        provider: 'anthropic',
-        apiKey: 'test-key',
-        model: 'claude-3-opus-20240229',
-      });
-
-      const response = await client.chat([
-        { role: 'user', content: 'Fetch John 3:16' },
-      ]);
-
-      expect(response.toolCalls).toBeDefined();
-      expect(response.toolCalls?.length).toBe(1);
-      expect(response.toolCalls?.[0].name).toBe('fetch_scripture');
-      expect(response.toolCalls?.[0].arguments).toEqual({ reference: 'John 3:16' });
+      const client = helper.getClient();
+      expect(client).toBe(mockClient);
+      expect(mockHandler.getClient).toHaveBeenCalled();
     });
   });
 });

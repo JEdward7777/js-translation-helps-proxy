@@ -254,7 +254,8 @@ For Claude Desktop, add to your config file:
 
 ### Interface 3.5: TypeScript LLM Helper
 
-Programmatic TypeScript interface for LLM integration with automatic tool execution.
+Programmatic TypeScript interface for OpenAI integration with automatic tool execution.
+**Uses the same OpenAI logic as Interface 4.**
 
 **Quick Start:**
 
@@ -262,11 +263,8 @@ Programmatic TypeScript interface for LLM integration with automatic tool execut
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
 
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4',
-  language: 'en',
-  organization: 'unfoldingWord',
+  model: 'gpt-4o-mini',
 });
 
 // Chat with automatic tool execution
@@ -278,12 +276,10 @@ console.log(response.message.content);
 ```
 
 **Key Features:**
-- ✅ **Automatic tool integration**: Translation Helps tools automatically available to LLM
-- ✅ **Iterative execution**: Automatically executes tool calls and feeds results back
-- ✅ **Multi-provider**: Supports both OpenAI and Anthropic APIs
-- ✅ **Baked-in filters**: `language=en`, `organization=unfoldingWord` (like Interface 4)
+- ✅ **Shares logic with Interface 4**: Same OpenAI SDK integration
+- ✅ **Automatic tool execution**: Translation Helps tools work automatically
+- ✅ **Baked-in filters**: `language=en`, `organization=unfoldingWord`
 - ✅ **Type-safe**: Full TypeScript support
-- ✅ **CloudFlare Workers compatible**
 
 **Documentation:** [LLM Helper Guide](docs/LLM_HELPER.md) | [Examples](examples/llm-helper/)
 
@@ -364,9 +360,9 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 | Feature | Interface 1 (Core) | Interface 2 (MCP HTTP) | Interface 3 (stdio) | Interface 3.5 (LLM Helper) | Interface 4 (OpenAI Proxy) |
 |---------|-------------------|----------------------|-------------------|---------------------------|---------------------------|
 | **Transport** | Direct API | HTTP | stdio | TypeScript API | REST |
-| **Backend** | Direct | Direct | Direct | Calls LLM APIs | **Proxies to OpenAI** |
-| **API Key** | Not required | Not required | Not required | Required (LLM) | **Required (OpenAI)** |
-| **Models** | N/A | N/A | N/A | OpenAI, Anthropic | **Any OpenAI model** |
+| **Backend** | Direct | Direct | Direct | **Proxies to OpenAI** | **Proxies to OpenAI** |
+| **API Key** | Not required | Not required | Not required | **Required (OpenAI)** | **Required (OpenAI)** |
+| **Models** | N/A | N/A | N/A | **Any OpenAI model** | **Any OpenAI model** |
 | **Filters** | Configurable | Client-controlled | Client-controlled | **Baked-in** | **Baked-in** |
 | **Use Case** | TypeScript apps | Web services | Desktop apps | LLM integrations (code) | LLM integrations (REST) |
 | **Deployment** | Library | CloudFlare Workers | Local process | Library | CloudFlare Workers |
@@ -432,9 +428,8 @@ Use **Interface 3.5** (LLM Helper):
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
 
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4',
+  model: 'gpt-4o-mini',
 });
 
 const response = await helper.chat([

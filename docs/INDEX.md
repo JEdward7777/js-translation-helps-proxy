@@ -71,9 +71,8 @@ npx js-translation-helps-proxy
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
 
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4'
+  model: 'gpt-4o-mini'
 });
 
 const response = await helper.chat([
@@ -81,7 +80,7 @@ const response = await helper.chat([
 ]);
 ```
 
-**Best for:** Building LLM-powered applications with automatic tool execution
+**Best for:** Building LLM-powered applications with automatic tool execution (uses same logic as Interface 4)
 
 ---
 
@@ -111,8 +110,8 @@ response = client.chat.completions.create(
 | Feature | Core API | MCP HTTP | stdio | LLM Helper | OpenAI Proxy |
 |---------|----------|----------|-------|------------|--------------|
 | **Language** | TypeScript/JS | Any (HTTP) | Any (MCP) | TypeScript | Any (HTTP) |
-| **Backend** | Direct | Direct | Direct | Calls LLM APIs | **Proxies to OpenAI** |
-| **API Key** | Not required | Not required | Not required | Required (LLM) | **Required (OpenAI)** |
+| **Backend** | Direct | Direct | Direct | **Proxies to OpenAI** | **Proxies to OpenAI** |
+| **API Key** | Not required | Not required | Not required | **Required (OpenAI)** | **Required (OpenAI)** |
 | **Deployment** | Library | CloudFlare Workers | Local process | Library | CloudFlare Workers |
 | **Filters** | Configurable | Client-controlled | Client-controlled | Baked-in | Baked-in |
 | **Tool Execution** | Manual | Manual | Manual | Automatic | Automatic |

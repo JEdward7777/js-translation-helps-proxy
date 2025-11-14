@@ -1,6 +1,6 @@
 # LLM Helper - TypeScript Function Interface
 
-Interface 3.5 provides a TypeScript function interface for making LLM calls with MCP tools automatically integrated. This is a programmatic API similar to Interface 4 (OpenAI API) but as a TypeScript library instead of REST endpoints.
+Interface 3.5 provides a TypeScript function interface for making LLM calls with MCP tools automatically integrated. **This interface uses the same OpenAI integration logic as Interface 4**, ensuring consistent behavior and automatic improvements.
 
 ## Table of Contents
 
@@ -10,7 +10,6 @@ Interface 3.5 provides a TypeScript function interface for making LLM calls with
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Advanced Features](#advanced-features)
-- [Provider-Specific Notes](#provider-specific-notes)
 - [Error Handling](#error-handling)
 - [Best Practices](#best-practices)
 - [API Reference](#api-reference)
@@ -19,9 +18,9 @@ Interface 3.5 provides a TypeScript function interface for making LLM calls with
 
 The LLM Helper provides:
 
+- **Shares Logic with Interface 4**: Uses the same OpenAI SDK integration as Interface 4
 - **Automatic Tool Integration**: Translation Helps tools are automatically available to the LLM
 - **Iterative Tool Execution**: Automatically executes tool calls and feeds results back to the LLM
-- **Multi-Provider Support**: Works with both OpenAI and Anthropic APIs
 - **Baked-in Filters**: Language and organization filters applied automatically (like Interface 4)
 - **Type-Safe API**: Full TypeScript support with comprehensive type definitions
 - **CloudFlare Workers Compatible**: Works in both Node.js and CloudFlare Workers environments
@@ -40,42 +39,17 @@ import { LLMHelper } from './src/llm-helper/index.js';
 
 ## Quick Start
 
-### OpenAI Example
-
 ```typescript
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
 
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4',
-  language: 'en',
-  organization: 'unfoldingWord',
+  model: 'gpt-4o-mini',
 });
 
-// Simple chat
+// Simple chat with automatic tool execution
 const response = await helper.chat([
   { role: 'user', content: 'What does John 3:16 say?' }
-]);
-
-console.log(response.message.content);
-```
-
-### Anthropic Example
-
-```typescript
-import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
-
-const helper = new LLMHelper({
-  provider: 'anthropic',
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-  model: 'claude-3-opus-20240229',
-  language: 'en',
-  organization: 'unfoldingWord',
-});
-
-const response = await helper.chat([
-  { role: 'user', content: 'Fetch translation notes for Romans 8:1' }
 ]);
 
 console.log(response.message.content);
@@ -87,35 +61,20 @@ console.log(response.message.content);
 
 ```typescript
 interface LLMHelperConfig {
-  // Required: LLM Provider settings
-  provider: 'openai' | 'anthropic';
+  // Required: OpenAI settings
   apiKey: string;
   model: string;
-  
-  // Optional: Provider settings
-  baseURL?: string;              // Custom API endpoint
-  timeout?: number;              // Request timeout (default: 60000ms)
-  
-  // Optional: Translation Helps settings
-  translationHelpsConfig?: {
-    upstreamUrl?: string;        // Default: 'https://translation-helps-mcp.pages.dev/api/mcp'
-    timeout?: number;            // Default: 30000ms
-    filterBookChapterNotes?: boolean;  // Default: true
-    enabledTools?: string[];     // Filter to specific tools
-    hiddenParams?: string[];     // Hide specific parameters
-  };
-  
-  // Optional: Tool execution settings
-  maxToolIterations?: number;    // Default: 5
-  enableToolExecution?: boolean; // Default: true
   
   // Optional: Baked-in filters (like Interface 4)
   language?: string;             // Default: 'en'
   organization?: string;         // Default: 'unfoldingWord'
   
-  // Optional: LLM settings
-  temperature?: number;
-  maxTokens?: number;
+  // Optional: Tool execution settings
+  maxToolIterations?: number;    // Default: 5
+  
+  // Optional: Upstream settings
+  upstreamUrl?: string;          // Default: 'https://translation-helps-mcp.pages.dev/api/mcp'
+  timeout?: number;              // Default: 30000ms
 }
 ```
 
@@ -125,9 +84,8 @@ interface LLMHelperConfig {
 
 ```typescript
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: 'sk-...',
-  model: 'gpt-4',
+  model: 'gpt-4o-mini',
 });
 ```
 
@@ -135,25 +93,13 @@ const helper = new LLMHelper({
 
 ```typescript
 const helper = new LLMHelper({
-  provider: 'anthropic',
-  apiKey: 'sk-ant-...',
-  model: 'claude-3-opus-20240229',
-  baseURL: 'https://api.anthropic.com',
-  timeout: 120000,
-  
-  translationHelpsConfig: {
-    upstreamUrl: 'https://translation-helps-mcp.pages.dev/api/mcp',
-    timeout: 30000,
-    filterBookChapterNotes: true,
-    enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
-  },
-  
-  maxToolIterations: 10,
-  enableToolExecution: true,
+  apiKey: 'sk-...',
+  model: 'gpt-4o-mini',
   language: 'en',
   organization: 'unfoldingWord',
-  temperature: 0.7,
-  maxTokens: 4096,
+  maxToolIterations: 10,
+  upstreamUrl: 'https://translation-helps-mcp.pages.dev/api/mcp',
+  timeout: 60000,
 });
 ```
 
@@ -168,51 +114,7 @@ const response = await helper.chat([
 ]);
 
 console.log(response.message.content);
-console.log('Finish reason:', response.finishReason);
 console.log('Tokens used:', response.usage?.totalTokens);
-```
-
-### Chat with Tool Execution Callbacks
-
-```typescript
-const response = await helper.chat(
-  [
-    { role: 'user', content: 'Fetch scripture and notes for John 3:16' }
-  ],
-  {
-    maxIterations: 5,
-    onToolCall: (toolCall) => {
-      console.log(`Calling tool: ${toolCall.name}`, toolCall.arguments);
-    },
-    onToolResult: (result) => {
-      console.log(`Tool result: ${result.name}`, result.content.substring(0, 100));
-    },
-    onIteration: (iteration, max) => {
-      console.log(`Iteration ${iteration}/${max}`);
-    },
-  }
-);
-```
-
-### Manual Tool Execution
-
-```typescript
-// Execute a tool directly without LLM
-const scripture = await helper.executeTool('fetch_scripture', {
-  reference: 'John 3:16',
-});
-
-console.log(scripture);
-```
-
-### Get Available Tools
-
-```typescript
-const tools = await helper.getAvailableTools();
-
-tools.forEach(tool => {
-  console.log(`${tool.name}: ${tool.description}`);
-});
 ```
 
 ### Multi-Turn Conversation
@@ -235,161 +137,77 @@ messages.push(response.message);
 console.log('Final response:', response.message.content);
 ```
 
-## Advanced Features
-
-### Disable Automatic Tool Execution
+### Access Translation Helps Client
 
 ```typescript
-const helper = new LLMHelper({
-  provider: 'openai',
-  apiKey: 'sk-...',
-  model: 'gpt-4',
-  enableToolExecution: false,  // Tools available but not auto-executed
-});
+// Get direct access to the Translation Helps client
+const client = helper.getClient();
 
-const response = await helper.chat([
-  { role: 'user', content: 'What tools do you have?' }
-]);
-
-// LLM can see tools but won't execute them automatically
+// Use client methods directly
+const tools = await client.listTools();
+const scripture = await client.fetchScripture({ reference: 'John 3:16' });
 ```
 
-### Update Configuration Dynamically
+## Advanced Features
+
+### Custom Language and Organization
 
 ```typescript
 const helper = new LLMHelper({
-  provider: 'openai',
-  apiKey: 'sk-...',
-  model: 'gpt-4',
-  language: 'en',
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini',
+  language: 'es',              // Spanish
+  organization: 'custom-org',  // Custom organization
 });
-
-// Later, switch to Spanish
-helper.updateConfig({ language: 'es' });
-
-// Now all tool calls will use Spanish
-const response = await helper.chat([
-  { role: 'user', content: 'Fetch John 3:16' }
-]);
 ```
 
 ### Custom Upstream URL
 
 ```typescript
 const helper = new LLMHelper({
-  provider: 'openai',
-  apiKey: 'sk-...',
-  model: 'gpt-4',
-  translationHelpsConfig: {
-    upstreamUrl: 'http://localhost:8787/api/mcp',  // Local development
-  },
-});
-```
-
-### Filter Available Tools
-
-```typescript
-const helper = new LLMHelper({
-  provider: 'openai',
-  apiKey: 'sk-...',
-  model: 'gpt-4',
-  translationHelpsConfig: {
-    enabledTools: [
-      'fetch_scripture',
-      'fetch_translation_notes',
-      'fetch_translation_questions',
-    ],
-  },
-});
-```
-
-## Provider-Specific Notes
-
-### OpenAI
-
-- **Supported Models**: `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`, etc.
-- **Tool Format**: Uses OpenAI's function calling format
-- **System Messages**: Supported natively
-- **Default Base URL**: `https://api.openai.com`
-
-```typescript
-const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4-turbo-preview',
-  temperature: 0.7,
-  maxTokens: 4096,
+  model: 'gpt-4o-mini',
+  upstreamUrl: 'http://localhost:8787/api/mcp',  // Local development
 });
 ```
 
-### Anthropic
-
-- **Supported Models**: `claude-3-opus-20240229`, `claude-3-sonnet-20240229`, `claude-3-haiku-20240307`
-- **Tool Format**: Uses Anthropic's tool use format
-- **System Messages**: Converted to system parameter
-- **Default Base URL**: `https://api.anthropic.com`
-- **Note**: `maxTokens` is required for Anthropic (defaults to 4096)
+### Adjust Tool Iterations
 
 ```typescript
 const helper = new LLMHelper({
-  provider: 'anthropic',
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-  model: 'claude-3-opus-20240229',
-  temperature: 0.7,
-  maxTokens: 4096,  // Required for Anthropic
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini',
+  maxToolIterations: 3,  // Limit to 3 iterations
 });
 ```
 
 ## Error Handling
 
-### Error Types
-
-```typescript
-import {
-  LLMHelperError,
-  LLMProviderError,
-  ToolExecutionError,
-  MaxIterationsError,
-  InvalidConfigError,
-} from 'js-translation-helps-proxy/llm-helper';
-```
-
-### Handling Errors
+### Basic Error Handling
 
 ```typescript
 try {
   const response = await helper.chat([
     { role: 'user', content: 'Fetch John 3:16' }
   ]);
+  console.log(response.message.content);
 } catch (error) {
-  if (error instanceof LLMProviderError) {
-    console.error('LLM API error:', error.message, error.statusCode);
-  } else if (error instanceof ToolExecutionError) {
-    console.error('Tool execution failed:', error.message, error.toolName);
-  } else if (error instanceof MaxIterationsError) {
-    console.error('Max iterations reached:', error.message);
-  } else if (error instanceof InvalidConfigError) {
-    console.error('Invalid configuration:', error.message);
-  } else {
-    console.error('Unknown error:', error);
-  }
+  console.error('Error:', error.message);
 }
 ```
 
 ### Graceful Degradation
 
 ```typescript
-const response = await helper.chat(
-  [{ role: 'user', content: 'Fetch John 3:16' }],
-  {
-    onToolResult: (result) => {
-      if (result.isError) {
-        console.warn(`Tool ${result.name} failed:`, result.content);
-        // Continue anyway - LLM will see the error
-      }
-    },
-  }
-);
+try {
+  const response = await helper.chat([
+    { role: 'user', content: 'Fetch John 3:16' }
+  ]);
+  return response.message.content;
+} catch (error) {
+  // Fallback to a default response
+  return 'Sorry, I encountered an error processing your request.';
+}
 ```
 
 ## Best Practices
@@ -398,72 +216,47 @@ const response = await helper.chat(
 
 ```typescript
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4',
+  model: 'gpt-4o-mini',
 });
 ```
 
-### 2. Set Appropriate Timeouts
+### 2. Use gpt-4o-mini for Cost Efficiency
 
 ```typescript
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4',
-  timeout: 120000,  // 2 minutes for complex requests
-  translationHelpsConfig: {
-    timeout: 30000,  // 30 seconds for tool calls
-  },
+  model: 'gpt-4o-mini',  // Cheaper and faster than gpt-4
 });
 ```
 
-### 3. Limit Tool Iterations
+### 3. Set Appropriate Timeouts
 
 ```typescript
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4',
+  model: 'gpt-4o-mini',
+  timeout: 60000,  // 60 seconds for tool calls
+});
+```
+
+### 4. Limit Tool Iterations
+
+```typescript
+const helper = new LLMHelper({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini',
   maxToolIterations: 3,  // Prevent infinite loops
 });
 ```
 
-### 4. Use Callbacks for Monitoring
-
-```typescript
-const response = await helper.chat(messages, {
-  onToolCall: (toolCall) => {
-    logger.info(`Tool called: ${toolCall.name}`);
-  },
-  onToolResult: (result) => {
-    logger.info(`Tool completed: ${result.name}`);
-  },
-});
-```
-
-### 5. Handle Errors Gracefully
-
-```typescript
-try {
-  const response = await helper.chat(messages);
-  return response.message.content;
-} catch (error) {
-  if (error instanceof MaxIterationsError) {
-    return 'The request took too many steps. Please try a simpler query.';
-  }
-  throw error;
-}
-```
-
-### 6. Reuse Helper Instances
+### 5. Reuse Helper Instances
 
 ```typescript
 // Create once
 const helper = new LLMHelper({
-  provider: 'openai',
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4',
+  model: 'gpt-4o-mini',
 });
 
 // Reuse for multiple conversations
@@ -484,70 +277,90 @@ async function handleUserQuery(query: string) {
 constructor(config: LLMHelperConfig)
 ```
 
+Creates a new LLM Helper instance.
+
+**Parameters:**
+- `config.apiKey` (required): OpenAI API key
+- `config.model` (required): OpenAI model name (e.g., 'gpt-4o-mini')
+- `config.language` (optional): Language filter, default: 'en'
+- `config.organization` (optional): Organization filter, default: 'unfoldingWord'
+- `config.maxToolIterations` (optional): Max tool iterations, default: 5
+- `config.upstreamUrl` (optional): Upstream MCP server URL
+- `config.timeout` (optional): Request timeout in ms, default: 30000
+
 #### Methods
 
 ##### chat()
 
 ```typescript
-async chat(
-  messages: ChatMessage[],
-  options?: ToolExecutionOptions
-): Promise<ChatResponse>
+async chat(messages: ChatMessage[]): Promise<ChatResponse>
 ```
 
-Main method for chat with automatic tool execution.
+Send a chat request with automatic tool execution.
 
-##### getAvailableTools()
+**Parameters:**
+- `messages`: Array of chat messages with `role` and `content`
+
+**Returns:**
+- `ChatResponse` with `message` and optional `usage` information
+
+**Example:**
+```typescript
+const response = await helper.chat([
+  { role: 'user', content: 'What does John 3:16 say?' }
+]);
+```
+
+##### getClient()
 
 ```typescript
-async getAvailableTools(): Promise<Tool[]>
+getClient(): TranslationHelpsClient
 ```
 
-Get list of available MCP tools.
+Get the Translation Helps client for direct tool access.
 
-##### executeTool()
+**Returns:**
+- `TranslationHelpsClient` instance
 
+**Example:**
 ```typescript
-async executeTool(name: string, args: Record<string, any>): Promise<string>
+const client = helper.getClient();
+const tools = await client.listTools();
 ```
-
-Execute a single tool manually.
-
-##### getProvider()
-
-```typescript
-getProvider(): string
-```
-
-Get the LLM provider name.
-
-##### getModel()
-
-```typescript
-getModel(): string
-```
-
-Get the LLM model name.
-
-##### getConfig()
-
-```typescript
-getConfig(): Readonly<Required<LLMHelperConfig>>
-```
-
-Get the current configuration.
-
-##### updateConfig()
-
-```typescript
-updateConfig(config: Partial<LLMHelperConfig>): void
-```
-
-Update configuration dynamically.
 
 ### Types
 
-See [types.ts](../src/llm-helper/types.ts) for complete type definitions.
+#### ChatMessage
+
+```typescript
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+```
+
+#### ChatResponse
+
+```typescript
+interface ChatResponse {
+  message: ChatMessage;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+}
+```
+
+## Supported Models
+
+The LLM Helper supports all OpenAI models:
+
+- **gpt-4o-mini** - Recommended for most use cases (fast and cost-effective)
+- **gpt-4o** - Latest GPT-4 model
+- **gpt-4-turbo** - Fast GPT-4 variant
+- **gpt-4** - Original GPT-4
+- **gpt-3.5-turbo** - Faster, cheaper option
 
 ## Examples
 
@@ -559,7 +372,34 @@ See the [examples directory](../examples/llm-helper/) for complete working examp
 
 ## Related Documentation
 
-- [Core API Documentation](./CORE_API.md)
-- [OpenAI API Interface](./OPENAI_API.md)
+- [OpenAI API Interface](./OPENAI_API.md) - Interface 4 (shares same logic)
+- [Core API Documentation](./INDEX.md)
 - [Architecture Overview](../ARCHITECTURE.md)
 - [Main README](../README.md)
+
+## Migration from Old API
+
+If you were using the old LLM Helper with `provider` parameter:
+
+### Before
+```typescript
+const helper = new LLMHelper({
+  provider: 'openai',  // ❌ No longer needed
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4',
+});
+```
+
+### After
+```typescript
+const helper = new LLMHelper({
+  // provider removed - OpenAI only
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini',  // Use newer, cheaper model
+});
+```
+
+**Breaking Changes:**
+- ❌ `provider` parameter removed (OpenAI only)
+- ❌ Anthropic support removed
+- ✅ Everything else stays the same
