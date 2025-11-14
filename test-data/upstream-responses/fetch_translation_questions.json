@@ -1,0 +1,33 @@
+{
+  "tool": "fetch_translation_questions",
+  "timestamp": "2025-11-14T22:19:29.461Z",
+  "request": {
+    "reference": "John 3:16",
+    "language": "en",
+    "organization": "unfoldingWord"
+  },
+  "response": {
+    "reference": "John 3:16",
+    "language": "en",
+    "organization": "unfoldingWord",
+    "items": [
+      {
+        "Reference": "3:16",
+        "ID": "th1d",
+        "Tags": "",
+        "Quote": "",
+        "Occurrence": "",
+        "Question": "How did God show he loved the world?",
+        "Response": "He showed his love by giving his Only Son, that whoever believes in him should not perish but have everlasting life."
+      }
+    ],
+    "metadata": {
+      "totalCount": 1,
+      "source": "TQ",
+      "language": "en",
+      "organization": "unfoldingWord",
+      "resourceType": "tq",
+      "license": "CC BY-SA 4.0"
+    }
+  }
+}

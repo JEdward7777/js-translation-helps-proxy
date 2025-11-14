@@ -100,13 +100,13 @@ export class TranslationHelpsClient {
 
       logger.debug(`Calling tool: ${name}`, args);
 
-      // Call upstream
+      // Call upstream (returns raw response now)
       const rawResponse = await this.upstreamClient.callTool(name, args);
 
-      // Apply response filtering
+      // Apply response filtering BEFORE formatting (works on structured data)
       const filteredResponse = this.filterEngine.filterBookChapterNotes(rawResponse);
 
-      // Format response
+      // Format response AFTER filtering (converts filtered structured data to text)
       const formattedResult = ResponseFormatter.formatResponse(filteredResponse);
 
       logger.debug(`Tool ${name} completed successfully`);

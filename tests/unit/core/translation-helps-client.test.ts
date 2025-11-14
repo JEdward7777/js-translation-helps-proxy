@@ -109,24 +109,31 @@ describe('TranslationHelpsClient', () => {
   });
 
   describe('callTool', () => {
-    it('should call tool successfully', async () => {
-      const mockResult = [{ type: 'text', text: 'Success' }];
+    it('should call tool successfully with proper order of operations', async () => {
+      const mockRawResponse = { scripture: [{ text: 'In the beginning' }] };
+      const mockFilteredResponse = { scripture: [{ text: 'In the beginning' }] };
+      const mockFormattedResult = [{ type: 'text', text: 'Success' }];
 
       (client as any).filterEngine.isToolEnabled.mockReturnValue(true);
       mockToolRegistry.hasTool.mockResolvedValue(true);
       mockToolRegistry.validateToolArgs.mockResolvedValue(true);
-      mockUpstreamClient.callTool.mockResolvedValue([{ type: 'text', text: 'raw response' }]);
-      (client as any).filterEngine.filterBookChapterNotes.mockReturnValue([{ type: 'text', text: 'raw response' }]);
-      (ResponseFormatter.formatResponse as any).mockReturnValue(mockResult);
+      // UpstreamClient now returns raw response
+      mockUpstreamClient.callTool.mockResolvedValue(mockRawResponse);
+      // Filter operates on raw response
+      (client as any).filterEngine.filterBookChapterNotes.mockReturnValue(mockFilteredResponse);
+      // Formatter operates on filtered response
+      (ResponseFormatter.formatResponse as any).mockReturnValue(mockFormattedResult);
 
       const result = await client.callTool('fetch_scripture', { reference: 'John 3:16' });
 
       expect(mockToolRegistry.hasTool).toHaveBeenCalledWith('fetch_scripture');
       expect(mockToolRegistry.validateToolArgs).toHaveBeenCalledWith('fetch_scripture', { reference: 'John 3:16' });
       expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('fetch_scripture', { reference: 'John 3:16' });
-      expect((client as any).filterEngine.filterBookChapterNotes).toHaveBeenCalled();
-      expect(ResponseFormatter.formatResponse).toHaveBeenCalled();
-      expect(result).toEqual(mockResult);
+      // Filter should be called with raw response
+      expect((client as any).filterEngine.filterBookChapterNotes).toHaveBeenCalledWith(mockRawResponse);
+      // Formatter should be called with filtered response
+      expect(ResponseFormatter.formatResponse).toHaveBeenCalledWith(mockFilteredResponse);
+      expect(result).toEqual(mockFormattedResult);
     });
 
     it('should throw ToolDisabledError for disabled tools', async () => {
@@ -159,8 +166,9 @@ describe('TranslationHelpsClient', () => {
       (client as any).filterEngine.isToolEnabled.mockReturnValue(true);
       mockToolRegistry.hasTool.mockResolvedValue(true);
       mockToolRegistry.validateToolArgs.mockResolvedValue(true);
-      mockUpstreamClient.callTool.mockResolvedValue([{ type: 'text', text: 'Test' }]);
-      (client as any).filterEngine.filterBookChapterNotes.mockReturnValue([{ type: 'text', text: 'Test' }]);
+      // UpstreamClient now returns raw response objects
+      mockUpstreamClient.callTool.mockResolvedValue({ result: 'raw data' });
+      (client as any).filterEngine.filterBookChapterNotes.mockReturnValue({ result: 'filtered data' });
       (ResponseFormatter.formatResponse as any).mockReturnValue([{ type: 'text', text: 'Test response' }]);
     });
 

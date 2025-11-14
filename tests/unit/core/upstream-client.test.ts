@@ -76,7 +76,7 @@ describe('UpstreamClient', () => {
   });
 
   describe('callTool', () => {
-    it('should call fetch_scripture tool correctly', async () => {
+    it('should call fetch_scripture tool correctly and return raw response', async () => {
       const mockResponse = {
         scripture: [{ text: 'In the beginning', translation: 'KJV' }]
       };
@@ -93,13 +93,15 @@ describe('UpstreamClient', () => {
         expect.objectContaining({ method: 'GET' })
       );
 
-      expect(result).toHaveLength(1);
-      expect(result[0].text).toContain('In the beginning');
+      // Should return raw response, not formatted
+      expect(result).toEqual(mockResponse);
+      expect(result).toHaveProperty('scripture');
     });
 
-    it('should call fetch_translation_notes tool correctly', async () => {
+    it('should call fetch_translation_notes tool correctly and return raw response', async () => {
       const mockResponse = {
-        items: [{ Note: 'Test note', Reference: 'John 3:16' }]
+        items: [{ Note: 'Test note', Reference: 'John 3:16' }],
+        reference: 'John 3:16'
       };
 
       fetchMock.mockResolvedValueOnce({
@@ -114,8 +116,9 @@ describe('UpstreamClient', () => {
         expect.objectContaining({ method: 'GET' })
       );
 
-      expect(result).toHaveLength(1);
-      expect(result[0].text).toContain('Test note');
+      // Should return raw response, not formatted
+      expect(result).toEqual(mockResponse);
+      expect(result).toHaveProperty('items');
     });
 
     it('should handle unknown tools by falling back to MCP endpoint', async () => {
@@ -139,8 +142,8 @@ describe('UpstreamClient', () => {
         })
       );
 
-      expect(result).toHaveLength(1);
-      expect(result[0].text).toBe('Unknown tool result');
+      // Should return raw response
+      expect(result).toEqual(mockResponse);
     });
 
     it('should handle timeout', async () => {

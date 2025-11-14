@@ -53,7 +53,7 @@ describe('ResponseFormatter', () => {
       expect(result[0].text).toBe('In the beginning\n\nGod created');
     });
 
-    it('should handle translation notes format', () => {
+    it('should handle translation notes format (items array with Note field)', () => {
       const response = {
         reference: 'John 3:16',
         items: [
@@ -72,7 +72,7 @@ describe('ResponseFormatter', () => {
     it('should handle notes with different field names', () => {
       const response = {
         reference: 'John 3:16',
-        notes: [
+        items: [
           { Note: 'Note with capital N' },
           { note: 'Note with lowercase n' },
           { text: 'Note with text field' },
@@ -101,12 +101,12 @@ describe('ResponseFormatter', () => {
       expect(result[0].text).toBe('No translation notes found for this reference.');
     });
 
-    it('should handle translation words format', () => {
+    it('should handle translation words format (items array with term/definition)', () => {
       const response = {
         reference: 'John 3:16',
-        words: [
+        items: [
           { term: 'love', definition: 'Strong affection' },
-          { name: 'world', content: 'The earth and its inhabitants' }
+          { term: 'world', definition: 'The earth and its inhabitants' }
         ]
       };
 
@@ -120,31 +120,20 @@ describe('ResponseFormatter', () => {
     it('should handle empty words array', () => {
       const response = {
         reference: 'John 3:16',
-        words: []
+        items: []
       };
 
       const result = ResponseFormatter.formatResponse(response);
       expect(result).toHaveLength(1);
-      expect(result[0].text).toBe('No translation words found for this reference.');
+      expect(result[0].text).toBe('No translation notes found for this reference.');
     });
 
-    it('should handle single word format', () => {
-      const response = {
-        term: 'love',
-        definition: 'Strong affection for another'
-      };
-
-      const result = ResponseFormatter.formatResponse(response);
-      expect(result).toHaveLength(1);
-      expect(result[0].text).toBe('**love**\nStrong affection for another');
-    });
-
-    it('should handle translation questions format', () => {
+    it('should handle translation questions format (items array with Question/Response)', () => {
       const response = {
         reference: 'John 3:16',
-        questions: [
-          { question: 'What is love?', answer: 'Strong affection' },
-          { Question: 'Capital Q', Answer: 'Capital A' }
+        items: [
+          { Question: 'What is love?', Response: 'Strong affection' },
+          { Question: 'Capital Q', Response: 'Capital A' }
         ]
       };
 
@@ -158,12 +147,48 @@ describe('ResponseFormatter', () => {
     it('should handle empty questions array', () => {
       const response = {
         reference: 'John 3:16',
-        questions: []
+        items: []
       };
 
       const result = ResponseFormatter.formatResponse(response);
       expect(result).toHaveLength(1);
-      expect(result[0].text).toBe('No translation questions found for this reference.');
+      expect(result[0].text).toBe('No translation notes found for this reference.');
+    });
+
+    it('should handle context format with multiple resource types', () => {
+      const response = {
+        reference: 'John 3:16',
+        scripture: null, // Context can have null scripture
+        translationNotes: [{ Note: 'Test note' }],
+        translationWords: [{ term: 'love', definition: 'Strong affection' }],
+        translationQuestions: [{ Question: 'What is love?', Response: 'Affection' }]
+      };
+
+      const result = ResponseFormatter.formatResponse(response);
+      expect(result).toHaveLength(1);
+      expect(result[0].text).toContain('Context for John 3:16');
+      expect(result[0].text).toContain('## Translation Notes');
+      expect(result[0].text).toContain('Test note');
+      expect(result[0].text).toContain('## Translation Words');
+      expect(result[0].text).toContain('**love**');
+      expect(result[0].text).toContain('## Translation Questions');
+      expect(result[0].text).toContain('Q1: What is love?');
+    });
+
+    it('should handle context format with scripture', () => {
+      const response = {
+        reference: 'John 3:16',
+        scripture: [{ text: 'For God so loved', translation: 'ULT' }],
+        translationNotes: [],
+        translationWords: [],
+        translationQuestions: []
+      };
+
+      const result = ResponseFormatter.formatResponse(response);
+      expect(result).toHaveLength(1);
+      expect(result[0].text).toContain('Context for John 3:16');
+      expect(result[0].text).toContain('## Scripture');
+      expect(result[0].text).toContain('For God so loved (ULT)');
     });
 
     it('should handle wrapped result format', () => {

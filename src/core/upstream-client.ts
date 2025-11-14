@@ -53,8 +53,9 @@ export class UpstreamClient {
 
   /**
    * Call a specific tool on the upstream server
+   * Returns raw response for filtering and formatting by the caller
    */
-  async callTool(name: string, args: Record<string, any>): Promise<ToolResult> {
+  async callTool(name: string, args: Record<string, any>): Promise<UpstreamResponse | null> {
     try {
       logger.debug(`Calling tool: ${name}`, args);
       const response = await this.callUpstream('tools/call', {
@@ -62,12 +63,7 @@ export class UpstreamClient {
         arguments: args
       });
 
-      if (!response) {
-        return [{ type: 'text', text: 'No response from upstream server' } as TextContent];
-      }
-
-      // Format the response using the same logic as Python version
-      return this.formatResponse(response);
+      return response;
     } catch (error) {
       logger.error(`Failed to call tool ${name}`, error);
       throw error;
@@ -224,96 +220,6 @@ export class UpstreamClient {
           }
         };
     }
-  }
-
-  /**
-   * Format upstream response to MCP TextContent (preserved from Python)
-   */
-  private formatResponse(response: UpstreamResponse): TextContent[] {
-    // Handle MCP-like format
-    if ('content' in response && Array.isArray(response.content)) {
-      return response.content.map((item: any) => {
-        if (item.type === 'text') {
-          return { type: 'text', text: item.text } as TextContent;
-        }
-        return { type: 'text', text: JSON.stringify(item) } as TextContent;
-      });
-    }
-
-    // Scripture format
-    if ('scripture' in response && Array.isArray(response.scripture)) {
-      const formatted = response.scripture.map((s: any) => {
-        let text = s.text;
-        if (s.translation) {
-          text += ` (${s.translation})`;
-        }
-        return text;
-      }).join('\n\n');
-      return [{ type: 'text', text: formatted } as TextContent];
-    }
-
-    // Translation notes format
-    if ('notes' in response || 'verseNotes' in response || 'items' in response) {
-      const notes = response.notes || response.verseNotes || response.items;
-      if (Array.isArray(notes) && notes.length > 0) {
-        let text = `Translation Notes for ${(response as any).reference || 'Reference'}:\n\n`;
-        notes.forEach((note: any, i: number) => {
-          const content = note.Note || note.note || note.text || note.content || String(note);
-          text += `${i + 1}. ${content}\n\n`;
-        });
-        return [{ type: 'text', text } as TextContent];
-      } else {
-        return [{ type: 'text', text: 'No translation notes found for this reference.' } as TextContent];
-      }
-    }
-
-    // Translation words format
-    if ('words' in response && Array.isArray(response.words)) {
-      if (response.words.length > 0) {
-        let text = `Translation Words for ${(response as any).reference || 'Reference'}:\n\n`;
-        response.words.forEach((word: any) => {
-          const term = word.term || word.name || 'Unknown Term';
-          const definition = word.definition || word.content || 'No definition available';
-          text += `**${term}**\n${definition}\n\n`;
-        });
-        return [{ type: 'text', text } as TextContent];
-      } else {
-        return [{ type: 'text', text: 'No translation words found for this reference.' } as TextContent];
-      }
-    }
-
-    // Single translation word format
-    if ('term' in response && 'definition' in response) {
-      const text = `**${response.term}**\n${response.definition}`;
-      return [{ type: 'text', text } as TextContent];
-    }
-
-    // Translation questions format
-    if ('questions' in response && Array.isArray(response.questions)) {
-      if (response.questions.length > 0) {
-        let text = `Translation Questions for ${(response as any).reference || 'Reference'}:\n\n`;
-        response.questions.forEach((q: any, i: number) => {
-          const question = q.question || q.Question || 'No question';
-          const answer = q.answer || q.Answer || 'No answer';
-          text += `Q${i + 1}: ${question}\nA: ${answer}\n\n`;
-        });
-        return [{ type: 'text', text } as TextContent];
-      } else {
-        return [{ type: 'text', text: 'No translation questions found for this reference.' } as TextContent];
-      }
-    }
-
-    // Wrapped result format
-    if ('result' in response) {
-      const text = typeof response.result === 'string'
-        ? response.result
-        : JSON.stringify(response.result, null, 2);
-      return [{ type: 'text', text } as TextContent];
-    }
-
-    // Fallback: stringify the whole response
-    const text = JSON.stringify(response, null, 2);
-    return [{ type: 'text', text } as TextContent];
   }
 
   /**
