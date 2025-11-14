@@ -409,7 +409,7 @@ export class UpstreamClient {
   
   // Core methods
   async listTools(): Promise<Tool[]>;
-  async callTool(name: string, args: Record<string, any>): Promise<ToolResult>;
+  async callTool(name: string, args: Record<string, any>): Promise<UpstreamResponse | null>;
   
   // Internal routing
   private async routeToolCall(name: string, args: Record<string, any>): Promise<any>;
@@ -418,6 +418,8 @@ export class UpstreamClient {
   // ... other tool-specific routes
 }
 ```
+
+**Note**: `UpstreamClient.callTool()` returns raw upstream responses. The `TranslationHelpsClient` (Interface 1) handles filtering and formatting to produce `ToolResult` (TextContent[]).
 
 **Routing Logic** (preserved from Python):
 ```typescript
