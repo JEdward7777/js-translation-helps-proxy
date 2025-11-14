@@ -19,6 +19,9 @@ export interface StdioServerConfig {
   hiddenParams?: string[];
   filterBookChapterNotes?: boolean;
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
+  upstreamUrl?: string;
+  timeout?: number;
+  headers?: Record<string, string>;
 }
 
 /**
@@ -42,6 +45,9 @@ export class StdioMCPServer {
       enabledTools: config.enabledTools,
       hiddenParams: config.hiddenParams,
       filterBookChapterNotes: config.filterBookChapterNotes,
+      upstreamUrl: config.upstreamUrl,
+      timeout: config.timeout,
+      headers: config.headers,
     });
 
     // Initialize MCP Server

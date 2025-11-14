@@ -170,12 +170,16 @@ describe('StdioMCPServer', () => {
 
   describe('error handling', () => {
     it('should handle network errors gracefully', async () => {
-      // Create server with invalid upstream URL
-      const server = new StdioMCPServer({ logLevel: 'error' });
+      // Create server with invalid upstream URL that will fail immediately
+      // Port 1 is privileged and will cause an immediate connection failure
+      const server = new StdioMCPServer({
+        logLevel: 'error',
+        upstreamUrl: 'http://localhost:1/api/mcp'
+      });
+
+      // Clear any cached tools from previous tests to ensure we actually test the connection
       const client = (server as any).client;
-      
-      // Override upstream URL to cause failure
-      client.upstreamClient.config.upstreamUrl = 'https://invalid-url-that-does-not-exist.example.com';
+      client.clearCache();
 
       const connected = await server.testConnection();
       expect(connected).toBe(false);

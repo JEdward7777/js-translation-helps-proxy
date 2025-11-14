@@ -68,8 +68,11 @@ export class ToolRegistry {
       return tools;
     } catch (error) {
       logger.error('Failed to fetch tools for registry', error);
-      // Return cached tools if available, otherwise empty array
-      return this.cachedTools || [];
+      // Return cached tools if available, otherwise throw the error
+      if (this.cachedTools) {
+        return this.cachedTools;
+      }
+      throw error;
     }
   }
 
