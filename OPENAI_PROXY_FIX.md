@@ -6,17 +6,18 @@ The current implementation of Interface 4 (OpenAI-compatible API) does **not** a
 - Returns fake responses without calling any LLM
 - Lists a fake model called `"translation-helps-proxy"`
 - Does not use the OpenAI SDK despite it being installed
-- Does not use the `OPENAI_API_KEY` from `.env`
+- Does not extract the API key from the client's `Authorization` header
 
 ### What It Should Do
 
 The `/v1/chat/completions` endpoint should act as a **true proxy** that:
-1. Accepts chat completion requests from clients
-2. Injects Translation Helps tools into the request
-3. Forwards the request to OpenAI's actual API using the client's specified model
-4. Handles iterative tool calling when OpenAI requests tool execution
-5. Executes tools locally with baked-in filters (`language=en`, `organization=unfoldingWord`)
-6. Returns OpenAI's actual responses to the client
+1. Accepts chat completion requests from clients with `Authorization: Bearer <api-key>` header
+2. Extracts the OpenAI API key from the Authorization header
+3. Injects Translation Helps tools into the request
+4. Forwards the request to OpenAI's actual API using the client's specified model and API key
+5. Handles iterative tool calling when OpenAI requests tool execution
+6. Executes tools locally with baked-in filters (`language=en`, `organization=unfoldingWord`)
+7. Returns OpenAI's actual responses to the client
 
 The `/v1/models` endpoint should:
 - Proxy requests to OpenAI's `/v1/models` endpoint
@@ -35,24 +36,14 @@ The `/v1/models` endpoint should:
 ### 2. [`src/openai-api/routes.ts`](src/openai-api/routes.ts:1)
 - **Line 74-97**: `/v1/models` returns fake model list
 - **Line 41-68**: `/v1/chat/completions` doesn't proxy to OpenAI
-- **Missing**: OpenAI API key configuration
+- **Missing**: Extraction of API key from Authorization header
 - **Missing**: Proxy logic for models endpoint
-
-### 3. [`src/openai-api/start-node.ts`](src/openai-api/start-node.ts:1)
-- **Missing**: Loading `OPENAI_API_KEY` from environment
-- **Missing**: Passing API key to routes/handlers
-
-### 4. [`src/openai-api/types.ts`](src/openai-api/types.ts:1)
-- **Missing**: `apiKey` field in `OpenAIBridgeConfig`
 
 ## Files Requiring Changes
 
 ### Source Code Files
 1. **[`src/openai-api/chat-completion.ts`](src/openai-api/chat-completion.ts:1)** - Complete rewrite to use OpenAI SDK
-2. **[`src/openai-api/routes.ts`](src/openai-api/routes.ts:1)** - Update both endpoints to proxy
-3. **[`src/openai-api/types.ts`](src/openai-api/types.ts:1)** - Add `apiKey` to config
-4. **[`src/openai-api/start-node.ts`](src/openai-api/start-node.ts:1)** - Load and pass API key
-5. **[`src/openai-api/index.ts`](src/openai-api/index.ts:1)** - Pass API key to routes
+2. **[`src/openai-api/routes.ts`](src/openai-api/routes.ts:1)** - Extract API key from header and proxy both endpoints
 
 ### Test Files
 6. **[`tests/integration/openai-api/full-flow.test.ts`](tests/integration/openai-api/full-flow.test.ts:1)** - Update to expect real OpenAI behavior
@@ -67,29 +58,16 @@ The `/v1/models` endpoint should:
 
 ### Phase 1: Core Implementation
 
-#### 1.1 Update Types ([`src/openai-api/types.ts`](src/openai-api/types.ts:1))
-```typescript
-export interface OpenAIBridgeConfig {
-  apiKey?: string;  // ADD THIS - OpenAI API key
-  language?: string;
-  organization?: string;
-  filterBookChapterNotes?: boolean;
-  maxToolIterations?: number;
-  enableToolExecution?: boolean;
-  upstreamUrl?: string;
-  timeout?: number;
-}
-```
-
-#### 1.2 Rewrite Chat Completion Handler ([`src/openai-api/chat-completion.ts`](src/openai-api/chat-completion.ts:1))
+#### 1.1 Rewrite Chat Completion Handler ([`src/openai-api/chat-completion.ts`](src/openai-api/chat-completion.ts:1))
 
 **Key Changes:**
-- Import and initialize OpenAI SDK client
+- Import OpenAI SDK
+- Accept API key as parameter (extracted from Authorization header)
 - Remove fake response generation
 - Implement actual OpenAI API calls
 - Implement iterative tool calling loop:
   1. Add translation helps tools to request
-  2. Call OpenAI with tools
+  2. Call OpenAI with tools using client's API key
   3. If OpenAI requests tool calls, execute them locally with baked-in filters
   4. Feed results back to OpenAI
   5. Repeat until OpenAI returns final response or max iterations reached
@@ -101,20 +79,19 @@ import OpenAI from 'openai';
 
 export class ChatCompletionHandler {
   private client: TranslationHelpsClient;
-  private openai: OpenAI;
   private config: Required<OpenAIBridgeConfig>;
 
   constructor(config: OpenAIBridgeConfig = {}) {
-    // Initialize OpenAI client
-    this.openai = new OpenAI({
-      apiKey: config.apiKey || process.env.OPENAI_API_KEY,
-    });
-    
-    // Initialize translation helps client
+    // Initialize translation helps client (no OpenAI client here)
     this.client = new TranslationHelpsClient({...});
   }
 
-  async handleChatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+  async handleChatCompletion(
+    request: ChatCompletionRequest,
+    apiKey: string  // API key from Authorization header
+  ): Promise<ChatCompletionResponse> {
+    // Initialize OpenAI client with user's API key
+    const openai = new OpenAI({ apiKey });
     // 1. Get translation helps tools
     const mcpTools = await this.client.listTools();
     const openaiTools = mcpToolsToOpenAI(mcpTools);
@@ -130,8 +107,8 @@ export class ChatCompletionHandler {
     let currentMessages = [...request.messages];
     
     while (iteration < this.config.maxToolIterations) {
-      // Call OpenAI
-      const response = await this.openai.chat.completions.create({
+      // Call OpenAI with user's API key
+      const response = await openai.chat.completions.create({
         model: request.model,  // Use client's model choice
         messages: currentMessages,
         tools: openaiTools,
@@ -158,14 +135,21 @@ export class ChatCompletionHandler {
 }
 ```
 
-#### 1.3 Update Routes ([`src/openai-api/routes.ts`](src/openai-api/routes.ts:1))
+#### 1.2 Update Routes ([`src/openai-api/routes.ts`](src/openai-api/routes.ts:1))
 
 **Changes to `/v1/models`:**
 ```typescript
 app.get('/v1/models', async (c) => {
   try {
+    // Extract API key from Authorization header
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: { message: 'Missing or invalid Authorization header' } }, 401);
+    }
+    const apiKey = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
     // Proxy to OpenAI's models endpoint
-    const openai = new OpenAI({ apiKey: config.apiKey });
+    const openai = new OpenAI({ apiKey });
     const models = await openai.models.list();
     return c.json(models);
   } catch (error) {
@@ -176,38 +160,24 @@ app.get('/v1/models', async (c) => {
 ```
 
 **Changes to `/v1/chat/completions`:**
-- Already calls handler, but ensure handler has API key
-
-#### 1.4 Update Configuration Loading ([`src/openai-api/start-node.ts`](src/openai-api/start-node.ts:1))
-
 ```typescript
-// Add to config object
-const config = {
-  upstreamUrl: process.env.UPSTREAM_URL || '...',
-  timeout: process.env.TIMEOUT ? parseInt(process.env.TIMEOUT) : 30000,
-  logLevel: (process.env.LOG_LEVEL || 'debug') as 'debug' | 'info' | 'warn' | 'error',
-  openai: {
-    apiKey: process.env.OPENAI_API_KEY,  // ADD THIS
-    language: process.env.OPENAI_LANGUAGE || 'en',
-    organization: process.env.OPENAI_ORGANIZATION || 'unfoldingWord',
-    filterBookChapterNotes: process.env.OPENAI_FILTER_NOTES !== 'false',
-    maxToolIterations: process.env.OPENAI_MAX_ITERATIONS ? parseInt(process.env.OPENAI_MAX_ITERATIONS) : 5,
-  },
-};
-```
-
-#### 1.5 Update Unified Server ([`src/openai-api/index.ts`](src/openai-api/index.ts:1))
-
-```typescript
-const openaiRoutes = createOpenAIRoutes({
-  apiKey: config.openai?.apiKey,  // ADD THIS
-  language: config.openai?.language || 'en',
-  filterBookChapterNotes: config.openai?.filterBookChapterNotes ?? true,
-  organization: config.openai?.organization || 'unfoldingWord',
-  maxToolIterations: config.openai?.maxToolIterations || 5,
-  enableToolExecution: config.openai?.enableToolExecution ?? true,
-  upstreamUrl: config.upstreamUrl,
-  timeout: config.timeout,
+app.post('/v1/chat/completions', async (c) => {
+  try {
+    // Extract API key from Authorization header
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: { message: 'Missing or invalid Authorization header' } }, 401);
+    }
+    const apiKey = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    const body = await c.req.json() as ChatCompletionRequest;
+    
+    // Pass API key to handler
+    const response = await handler.handleChatCompletion(body, apiKey);
+    return c.json(response);
+  } catch (error) {
+    // Error handling...
+  }
 });
 ```
 
@@ -220,7 +190,7 @@ const openaiRoutes = createOpenAIRoutes({
 - Update tests to expect real OpenAI models (gpt-4, gpt-3.5-turbo, etc.)
 - Update response expectations to match real OpenAI responses
 - Add tests for tool calling loop
-- Add tests for API key handling
+- Add tests for Authorization header handling
 
 **Example:**
 ```typescript
@@ -262,7 +232,7 @@ describe('Models Endpoint', () => {
 - Line 107-126: Update models endpoint to describe OpenAI proxy
 - Line 206-232: Update usage examples to use real models
 - Line 279-318: Update tool execution flow to describe OpenAI integration
-- Line 320-354: Add API key configuration section
+- Line 320-354: Add Authorization header documentation
 
 **Key Updates:**
 ```markdown
@@ -278,9 +248,9 @@ describe('Models Endpoint', () => {
 
 ### API Key (Required)
 
-Set your OpenAI API key in `.env`:
+Pass your OpenAI API key in the `Authorization` header:
 ```bash
-OPENAI_API_KEY=sk-...
+Authorization: Bearer sk-...
 ```
 
 ## Example Usage
@@ -288,6 +258,7 @@ OPENAI_API_KEY=sk-...
 ```bash
 curl -X POST http://localhost:8787/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
   -d '{
     "model": "gpt-4",
     "messages": [{"role": "user", "content": "Fetch John 3:16"}]
@@ -316,7 +287,7 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:8787/v1",
-    api_key="your-openai-key"  # Your actual OpenAI API key
+    api_key="sk-YOUR-OPENAI-KEY"  # Your actual OpenAI API key
 )
 
 response = client.chat.completions.create(
@@ -350,12 +321,13 @@ response = client.chat.completions.create(
 #### 4.1 Manual Testing with curl
 
 ```bash
-# Load API key from .env
-OPENAI_API_KEY=$(cat .env | grep OPENAI_API_KEY | cut -d'=' -f2)
+# Set your OpenAI API key
+export OPENAI_API_KEY="sk-YOUR-OPENAI-KEY"
 
 # Test chat completions with real model
 curl -X POST http://localhost:8787/v1/chat/completions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
   -d '{
     "model": "gpt-4",
     "messages": [
@@ -364,17 +336,15 @@ curl -X POST http://localhost:8787/v1/chat/completions \
   }'
 
 # Test models endpoint
-curl http://localhost:8787/v1/models
+curl -H "Authorization: Bearer $OPENAI_API_KEY" \
+  http://localhost:8787/v1/models
 ```
 
 ## Summary of Changes
 
-### Code Changes (5 files)
-1. [`src/openai-api/types.ts`](src/openai-api/types.ts:1) - Add `apiKey` field
-2. [`src/openai-api/chat-completion.ts`](src/openai-api/chat-completion.ts:1) - Complete rewrite with OpenAI SDK
-3. [`src/openai-api/routes.ts`](src/openai-api/routes.ts:1) - Proxy models endpoint
-4. [`src/openai-api/start-node.ts`](src/openai-api/start-node.ts:1) - Load API key
-5. [`src/openai-api/index.ts`](src/openai-api/index.ts:1) - Pass API key to routes
+### Code Changes (2 files)
+1. [`src/openai-api/chat-completion.ts`](src/openai-api/chat-completion.ts:1) - Complete rewrite with OpenAI SDK, accept API key parameter
+2. [`src/openai-api/routes.ts`](src/openai-api/routes.ts:1) - Extract API key from Authorization header, proxy both endpoints
 
 ### Test Changes (1 file)
 6. [`tests/integration/openai-api/full-flow.test.ts`](tests/integration/openai-api/full-flow.test.ts:1) - Update for real OpenAI
@@ -408,7 +378,8 @@ curl http://localhost:8787/v1/models
 - No fake models
 
 ### Configuration
-- Requires `OPENAI_API_KEY` in `.env`
+- Requires `Authorization: Bearer <api-key>` header in requests
+- Uses client's API key from Authorization header
 - Uses client's model choice from request
 - Applies baked-in filters to tool calls
 
@@ -419,6 +390,7 @@ curl http://localhost:8787/v1/models
 - [ ] `/v1/chat/completions` with gpt-4 returns real responses
 - [ ] Tool calling works (OpenAI requests tools, we execute, feed back)
 - [ ] Baked-in filters applied to tool calls
-- [ ] Error handling for missing API key
+- [ ] Error handling for missing Authorization header
+- [ ] Error handling for invalid API keys
 - [ ] Error handling for invalid models
 - [ ] Documentation examples work as written
