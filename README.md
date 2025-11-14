@@ -505,9 +505,10 @@ npm run dev
 
 The project includes VSCode launch configurations for debugging:
 
-1. **Debug Node.js Server (Interface 4)** - Debug the HTTP server with breakpoints
-2. **Debug stdio Server (Interface 3)** - Debug the stdio server
-3. **Debug Current Test File** - Debug the currently open test file
+1. **Debug HTTP Server - Native Node.js (Interfaces 2 & 4)** - Debug MCP HTTP/SSE and OpenAI API servers
+2. **Debug HTTP Server - Built (Interfaces 2 & 4)** - Debug compiled HTTP servers
+3. **Debug stdio Server (Interface 3)** - Debug stdio MCP server (uses stdin/stdout, not HTTP)
+4. **Debug Current Test File** - Debug the currently open test file
 
 To use:
 1. Open the file you want to debug
@@ -515,7 +516,10 @@ To use:
 3. Press `F5` or go to Run > Start Debugging
 4. Select the appropriate debug configuration
 
-The server will start with `LOG_LEVEL=debug` for detailed logging.
+**Important:**
+- **Interface 3 (stdio)** communicates via standard input/output, NOT HTTP/REST
+- **Interfaces 2 & 4** are HTTP/REST servers accessible at `http://localhost:8787`
+- The server will start with `LOG_LEVEL=debug` for detailed logging
 
 ## 🤝 Contributing
 

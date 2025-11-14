@@ -206,9 +206,9 @@ The project includes VSCode launch configurations for debugging. To debug:
 1. **Set breakpoints** in your code by clicking in the gutter next to line numbers
 2. **Open the Run and Debug panel** (Ctrl+Shift+D or Cmd+Shift+D)
 3. **Select a debug configuration:**
-   - `Debug Node.js Server (Interface 4)` - Debug HTTP server with hot reload
-   - `Debug Node.js Server (Built)` - Debug compiled HTTP server
-   - `Debug stdio Server (Interface 3)` - Debug stdio server
+   - `Debug HTTP Server - Native Node.js (Interfaces 2 & 4)` - Debug MCP HTTP/SSE and OpenAI API servers with hot reload
+   - `Debug HTTP Server - Built (Interfaces 2 & 4)` - Debug compiled HTTP servers
+   - `Debug stdio Server (Interface 3)` - Debug stdio MCP server (uses standard input/output, not HTTP)
    - `Debug Current Test File` - Debug the currently open test file
 4. **Press F5** or click the green play button to start debugging
 
@@ -219,16 +219,31 @@ The debugger will:
 - View call stacks
 - Evaluate expressions in the debug console
 
-**Example debugging workflow:**
+**Example debugging workflow for HTTP servers (Interfaces 2 & 4):**
 ```bash
-# 1. Open src/openai-api/start-node.ts
-# 2. Set a breakpoint on line 35 (where the server starts)
-# 3. Press F5 and select "Debug Node.js Server (Interface 4)"
-# 4. The debugger will stop at your breakpoint
-# 5. Use the debug toolbar to step through code
+# 1. Open src/openai-api/start-node.ts or src/mcp-server/routes.ts
+# 2. Set a breakpoint in the code you want to debug
+# 3. Press F5 and select "Debug HTTP Server - Native Node.js (Interfaces 2 & 4)"
+# 4. The server starts at http://localhost:8787
+# 5. Make a request to trigger your breakpoint:
+curl http://localhost:8787/v1/models
+# 6. The debugger will stop at your breakpoint
+# 7. Use the debug toolbar to step through code
 ```
 
-**Note:** The Native Node.js server (`npm run dev:node`) is recommended for debugging as it provides better source map support and faster reload times than Wrangler.
+**Example debugging workflow for stdio server (Interface 3):**
+```bash
+# 1. Open src/stdio-server/index.ts
+# 2. Set a breakpoint in the code you want to debug
+# 3. Press F5 and select "Debug stdio Server (Interface 3)"
+# 4. The server communicates via standard input/output (not HTTP)
+# 5. Test with an MCP client like Claude Desktop or send JSON-RPC messages via stdin
+```
+
+**Important Notes:**
+- **Interface 3 (stdio)** uses standard input/output for communication, NOT HTTP/REST
+- **Interfaces 2 & 4** are HTTP/REST servers (MCP HTTP/SSE and OpenAI API)
+- The Native Node.js server (`npm run dev:node`) is recommended for debugging HTTP servers as it provides better source map support and faster reload times than Wrangler
 
 ---
 
