@@ -122,22 +122,3 @@ export function validateToolCall(toolCall: any): toolCall is ToolCall {
 
   return true;
 }
-
-/**
- * Extract tool calls from OpenAI messages
- */
-export function extractToolCallsFromMessages(messages: Array<{ role: string; tool_calls?: ToolCall[] }>): ToolCall[] {
-  const toolCalls: ToolCall[] = [];
-
-  for (const message of messages) {
-    if (message.role === 'assistant' && message.tool_calls) {
-      for (const toolCall of message.tool_calls) {
-        if (validateToolCall(toolCall)) {
-          toolCalls.push(toolCall);
-        }
-      }
-    }
-  }
-
-  return toolCalls;
-}
