@@ -81,16 +81,23 @@ constructor(config: UpstreamClientConfig) {
 
 ```mermaid
 graph TD
-    A[Client calls tool] --> B[callUpstream]
-    B --> C[routeToolCall]
-    C --> D[fetchWithTimeout]
-    D --> E{Success?}
-    E -->|Yes| F[Return response]
-    E -->|No| G[Throw error immediately]
-    G --> H[Error propagates to client]
+    A[Client calls listTools or callTool] --> B[callUpstream]
+    B --> C{Method type?}
+    C -->|tools/list| D[GET request to /api/mcp]
+    C -->|tools/call| E[routeToolCall]
+    E --> F[GET/POST to specific endpoint]
+    D --> G[fetchWithTimeout]
+    F --> G
+    G --> H{Success?}
+    H -->|Yes| I[Return response]
+    H -->|No| J[Throw error immediately]
+    J --> K[Error propagates to client]
 ```
 
-**Key observation**: There is **zero retry logic** in the current implementation.
+**Key observations**:
+- There is **zero retry logic** in the current implementation
+- **Both `listTools()` and `callTool()` use the same `fetchWithTimeout()` method**
+- This means the retry mechanism will work for **all upstream calls**
 
 ---
 
@@ -104,6 +111,18 @@ Implement an intelligent retry mechanism with exponential backoff that:
 3. Uses exponential backoff to avoid overwhelming cold workers
 4. Is fully configurable with sensible defaults
 5. Provides detailed logging for debugging
+6. **Works for ALL upstream calls** - both `listTools()` and `callTool()`
+
+### Universal Coverage
+
+Since both [`listTools()`](src/core/upstream-client.ts:32) and [`callTool()`](src/core/upstream-client.ts:58) flow through the same [`callUpstream()`](src/core/upstream-client.ts:76) → [`fetchWithTimeout()`](src/core/upstream-client.ts:228) path, **the retry mechanism automatically handles all upstream API calls**:
+
+✅ **`listTools()`** - GET request to `/api/mcp?method=tools/list`
+✅ **`callTool('fetch_scripture', ...)`** - GET request to `/api/fetch-scripture`
+✅ **`callTool('fetch_translation_notes', ...)`** - GET request to `/api/translation-notes`
+✅ **All other tool calls** - Routed through appropriate endpoints
+
+**No separate retry mechanism needed** - one implementation covers everything!
 
 ### High-Level Design
 
