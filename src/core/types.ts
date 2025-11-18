@@ -337,6 +337,12 @@ export interface UpstreamClientConfig {
   upstreamUrl: string;
   timeout?: number;
   headers?: Record<string, string>;
+  
+  // Retry configuration
+  maxRetries?: number;           // Default: 3
+  retryDelay?: number;            // Default: 1000ms (1 second)
+  retryBackoff?: number;          // Default: 2 (exponential)
+  retryableStatusCodes?: number[]; // Default: [408, 429, 500, 502, 503, 504]
 }
 
 export interface FilterConfig {

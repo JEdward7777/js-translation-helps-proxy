@@ -59,13 +59,17 @@ describe('UpstreamClient', () => {
     });
 
     it('should handle upstream errors', async () => {
-      fetchMock.mockResolvedValueOnce({
+      // Mock 500 error for all retry attempts (1 initial + 3 retries = 4 total)
+      fetchMock.mockResolvedValue({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error'
       });
 
       await expect(client.listTools()).rejects.toThrow(UpstreamResponseError);
+      
+      // Should have retried 3 times (4 total attempts)
+      expect(fetchMock).toHaveBeenCalledTimes(4);
     });
 
     it('should handle network errors', async () => {

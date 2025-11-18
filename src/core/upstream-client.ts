@@ -22,8 +22,22 @@ export class UpstreamClient {
     this.config = {
       upstreamUrl: config.upstreamUrl,
       timeout: config.timeout ?? 30000,
-      headers: config.headers ?? {}
+      headers: config.headers ?? {},
+      
+      // Retry configuration with defaults
+      maxRetries: config.maxRetries ?? 3,
+      retryDelay: config.retryDelay ?? 1000,
+      retryBackoff: config.retryBackoff ?? 2,
+      retryableStatusCodes: config.retryableStatusCodes ?? [408, 429, 500, 502, 503, 504]
     };
+    
+    logger.info('UpstreamClient initialized', {
+      upstreamUrl: this.config.upstreamUrl,
+      timeout: this.config.timeout,
+      maxRetries: this.config.maxRetries,
+      retryDelay: this.config.retryDelay,
+      retryBackoff: this.config.retryBackoff
+    });
   }
 
   /**
@@ -223,24 +237,72 @@ export class UpstreamClient {
   }
 
   /**
-   * Fetch with timeout support
+   * Fetch with timeout and retry support
    */
-  private async fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    attempt: number = 1
+  ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
     try {
+      logger.debug(`Fetch attempt ${attempt}/${this.config.maxRetries + 1}`, { url });
+      
       const response = await fetch(url, {
         ...options,
         signal: controller.signal
       });
+      
       clearTimeout(timeoutId);
+      
+      // Check if response status is retryable
+      if (!response.ok && this.isRetryableStatus(response.status)) {
+        throw new UpstreamResponseError(
+          `Upstream server returned ${response.status}: ${response.statusText}`,
+          response.status
+        );
+      }
+      
       return response;
+      
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new UpstreamConnectionError(`Request timed out after ${this.config.timeout}ms`);
+      
+      // Determine if error is retryable
+      const isRetryable = this.isRetryableError(error);
+      const hasRetriesLeft = attempt <= this.config.maxRetries;
+      
+      if (isRetryable && hasRetriesLeft) {
+        // Calculate delay with exponential backoff
+        const delay = this.calculateRetryDelay(attempt);
+        
+        logger.warn(
+          `Request failed (attempt ${attempt}/${this.config.maxRetries + 1}), ` +
+          `retrying in ${delay}ms`,
+          { error: error instanceof Error ? error.message : String(error), url }
+        );
+        
+        // Wait before retrying
+        await this.sleep(delay);
+        
+        // Recursive retry
+        return this.fetchWithTimeout(url, options, attempt + 1);
       }
+      
+      // No more retries or non-retryable error
+      logger.error(
+        `Request failed after ${attempt} attempt(s)`,
+        { error, url }
+      );
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new UpstreamConnectionError(
+          `Request timed out after ${this.config.timeout}ms`
+        );
+      }
+      
       throw error;
     }
   }
@@ -263,5 +325,67 @@ export class UpstreamClient {
       'Content-Type': 'application/json',
       ...this.config.headers
     };
+  }
+
+  /**
+   * Determine if an error is retryable
+   */
+  private isRetryableError(error: unknown): boolean {
+    // Network errors are retryable
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return true;
+    }
+    
+    // Timeout errors are retryable
+    if (error instanceof Error && error.name === 'AbortError') {
+      return true;
+    }
+    
+    // Upstream response errors with retryable status codes
+    if (error instanceof UpstreamResponseError) {
+      return this.isRetryableStatus(error.statusCode);
+    }
+    
+    // Other errors are not retryable
+    return false;
+  }
+
+  /**
+   * Determine if HTTP status code is retryable
+   */
+  private isRetryableStatus(statusCode?: number): boolean {
+    if (!statusCode) return false;
+    
+    const retryableStatusCodes = this.config.retryableStatusCodes ?? [
+      408, // Request Timeout
+      429, // Too Many Requests
+      500, // Internal Server Error
+      502, // Bad Gateway
+      503, // Service Unavailable
+      504  // Gateway Timeout
+    ];
+    
+    return retryableStatusCodes.includes(statusCode);
+  }
+
+  /**
+   * Calculate retry delay with exponential backoff
+   */
+  private calculateRetryDelay(attempt: number): number {
+    const baseDelay = this.config.retryDelay ?? 1000;
+    const backoff = this.config.retryBackoff ?? 2;
+    
+    // Calculate: baseDelay * (backoff ^ (attempt - 1))
+    // Attempt 1: baseDelay * 1 = baseDelay
+    // Attempt 2: baseDelay * backoff = baseDelay * 2
+    // Attempt 3: baseDelay * backoff^2 = baseDelay * 4
+    return baseDelay * Math.pow(backoff, attempt - 1);
+  }
+
+  /**
+   * Sleep for specified milliseconds
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
