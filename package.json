@@ -43,7 +43,7 @@
   "license": "ISC",
   "dependencies": {
     "@hono/node-server": "^1.19.6",
-    "@modelcontextprotocol/sdk": "^1.21.1",
+    "@modelcontextprotocol/sdk": "^1.22.0",
     "hono": "^4.10.5",
     "openai": "^6.8.1",
     "zod": "^3.25.76"

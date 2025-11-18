@@ -144,7 +144,7 @@ const scripture = await client.fetchScripture({
 
 ### Interface 2: HTTP MCP Server
 
-Web-based MCP server with client-controlled filters, perfect for web services and APIs.
+Web-based MCP server using official Streamable HTTP transport, compatible with MCP Inspector and standard MCP clients.
 
 **Start Server:**
 
@@ -159,35 +159,51 @@ npm run dev:node
 npm run deploy
 ```
 
-**Endpoints:**
+**Endpoint:**
 
-- `POST /mcp/message` - HTTP endpoint for MCP messages
-- `GET /mcp/health` - Health check
-- `GET /mcp/info` - Server information
+- `/mcp` - Official MCP Streamable HTTP endpoint (POST + GET + DELETE)
 
 **Example:**
 
 ```bash
-# List tools via HTTP
-curl -X POST http://localhost:8787/mcp/message \
-  -H "Content-Type: application/json" \
-  -d '{"method": "tools/list"}'
-
-# Call a tool
-curl -X POST http://localhost:8787/mcp/message \
+# Initialize session
+curl -X POST http://localhost:8787/mcp \
   -H "Content-Type: application/json" \
   -d '{
-    "method": "tools/call",
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
     "params": {
-      "name": "fetch_scripture",
-      "arguments": {"reference": "John 3:16"}
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {"name": "test-client", "version": "1.0.0"}
     }
+  }' -i
+
+# List tools (use Mcp-Session-Id from initialize response)
+curl -X POST http://localhost:8787/mcp \
+  -H "Content-Type: application/json" \
+  -H "Mcp-Session-Id: <session-id>" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list"
   }'
 ```
 
+**MCP Inspector:**
+
+```bash
+# Test with MCP Inspector
+npx @modelcontextprotocol/inspector
+# Connect to: http://localhost:8787/mcp
+```
+
 **Key Features:**
+- ✅ Official MCP Streamable HTTP transport
+- ✅ Compatible with MCP Inspector
 - ✅ Client-controlled filters (via configuration)
-- ✅ HTTP POST for request/response
+- ✅ Session management with SSE streaming
 - ✅ CloudFlare Workers compatible
 
 **Documentation:** [MCP Server Guide](docs/MCP_SERVER.md)

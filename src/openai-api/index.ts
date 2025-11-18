@@ -5,7 +5,7 @@
 
 import { Hono } from 'hono';
 import { logger } from '../shared/index.js';
-import { createMCPRoutes } from '../mcp-server/index.js';
+import { createStreamableMCPRoutes } from '../mcp-server/index.js';
 import { createOpenAIRoutes } from './routes.js';
 
 export interface UnifiedServerConfig {
@@ -49,17 +49,19 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
     upstreamUrl: config.upstreamUrl || 'default',
   });
 
-  // Mount MCP routes (Interface 2)
-  // Client-controlled filters via query parameters or config
-  const mcpRoutes = createMCPRoutes({
+  // Mount official MCP Streamable HTTP transport at /mcp (Interface 2)
+  const mcpRoutes = createStreamableMCPRoutes({
     enabledTools: config.mcp?.enabledTools,
     hiddenParams: config.mcp?.hiddenParams,
     filterBookChapterNotes: config.mcp?.filterBookChapterNotes,
+    logLevel: config.logLevel,
   });
   app.route('/', mcpRoutes);
 
-  logger.info('MCP HTTP interface mounted', {
-    endpoints: ['/mcp/message', '/mcp/health', '/mcp/info'],
+  logger.info('MCP Streamable HTTP transport mounted', {
+    endpoints: ['POST /mcp', 'GET /mcp', 'DELETE /mcp'],
+    compatible: 'MCP Inspector, standard MCP clients',
+    transport: 'StreamableHTTPServerTransport',
   });
 
   // Mount OpenAI routes (Interface 4)
@@ -93,12 +95,11 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
       description: 'Unified HTTP server with MCP and OpenAI-compatible interfaces',
       interfaces: {
         mcp: {
-          description: 'MCP HTTP server with client-controlled filters',
-          endpoints: {
-            message: '/mcp/message',
-            health: '/mcp/health',
-            info: '/mcp/info',
-          },
+          description: 'MCP server with official Streamable HTTP transport',
+          endpoint: '/mcp',
+          methods: ['POST', 'GET', 'DELETE'],
+          transport: 'StreamableHTTPServerTransport',
+          compatible: 'MCP Inspector, standard MCP clients',
         },
         openai: {
           description: 'OpenAI-compatible API with configurable filters',
@@ -137,7 +138,7 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
       error: 'Not Found',
       message: `No route found for ${method} ${path}`,
       availableEndpoints: {
-        mcp: ['/mcp/message', '/mcp/health', '/mcp/info'],
+        mcp: ['/mcp'],
         openai: ['/v1/chat/completions', '/v1/models', '/v1/tools', '/v1/info', '/health'],
         root: ['/'],
       },
@@ -162,7 +163,7 @@ export async function startServer(config: UnifiedServerConfig = {}): Promise<voi
 }
 
 // Export types and utilities
-export { createMCPRoutes } from '../mcp-server/index.js';
+export { createStreamableMCPRoutes } from '../mcp-server/index.js';
 export { createOpenAIRoutes } from './routes.js';
 export { ChatCompletionHandler } from './chat-completion.js';
 export * from './types.js';

@@ -1,112 +1,187 @@
 # MCP HTTP Server (Interface 2)
 
-The MCP HTTP Server provides a web-based interface to the Translation Helps proxy using the Model Context Protocol over HTTP.
+The MCP HTTP Server provides a web-based interface to the Translation Helps proxy using the official Model Context Protocol Streamable HTTP transport.
 
 ## Overview
 
 **Interface 2** runs as an HTTP server using Hono, providing:
-- HTTP POST endpoint for MCP messages
+- Official MCP Streamable HTTP transport at `/mcp`
+- Compatible with MCP Inspector and standard MCP clients
 - Client-controlled filtering via configuration
 - Compatible with CloudFlare Workers
+- Supports both request/response (POST) and streaming (GET) modes
 
 ## Endpoints
 
-### HTTP Message Endpoint
+### Official MCP Endpoint
 
-**POST** `/mcp/message`
+**POST** `/mcp` - Send JSON-RPC 2.0 requests
 
-Send MCP protocol messages via HTTP POST.
+**GET** `/mcp` - Establish SSE stream for notifications
 
-**Request Body:**
-```json
-{
-  "method": "tools/list"
-}
-```
+**DELETE** `/mcp` - Terminate session
 
-or
+The `/mcp` endpoint implements the official [MCP Streamable HTTP transport specification](https://spec.modelcontextprotocol.io/specification/2024-11-05/transport/http/).
 
-```json
-{
-  "method": "tools/call",
-  "params": {
-    "name": "fetch_scripture",
-    "arguments": {
-      "reference": "John 3:16"
-    }
-  }
-}
-```
+### Initialize Connection
 
-**Example:**
+**Request:**
 ```bash
-# List tools
-curl -X POST http://localhost:8787/mcp/message \
-  -H "Content-Type: application/json" \
-  -d '{"method": "tools/list"}'
-
-# Call a tool
-curl -X POST http://localhost:8787/mcp/message \
+curl -X POST http://localhost:8787/mcp \
   -H "Content-Type: application/json" \
   -d '{
-    "method": "tools/call",
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
     "params": {
-      "name": "fetch_scripture",
-      "arguments": {"reference": "John 3:16"}
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {
+        "name": "test-client",
+        "version": "1.0.0"
+      }
     }
   }'
 ```
 
-### Health Check
-
-**GET** `/mcp/health`
-
-Check server health and upstream connectivity.
-
 **Response:**
 ```json
 {
-  "status": "healthy",
-  "upstreamConnected": true,
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
-
-### Server Info
-
-**GET** `/mcp/info`
-
-Get server information and capabilities.
-
-**Response:**
-```json
-{
-  "name": "js-translation-helps-proxy",
-  "version": "1.0.0",
-  "protocol": "mcp",
-  "transport": "http",
-  "capabilities": {
-    "tools": true
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {
+      "tools": {}
+    },
+    "serverInfo": {
+      "name": "js-translation-helps-proxy",
+      "version": "1.0.0"
+    }
   }
 }
 ```
 
+The response includes a `Mcp-Session-Id` header that should be included in subsequent requests.
+
+### List Tools
+
+**Request:**
+```bash
+curl -X POST http://localhost:8787/mcp \
+  -H "Content-Type: application/json" \
+  -H "Mcp-Session-Id: <session-id>" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list"
+  }'
+```
+
+**Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "name": "fetch_scripture",
+        "description": "Fetch scripture text for a given reference",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "reference": {
+              "type": "string",
+              "description": "Bible reference (e.g., 'John 3:16')"
+            }
+          },
+          "required": ["reference"]
+        }
+      }
+    ]
+  }
+}
+```
+
+### Call Tool
+
+**Request:**
+```bash
+curl -X POST http://localhost:8787/mcp \
+  -H "Content-Type: application/json" \
+  -H "Mcp-Session-Id: <session-id>" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+      "name": "fetch_scripture",
+      "arguments": {
+        "reference": "John 3:16"
+      }
+    }
+  }'
+```
+
+**Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "For God so loved the world..."
+      }
+    ]
+  }
+}
+```
+
+## MCP Inspector Setup
+
+The MCP Inspector is a web-based tool for testing MCP servers. To connect:
+
+1. Install and run MCP Inspector:
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+2. In the Inspector UI:
+   - **Transport Type:** Select "Streamable HTTP"
+   - **URL:** Enter `http://localhost:8787/mcp`
+   - Click **"Connect"**
+
+3. The Inspector will:
+   - Send an `initialize` request
+   - Display available tools
+   - Allow you to test tool calls interactively
+
 ## Configuration
 
-### Client-Controlled Filters
+### Server Configuration
 
-Unlike the OpenAI interface (Interface 4) which has baked-in filters, the MCP server allows clients to control filtering:
-
-**Via Server Configuration:**
 ```typescript
-import { createMCPRoutes } from './mcp-server';
+import { createStreamableMCPRoutes } from 'js-translation-helps-proxy/mcp-server';
 
-const routes = createMCPRoutes({
+const routes = createStreamableMCPRoutes({
   enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
   hiddenParams: ['organization'],
   filterBookChapterNotes: true,
+  logLevel: 'info',
 });
 ```
+
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabledTools` | `string[]` | all tools | Limit which tools are available |
+| `hiddenParams` | `string[]` | none | Hide parameters from tool schemas |
+| `filterBookChapterNotes` | `boolean` | `false` | Filter translation notes to book/chapter level |
+| `logLevel` | `string` | `'info'` | Logging level: 'debug', 'info', 'warn', 'error' |
 
 ### Environment Variables
 
@@ -121,53 +196,77 @@ LOG_LEVEL = "info"
 
 ## Usage Examples
 
-### JavaScript/TypeScript Client
+### TypeScript Client with Official SDK
 
 ```typescript
-import { SSEMCPServer } from 'js-translation-helps-proxy/mcp-server';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
-// Create server instance
-const server = new SSEMCPServer({
-  enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
-  filterBookChapterNotes: true,
-  logLevel: 'info',
+// Create transport
+const transport = new StreamableHTTPClientTransport({
+  url: 'http://localhost:8787/mcp',
 });
 
-// Get available tools
-const tools = await server.getClient().listTools();
+// Create client
+const client = new Client({
+  name: 'my-client',
+  version: '1.0.0',
+}, {
+  capabilities: {},
+});
+
+// Connect
+await client.connect(transport);
+
+// List tools
+const { tools } = await client.listTools();
 console.log('Available tools:', tools);
 
 // Call a tool
-const result = await server.getClient().callTool('fetch_scripture', {
-  reference: 'John 3:16',
+const result = await client.callTool({
+  name: 'fetch_scripture',
+  arguments: { reference: 'John 3:16' },
 });
 console.log('Result:', result);
 ```
 
-### HTTP Client Example
+### Manual HTTP Client
 
 ```typescript
-// List available tools
-const toolsResponse = await fetch('http://localhost:8787/mcp/message', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ method: 'tools/list' })
-});
-const { tools } = await toolsResponse.json();
-
-// Call a tool
-const resultResponse = await fetch('http://localhost:8787/mcp/message', {
+// Initialize session
+const initResponse = await fetch('http://localhost:8787/mcp', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    method: 'tools/call',
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'initialize',
     params: {
-      name: 'fetch_scripture',
-      arguments: { reference: 'John 3:16' }
-    }
-  })
+      protocolVersion: '2024-11-05',
+      capabilities: {},
+      clientInfo: { name: 'my-client', version: '1.0.0' },
+    },
+  }),
 });
-const { content } = await resultResponse.json();
+
+const sessionId = initResponse.headers.get('Mcp-Session-Id');
+
+// List tools
+const toolsResponse = await fetch('http://localhost:8787/mcp', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Mcp-Session-Id': sessionId,
+  },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/list',
+  }),
+});
+
+const { result } = await toolsResponse.json();
+console.log('Tools:', result.tools);
 ```
 
 ## Development
@@ -184,19 +283,43 @@ npm run dev:node
 # Server will be available at http://localhost:8787
 ```
 
-### Testing
+### Testing with curl
 
 ```bash
-# Test message endpoint
-curl -X POST http://localhost:8787/mcp/message \
+# Initialize
+curl -X POST http://localhost:8787/mcp \
   -H "Content-Type: application/json" \
-  -d '{"method": "tools/list"}'
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {"name": "test", "version": "1.0.0"}
+    }
+  }' -i
 
-# Test health check
-curl http://localhost:8787/mcp/health
+# List tools (use session ID from initialize response)
+curl -X POST http://localhost:8787/mcp \
+  -H "Content-Type: application/json" \
+  -H "Mcp-Session-Id: <session-id>" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list"
+  }'
+```
 
-# Test server info
-curl http://localhost:8787/mcp/info
+### Testing with MCP Inspector
+
+The easiest way to test is with the MCP Inspector:
+
+```bash
+# Install and run
+npx @modelcontextprotocol/inspector
+
+# Then connect to http://localhost:8787/mcp
 ```
 
 ## Deployment
@@ -224,18 +347,78 @@ UPSTREAM_URL = "https://your-upstream-api.com/api/mcp"
 LOG_LEVEL = "info"
 ```
 
-## Differences from Interface 3 (stdio)
+## Session Management
 
-| Feature | Interface 2 (HTTP) | Interface 3 (stdio) |
-|---------|-------------------|---------------------|
-| Transport | HTTP | stdio streams |
-| Use Case | Web services, APIs | CLI tools, desktop apps |
-| Filtering | Client-controlled | Client-controlled |
-| Deployment | CloudFlare Workers | Local process |
-| Scalability | High (serverless) | Single process |
+The Streamable HTTP transport supports two modes:
+
+### Stateful Mode (Default)
+
+- Server generates and manages session IDs
+- Session ID included in `Mcp-Session-Id` header
+- Maintains connection state between requests
+- Supports SSE streaming for notifications
+
+### Stateless Mode
+
+- No session management
+- Each request is independent
+- Simpler but no streaming support
+
+The current implementation uses **stateful mode** with automatic session ID generation.
+
+## Streaming Support
+
+The GET endpoint supports Server-Sent Events (SSE) for streaming:
+
+```bash
+# Establish SSE stream
+curl -N -H "Mcp-Session-Id: <session-id>" \
+  http://localhost:8787/mcp
+```
+
+This allows the server to push notifications and progress updates to the client.
+
+## Differences from Legacy Interface
+
+| Feature | New (Streamable HTTP) | Legacy (Custom HTTP) |
+|---------|----------------------|---------------------|
+| Endpoint | `/mcp` | `/mcp/message`, `/mcp/health`, `/mcp/info` |
+| Protocol | JSON-RPC 2.0 | Custom format |
+| Transport | Official MCP spec | Custom implementation |
+| MCP Inspector | ✅ Compatible | ❌ Not compatible |
+| Session Management | ✅ Built-in | ❌ None |
+| Streaming | ✅ SSE support | ❌ None |
+
+## Troubleshooting
+
+### Connection Issues
+
+If MCP Inspector won't connect:
+
+1. Check server is running: `curl http://localhost:8787/`
+2. Verify CORS headers are enabled
+3. Check browser console for errors
+4. Ensure URL is `http://localhost:8787/mcp` (no trailing slash)
+
+### Session Errors
+
+If you get "Invalid session ID" errors:
+
+1. Ensure you're sending the `Mcp-Session-Id` header
+2. Use the session ID from the initialize response
+3. Check session hasn't expired (restart server if needed)
+
+### Tool Call Failures
+
+If tool calls fail:
+
+1. Verify tool name is correct (use `tools/list` to check)
+2. Check arguments match the tool's input schema
+3. Review server logs for detailed error messages
 
 ## See Also
 
+- [MCP Specification - Streamable HTTP Transport](https://spec.modelcontextprotocol.io/specification/2024-11-05/transport/http/)
 - [OpenAI API Documentation](./OPENAI_API.md) - Interface 4 with baked-in filters
 - [stdio Server Documentation](./STDIO_SERVER.md) - Interface 3 for CLI usage
 - [Main README](../README.md) - Project overview
