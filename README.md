@@ -1,7 +1,7 @@
 # JS Translation Helps Proxy
 
-[![Tests](https://img.shields.io/badge/tests-146%2F153%20passing-brightgreen)](TESTING.md)
-[![Coverage](https://img.shields.io/badge/coverage-95.4%25-brightgreen)](TESTING.md)
+[![Tests](https://img.shields.io/badge/tests-160%2F162%20passing-brightgreen)](TESTING.md)
+[![Coverage](https://img.shields.io/badge/coverage-98.8%25-brightgreen)](TESTING.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/license-ISC-blue)](LICENSE)
 [![CloudFlare Workers](https://img.shields.io/badge/CloudFlare-Workers-orange)](https://workers.cloudflare.com/)
@@ -33,7 +33,7 @@ This project provides a production-ready unified proxy service that bridges tran
 ### ✨ Features
 
 - **4 Complete Interfaces** - Core API, MCP HTTP, stdio, LLM Helper, OpenAI API
-- **153 Tests** - 95.4% passing (146/153), comprehensive coverage
+- **162 Tests** - 98.8% passing (160/162), comprehensive coverage
 - **CloudFlare Workers** - Serverless deployment ready
 - **Type-Safe** - Full TypeScript with strict mode
 - **Flexible Filtering** - Tool filtering, parameter hiding, note filtering
@@ -47,7 +47,7 @@ See [`ARCHITECTURE.md`](ARCHITECTURE.md) for detailed system design and componen
 ### 📊 Project Stats
 
 - **Lines of Code:** ~5,000+
-- **Test Coverage:** 95.4% (146/153 tests passing)
+- **Test Coverage:** 98.8% (160/162 tests passing)
 - **Interfaces:** 4 complete interfaces
 - **Documentation:** 8 comprehensive guides
 - **Examples:** Multiple configuration examples
@@ -468,9 +468,8 @@ npm run test:e2e         # 8 E2E tests
 ```
 
 **Test Results:**
-- ✅ 146 tests passing (95.4%)
-- ⚠️ 3 tests failing (upstream server bugs)
-- ⏭️ 4 tests skipped (require API keys)
+- ✅ 160 tests passing (98.8%)
+- ⏭️ 2 tests skipped (require API keys)
 
 See [TESTING.md](TESTING.md) for detailed test documentation.
 

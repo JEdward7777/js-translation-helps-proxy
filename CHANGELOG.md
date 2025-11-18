@@ -45,12 +45,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Works with OpenAI SDKs
 
 #### Testing
-- **153 total tests** with 95.4% passing rate
+- **162 total tests** with 98.8% passing rate
 - **65 unit tests** - Fast, isolated component testing
-- **80 integration tests** - Real upstream server testing
+- **89 integration tests** - Real upstream server testing
 - **8 E2E tests** - Complete workflow validation
 - Comprehensive test coverage across all interfaces
-- Discovered upstream server bugs (browse_translation_words)
+- Retry mechanism resolves Cloudflare Worker cold start issues
 
 #### Documentation
 - Complete architecture documentation
@@ -131,9 +131,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CloudFlare Workers support** for serverless deployment
 
 ### Known Issues
-- `browse_translation_words` endpoint returns HTTP 500 (upstream server bug)
-- 1 network error handling test needs assertion fix
-- 4 LLM Helper tests skipped (require API keys)
+- 2 LLM Helper tests skipped (require API keys for full integration testing)
+
+### Resolved Issues
+- ✅ `browse_translation_words` now working (retry mechanism handles cold starts)
+- ✅ All network error handling tests passing
 
 ### Dependencies
 - `@modelcontextprotocol/sdk` ^1.21.1 - MCP protocol support

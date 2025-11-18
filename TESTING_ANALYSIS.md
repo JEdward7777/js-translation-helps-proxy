@@ -16,12 +16,12 @@ The project now has **three types of tests**:
    - No network dependencies
    - Test edge cases and error handling
 
-2. **Integration Tests** (22 tests) - Use real server ✅ **Now working!**
+2. **Integration Tests** (89 tests) - Use real server ✅ **All working!**
    - Located in: `tests/integration/`
    - Purpose: Test actual communication with upstream MCP server
    - Connect to: `https://translation-helps-mcp.pages.dev/api/mcp`
    - Verify real API responses
-   - Test Results: **20 passing, 2 failing** (upstream server bugs)
+   - Test Results: **All 89 passing** (retry mechanism resolves cold start issues)
 
 3. **E2E Tests** - Use real server ✅ **Created**
    - Located in: `tests/e2e/`
@@ -54,64 +54,40 @@ npm run test:unit
 # Fast, reliable, no network needed
 ```
 
-### Integration Tests: ⚠️ 20/22 Passing
+### Integration Tests: ✅ All 89 Passing
 ```bash
 npm run test:integration
 # Connects to real upstream server
-# 2 failures are upstream server bugs (browse_translation_words returns 500)
+# All tests passing with retry mechanism
 ```
 
 Successful tool calls:
 - ✅ fetch_scripture
-- ✅ fetch_translation_notes  
+- ✅ fetch_translation_notes
 - ✅ fetch_translation_questions
 - ✅ get_translation_word
 - ✅ get_context
 - ✅ extract_references
-- ❌ browse_translation_words (upstream server bug - returns 500)
+- ✅ browse_translation_words - **Now working with retry mechanism!**
 
-### Upstream Server Bug Found
+### Cloudflare Worker Cold Start Issue Resolved
 
-The `browse_translation_words` endpoint at the upstream server returns HTTP 500.
+The `browse_translation_words` endpoint was experiencing Cloudflare Worker cold start issues, returning HTTP 500 on the first call.
 
-**Direct curl test confirms the bug:**
-```bash
-$ curl -s "https://translation-helps-mcp.pages.dev/api/browse-translation-words?language=en"
-{
-  "error": "An unexpected error occurred. Please try again later.",
-  "details": {
-    "endpoint": "browse-translation-words-v2",
-    "path": "/api/browse-translation-words",
-    "params": {
-      "language": "en",
-      "organization": "unfoldingWord",
-      "category": "all",
-      "format": "json"
-    },
-    "timestamp": "2025-11-11T21:13:46.592Z"
-  },
-  "status": 500
-}
-```
+**Root Cause:** Cloudflare Workers exhibit "cold start" behavior where the first request may timeout or fail while the worker initializes, but subsequent requests succeed once the worker is warm.
 
-**Comparison with working endpoint:**
-```bash
-$ curl -s "https://translation-helps-mcp.pages.dev/api/fetch-scripture?reference=John%203:16"
-# Returns 200 OK with scripture data
-```
+**Solution:** Implemented automatic retry mechanism with exponential backoff:
+- **Default configuration:** 3 retries with 1s, 2s, 4s delays
+- **Smart retry logic:** Only retries transient failures (network errors, timeouts, 5xx responses)
+- **Efficient:** Does not retry permanent failures (4xx client errors)
 
-This is **not** a bug in our proxy - it's a bug in the upstream Translation Helps API itself.
+**Result:** The first retry typically hits a warm worker and succeeds. All integration tests now pass consistently.
 
-**Important Discovery**: The Python proxy tests also **do not test** `browse_translation_words`. Looking at the Python test files:
-- `test_tool_execution.py` - Only tests `get_system_prompt` and `fetch_scripture`
-- `test_upstream_connectivity.py` - Only tests connectivity and tool discovery
-- No tests exist for `browse_translation_words`
-
-This means:
-1. ✅ The bug exists in the upstream server (confirmed via direct curl)
-2. ✅ Neither Python nor TypeScript tests caught it before
-3. ✅ Our new TypeScript integration tests are **more comprehensive** than the Python tests
-4. ✅ We discovered a real bug that was previously unknown
+**Important Discovery**:
+1. ✅ The issue was Cloudflare Worker cold starts, not a permanent bug
+2. ✅ Retry mechanism resolves the issue elegantly
+3. ✅ Our TypeScript integration tests are **more comprehensive** than the Python tests
+4. ✅ We discovered and fixed a real reliability issue
 
 ## Configuration
 
