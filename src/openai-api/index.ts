@@ -120,6 +120,30 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
     });
   });
 
+  // Catch-all handler for unimplemented paths - must be last
+  app.all('*', (c) => {
+    const method = c.req.method;
+    const path = c.req.path;
+    const url = c.req.url;
+    
+    logger.warn('Unimplemented path accessed', {
+      method,
+      path,
+      url,
+      headers: Object.fromEntries(c.req.raw.headers.entries()),
+    });
+    
+    return c.json({
+      error: 'Not Found',
+      message: `No route found for ${method} ${path}`,
+      availableEndpoints: {
+        mcp: ['/mcp/message', '/mcp/health', '/mcp/info'],
+        openai: ['/v1/chat/completions', '/v1/models', '/v1/tools', '/v1/info', '/health'],
+        root: ['/'],
+      },
+    }, 404);
+  });
+
   logger.info('Unified HTTP server initialized successfully');
 
   return app;
