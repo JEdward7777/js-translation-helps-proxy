@@ -19,7 +19,6 @@ Welcome to the JS Translation Helps Proxy documentation! This guide will help yo
 ### Deployment & Operations
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment guide (CloudFlare Workers)
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - Contributing guidelines
-- [CHANGELOG.md](../CHANGELOG.md) - Version history
 
 ### Examples
 - [Example Configurations](../examples/README.md) - Sample configs for all interfaces
@@ -387,8 +386,7 @@ docs/
 ├── OPENAI_API.md                 # Interface 4: OpenAI API
 ├── DEPLOYMENT.md                 # Deployment guide
 ├── TESTING.md                    # Testing documentation
-├── CONTRIBUTING.md               # Contributing guidelines
-└── CHANGELOG.md                  # Version history
+└── CONTRIBUTING.md               # Contributing guidelines
 
 examples/
 ├── README.md                     # Examples overview

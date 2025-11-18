@@ -326,7 +326,6 @@ npx wrangler deploy --env production
 - [ ] Environment variables configured
 - [ ] `wrangler.toml` reviewed and updated
 - [ ] Version number updated in `package.json`
-- [ ] CHANGELOG.md updated
 
 ### Deployment
 

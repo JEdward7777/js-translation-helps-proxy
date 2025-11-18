@@ -412,7 +412,6 @@ When adding features, update:
 - **README.md** - If user-facing changes
 - **ARCHITECTURE.md** - If architectural changes
 - **Interface docs** - If interface changes
-- **CHANGELOG.md** - For all changes
 - **API docs** - For new APIs
 
 ### Documentation Style
@@ -438,8 +437,7 @@ We follow [Semantic Versioning](https://semver.org/):
 ### Release Steps
 
 1. **Update version** in `package.json`
-2. **Update CHANGELOG.md** with changes
-3. **Create release commit:**
+2. **Create release commit:**
    ```bash
    git commit -m "chore: release v0.1.0"
    ```
@@ -451,7 +449,7 @@ We follow [Semantic Versioning](https://semver.org/):
    ```bash
    git push origin main --tags
    ```
-6. **Create GitHub release** with changelog
+6. **Create GitHub release**
 7. **Deploy to npm** (if applicable)
 8. **Deploy to CloudFlare Workers**
 
@@ -508,7 +506,6 @@ We follow [Semantic Versioning](https://semver.org/):
 
 Contributors will be recognized in:
 
-- **CHANGELOG.md** - For significant contributions
 - **README.md** - Contributors section
 - **GitHub** - Contributor graph
 

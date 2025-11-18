@@ -444,7 +444,6 @@ const response = await helper.chat([
 - **[Testing Guide](TESTING.md)** - Test coverage and strategy
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - CloudFlare Workers deployment
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
-- **[Changelog](CHANGELOG.md)** - Version history
 
 ### Interface Documentation
 
