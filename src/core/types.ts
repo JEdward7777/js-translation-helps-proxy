@@ -315,10 +315,16 @@ export interface Tool {
   };
 }
 
-// MCP-compatible tool type
+/**
+ * MCP-compatible tool type
+ * @public - Part of the library's public API for external consumers
+ */
 export interface MCPTool extends Tool {}
 
-// OpenAI-compatible tool type
+/**
+ * OpenAI-compatible tool type
+ * @public - Part of the library's public API for external consumers
+ */
 export interface OpenAITool {
   type: 'function';
   function: {
@@ -509,6 +515,10 @@ export const clientConfigSchema = filterConfigSchema.extend({
 
 export type ToolName = ToolSchema['name'];
 
+/**
+ * Utility type for mapping tool names to method names
+ * @public - Part of the library's public API for external consumers
+ */
 export type ToolMethodName = ToolName extends `${infer Method}_scripture` ? `fetchScripture` :
   ToolName extends `${infer Method}_translation_notes` ? `fetchTranslationNotes` :
   ToolName extends `get_system_prompt` ? `getSystemPrompt` :
