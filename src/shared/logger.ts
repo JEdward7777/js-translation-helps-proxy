@@ -75,8 +75,3 @@ export class Logger {
 
 // Default logger instance
 export const logger = new Logger();
-
-// Factory function for creating loggers with different prefixes
-export function createLogger(prefix: string, level?: LogLevel): Logger {
-  return new Logger({ level: level ?? LogLevel.INFO, prefix });
-}

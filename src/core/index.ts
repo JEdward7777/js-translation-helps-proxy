@@ -248,10 +248,13 @@ export class TranslationHelpsClient {
 // ============================================================================
 
 export type { TranslationHelpsClientConfig, Tool, ToolArguments, ToolResult, TextContent } from './types.js';
-export { UpstreamClient } from './upstream-client.js';
-export { FilterEngine } from './filter-engine.js';
-export { ToolRegistry } from './tool-registry.js';
-export { ResponseFormatter } from './response-formatter.js';
 
-// Re-export shared utilities
-export * from '../shared/index.js';
+// Re-export commonly used shared utilities
+export { logger, Validator, ErrorHandler } from '../shared/index.js';
+export {
+  ToolNotFoundError,
+  ToolDisabledError,
+  InvalidArgumentsError,
+  UpstreamConnectionError,
+  UpstreamResponseError
+} from '../shared/index.js';

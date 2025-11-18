@@ -11,36 +11,36 @@ import { InvalidArgumentsError } from './errors.js';
 // Tool-specific validation schemas
 // ============================================================================
 
-export const fetchScriptureArgsSchema = z.object({
+const fetchScriptureArgsSchema = z.object({
   reference: z.string().min(1, 'Reference is required'),
   language: z.string().optional().default('en'),
   organization: z.string().optional().default('unfoldingWord')
 });
 
-export const fetchTranslationNotesArgsSchema = z.object({
+const fetchTranslationNotesArgsSchema = z.object({
   reference: z.string().min(1, 'Reference is required'),
   language: z.string().optional().default('en'),
   organization: z.string().optional().default('unfoldingWord')
 });
 
-export const getSystemPromptArgsSchema = z.object({
+const getSystemPromptArgsSchema = z.object({
   includeImplementationDetails: z.boolean().optional().default(false)
 });
 
-export const fetchTranslationQuestionsArgsSchema = z.object({
+const fetchTranslationQuestionsArgsSchema = z.object({
   reference: z.string().min(1, 'Reference is required'),
   language: z.string().optional().default('en'),
   organization: z.string().optional().default('unfoldingWord')
 });
 
-export const getTranslationWordArgsSchema = z.object({
+const getTranslationWordArgsSchema = z.object({
   reference: z.string().min(1, 'Reference is required'),
   wordId: z.string().optional(),
   language: z.string().optional().default('en'),
   organization: z.string().optional().default('unfoldingWord')
 });
 
-export const browseTranslationWordsArgsSchema = z.object({
+const browseTranslationWordsArgsSchema = z.object({
   language: z.string().optional().default('en'),
   organization: z.string().optional().default('unfoldingWord'),
   category: z.string().optional(),
@@ -48,13 +48,13 @@ export const browseTranslationWordsArgsSchema = z.object({
   limit: z.number().int().positive().optional().default(50)
 });
 
-export const getContextArgsSchema = z.object({
+const getContextArgsSchema = z.object({
   reference: z.string().min(1, 'Reference is required'),
   language: z.string().optional().default('en'),
   organization: z.string().optional().default('unfoldingWord')
 });
 
-export const extractReferencesArgsSchema = z.object({
+const extractReferencesArgsSchema = z.object({
   text: z.string().min(1, 'Text is required'),
   includeContext: z.boolean().optional().default(false)
 });
@@ -151,51 +151,5 @@ export class Validator {
     // Basic validation - non-empty string, no special chars
     const pattern = /^[a-zA-Z0-9_-]+$/;
     return pattern.test(org) && org.length > 0;
-  }
-}
-
-// ============================================================================
-// Utility functions for common validations
-// ============================================================================
-
-export function validateRequired(value: any, fieldName: string): void {
-  if (value === undefined || value === null || value === '') {
-    throw new InvalidArgumentsError(`${fieldName} is required`);
-  }
-}
-
-export function validateString(value: any, fieldName: string, minLength = 1): void {
-  if (typeof value !== 'string') {
-    throw new InvalidArgumentsError(`${fieldName} must be a string`);
-  }
-  if (value.length < minLength) {
-    throw new InvalidArgumentsError(`${fieldName} must be at least ${minLength} characters`);
-  }
-}
-
-export function validateNumber(value: any, fieldName: string, min?: number, max?: number): void {
-  if (typeof value !== 'number' || isNaN(value)) {
-    throw new InvalidArgumentsError(`${fieldName} must be a number`);
-  }
-  if (min !== undefined && value < min) {
-    throw new InvalidArgumentsError(`${fieldName} must be at least ${min}`);
-  }
-  if (max !== undefined && value > max) {
-    throw new InvalidArgumentsError(`${fieldName} must be at most ${max}`);
-  }
-}
-
-export function validateBoolean(value: any, fieldName: string): void {
-  if (typeof value !== 'boolean') {
-    throw new InvalidArgumentsError(`${fieldName} must be a boolean`);
-  }
-}
-
-export function validateArray(value: any, fieldName: string, minLength = 0): void {
-  if (!Array.isArray(value)) {
-    throw new InvalidArgumentsError(`${fieldName} must be an array`);
-  }
-  if (value.length < minLength) {
-    throw new InvalidArgumentsError(`${fieldName} must have at least ${minLength} items`);
   }
 }

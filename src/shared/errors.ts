@@ -78,27 +78,3 @@ export class ErrorHandler {
     return false;
   }
 }
-
-// Error factory functions for common scenarios
-
-export function createTimeoutError(operation: string, timeoutMs: number): UpstreamConnectionError {
-  return new UpstreamConnectionError(
-    `Operation '${operation}' timed out after ${timeoutMs}ms`
-  );
-}
-
-export function createNetworkError(operation: string, originalError: Error): UpstreamConnectionError {
-  return new UpstreamConnectionError(
-    `Network error during '${operation}': ${originalError.message}`
-  );
-}
-
-export function createInvalidResponseError(operation: string, details?: string): UpstreamResponseError {
-  const message = `Invalid response from upstream during '${operation}'${details ? `: ${details}` : ''}`;
-  return new UpstreamResponseError(message);
-}
-
-export function createToolValidationError(toolName: string, issues: string[]): InvalidArgumentsError {
-  const message = `Invalid arguments for tool '${toolName}': ${issues.join(', ')}`;
-  return new InvalidArgumentsError(message);
-}
