@@ -328,37 +328,32 @@ const updatedMessages = await llm.executeToolCalls(
 
 ```typescript
 import { Hono } from 'hono';
-import { createOpenAIBridge } from './openai-bridge';
+import { createOpenAIRoutes } from './openai-api/routes';
 
 const app = new Hono();
 
 // Baked-in configuration (from environment)
-const bridge = createOpenAIBridge({
+const openaiRoutes = createOpenAIRoutes({
   upstreamUrl: process.env.UPSTREAM_URL,
   enabledTools: process.env.ENABLED_TOOLS?.split(','),
   hiddenParams: ['language', 'organization'], // Always hidden
   filterBookChapterNotes: true, // Always enabled
-  modelEndpoint: process.env.MODEL_ENDPOINT,
-  modelApiKey: process.env.MODEL_API_KEY
+  maxToolIterations: 5,
+  enableToolExecution: true
 });
 
-// OpenAI-compatible endpoints
-app.post('/v1/chat/completions', async (c) => {
-  const request = await c.req.json();
-  return c.json(await bridge.chatCompletions(request));
-});
-
-app.post('/v1/completions', async (c) => {
-  const request = await c.req.json();
-  return c.json(await bridge.completions(request));
-});
-
-app.get('/v1/models', async (c) => {
-  return c.json(await bridge.listModels());
-});
+// Mount OpenAI-compatible routes
+app.route('/', openaiRoutes);
 
 export default app;
 ```
+
+**Available Endpoints:**
+- `POST /v1/chat/completions` - Chat completions with automatic tool injection
+- `GET /v1/models` - List available models (proxies to OpenAI)
+- `GET /v1/tools` - List available MCP tools
+- `GET /health` - Health check endpoint
+- `GET /v1/info` - API information and configuration
 
 **Usage Example:**
 ```typescript
@@ -366,10 +361,10 @@ import OpenAI from 'openai';
 
 const client = new OpenAI({
   baseURL: 'http://localhost:8000/v1',
-  apiKey: 'dummy' // Or actual API key if auth enabled
+  apiKey: 'sk-your-openai-api-key' // Your actual OpenAI API key
 });
 
-// Tools are automatically injected
+// Tools are automatically injected and executed
 const response = await client.chat.completions.create({
   model: 'gpt-4',
   messages: [
@@ -377,19 +372,18 @@ const response = await client.chat.completions.create({
   ]
 });
 
-// Streaming support
-const stream = await client.chat.completions.create({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Explain John 3:16' }],
-  stream: true
-});
+console.log(response.choices[0].message.content);
 ```
+
+**Note**: The proxy requires a valid OpenAI API key in the Authorization header. The server automatically injects Translation Helps tools and handles iterative tool execution server-side.
 
 **Key Differences from Interfaces 1-3:**
 - Filtering is **baked into server config**, not client-controllable
-- Tools are **always injected** into chat completions
-- Iterative execution loop managed server-side
-- Proxies to actual LLM endpoint (not just tool executor)
+- Tools are **automatically injected** into all chat completion requests
+- Iterative tool execution loop managed server-side (up to 5 iterations by default)
+- Proxies requests to actual LLM endpoint (OpenAI API) with tool augmentation
+- Requires valid OpenAI API key from client
+- Returns final LLM response after all tool executions complete
 
 ---
 
@@ -1538,8 +1532,8 @@ The project has been successfully implemented with all planned features:
 
 **Phase 6: Interface 4 - OpenAI API** ✅
 - Full OpenAI-compatible API implemented
-- `/v1/chat/completions` with streaming support
-- Iterative execution loop
+- `/v1/chat/completions` endpoint with tool injection
+- Iterative tool execution loop (up to 5 iterations)
 - CloudFlare Workers deployment configured
 - E2E tests with OpenAI SDK
 
