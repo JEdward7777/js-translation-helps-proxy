@@ -13,8 +13,8 @@ Welcome to the JS Translation Helps Proxy documentation! This guide will help yo
 - [Interface 1: Core API](#interface-1-core-api) - Direct TypeScript/JavaScript API
 - [Interface 2: MCP HTTP Server](MCP_SERVER.md) - HTTP MCP server
 - [Interface 3: stdio Server](STDIO_SERVER.md) - Desktop application interface
-- [Interface 5: LLM Helper](LLM_HELPER.md) - TypeScript LLM integration
 - [Interface 4: OpenAI API](OPENAI_API.md) - OpenAI-compatible REST API
+- [Interface 5: LLM Helper](LLM_HELPER.md) - TypeScript LLM integration
 
 ### Deployment & Operations
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment guide (CloudFlare Workers)
@@ -71,26 +71,6 @@ npx github:JEdward7777/js-translation-helps-proxy
 
 ---
 
-### I want to integrate with an LLM in TypeScript
-→ **[Interface 5: LLM Helper](LLM_HELPER.md)**
-
-```typescript
-import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
-
-const helper = new LLMHelper({
-  apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini'
-});
-
-const response = await helper.chat([
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
-```
-
-**Best for:** Building LLM-powered applications with automatic tool execution (uses same logic as Interface 4)
-
----
-
 ### I want an OpenAI-compatible REST API
 → **[Interface 4: OpenAI API](OPENAI_API.md)**
 
@@ -112,19 +92,39 @@ response = client.chat.completions.create(
 
 ---
 
+### I want to integrate with an LLM in TypeScript
+→ **[Interface 5: LLM Helper](LLM_HELPER.md)**
+
+```typescript
+import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
+
+const helper = new LLMHelper({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini'
+});
+
+const response = await helper.chat([
+  { role: 'user', content: 'What does John 3:16 say?' }
+]);
+```
+
+**Best for:** Building LLM-powered applications with automatic tool execution (uses same logic as Interface 4)
+
+---
+
 ## 📖 Interface Comparison
 
-| Feature | Core API | MCP HTTP | stdio | LLM Helper | OpenAI Proxy |
-|---------|----------|----------|-------|------------|--------------|
-| **Language** | TypeScript/JS | Any (HTTP) | Any (MCP) | TypeScript | Any (HTTP) |
+| Feature | Core API | MCP HTTP | stdio | OpenAI Proxy | LLM Helper |
+|---------|----------|----------|-------|--------------|------------|
+| **Language** | TypeScript/JS | Any (HTTP) | Any (MCP) | Any (HTTP) | TypeScript |
 | **Backend** | Direct | Direct | Direct | **Proxies to OpenAI** | **Proxies to OpenAI** |
 | **API Key** | Not required | Not required | Not required | **Required (OpenAI)** | **Required (OpenAI)** |
-| **Deployment** | Library | CloudFlare Workers | **On-demand process** | Library | CloudFlare Workers |
-| **Lifecycle** | N/A | Persistent server | **Launched on-demand** | N/A | Persistent server |
+| **Deployment** | Library | CloudFlare Workers | **On-demand process** | CloudFlare Workers | Library |
+| **Lifecycle** | N/A | Persistent server | **Launched on-demand** | Persistent server | N/A |
 | **Filters** | Configurable | Client-controlled | Client-controlled | Baked-in | Baked-in |
 | **Tool Execution** | Manual | Manual | Manual | Automatic | Automatic |
-| **Use Case** | Direct integration | Web services | Desktop apps | LLM apps (code) | LLM apps (REST) |
-| **Complexity** | Low | Medium | Low | Medium | Low |
+| **Use Case** | Direct integration | Web services | Desktop apps | LLM apps (REST) | LLM apps (code) |
+| **Complexity** | Low | Medium | Low | Low | Medium |
 
 ---
 
@@ -150,8 +150,8 @@ response = client.chat.completions.create(
 │                    └───────┬────────┘                        │
 │                            │                                 │
 │  ┌──────────────┐  ┌──────▼────────┐                        │
-│  │ Interface 5  │  │ Interface 4   │                        │
-│  │  LLM Helper  │  │  OpenAI API   │                        │
+│  │ Interface 4  │  │ Interface 5   │                        │
+│  │  OpenAI API  │  │  LLM Helper   │                        │
 │  └──────┬───────┘  └──────┬────────┘                        │
 │         │                  │                                 │
 │         └──────────────────┼──────────────────┘              │
@@ -395,8 +395,8 @@ docs/
 ├── ARCHITECTURE.md               # System architecture
 ├── MCP_SERVER.md                 # Interface 2: MCP HTTP Server
 ├── STDIO_SERVER.md               # Interface 3: stdio Server
-├── LLM_HELPER.md                 # Interface 5: LLM Helper
 ├── OPENAI_API.md                 # Interface 4: OpenAI API
+├── LLM_HELPER.md                 # Interface 5: LLM Helper
 ├── DEPLOYMENT.md                 # Deployment guide
 ├── TESTING.md                    # Testing documentation
 └── CONTRIBUTING.md               # Contributing guidelines

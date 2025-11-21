@@ -21,8 +21,8 @@ A production-ready TypeScript MCP proxy for translation-helps with multiple inte
   - [Interface 1: Core API](#interface-1-core-api-direct-typescriptjavascript)
   - [Interface 2: MCP HTTP Server](#interface-2-ssehttp-mcp-server)
   - [Interface 3: stdio Server](#interface-3-stdio-mcp-server-npx-executable)
-  - [Interface 5: LLM Helper](#interface-5-typescript-llm-helper)
   - [Interface 4: OpenAI API](#interface-4-openai-compatible-api)
+  - [Interface 5: LLM Helper](#interface-5-typescript-llm-helper)
 - [Interface Comparison](#interface-comparison)
 - [Documentation](#documentation)
 - [Testing](#testing)
@@ -63,8 +63,8 @@ src/
 ├── core/           # Interface 1: Core API
 ├── mcp-server/     # Interface 2: HTTP MCP
 ├── stdio-server/   # Interface 3: stdio MCP
-├── llm-helper/     # Interface 5: TypeScript LLM interface
 ├── openai-api/     # Interface 4: OpenAI-compatible API
+├── llm-helper/     # Interface 5: TypeScript LLM interface
 └── shared/         # Shared utilities
 tests/
 ├── unit/
@@ -296,39 +296,6 @@ Or to use the latest GitHub version:
 
 ---
 
-### Interface 5: TypeScript LLM Helper
-
-Programmatic TypeScript interface for OpenAI integration with automatic tool execution.
-**Uses the same OpenAI logic as Interface 4.**
-
-**Quick Start:**
-
-```typescript
-import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
-
-const helper = new LLMHelper({
-  apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
-});
-
-// Chat with automatic tool execution
-const response = await helper.chat([
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
-
-console.log(response.message.content);
-```
-
-**Key Features:**
-- ✅ **Shares logic with Interface 4**: Same OpenAI SDK integration
-- ✅ **Automatic tool execution**: Translation Helps tools work automatically
-- ✅ **Baked-in filters**: `language=en`, `organization=unfoldingWord`
-- ✅ **Type-safe**: Full TypeScript support
-
-**Documentation:** [LLM Helper Guide](docs/LLM_HELPER.md) | [Examples](examples/llm-helper/)
-
----
-
 ### Interface 4: OpenAI-Compatible API
 
 REST API that **proxies to OpenAI** with automatic Translation Helps tool injection and **baked-in filters**.
@@ -399,24 +366,57 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 
 ---
 
+### Interface 5: TypeScript LLM Helper
+
+Programmatic TypeScript interface for OpenAI integration with automatic tool execution.
+**Uses the same OpenAI logic as Interface 4.**
+
+**Quick Start:**
+
+```typescript
+import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
+
+const helper = new LLMHelper({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini',
+});
+
+// Chat with automatic tool execution
+const response = await helper.chat([
+  { role: 'user', content: 'What does John 3:16 say?' }
+]);
+
+console.log(response.message.content);
+```
+
+**Key Features:**
+- ✅ **Shares logic with Interface 4**: Same OpenAI SDK integration
+- ✅ **Automatic tool execution**: Translation Helps tools work automatically
+- ✅ **Baked-in filters**: `language=en`, `organization=unfoldingWord`
+- ✅ **Type-safe**: Full TypeScript support
+
+**Documentation:** [LLM Helper Guide](docs/LLM_HELPER.md) | [Examples](examples/llm-helper/)
+
+---
+
 ## Interface Comparison
 
-| Feature | Interface 1 (Core) | Interface 2 (MCP HTTP) | Interface 3 (stdio) | Interface 5 (LLM Helper) | Interface 4 (OpenAI Proxy) |
+| Feature | Interface 1 (Core) | Interface 2 (MCP HTTP) | Interface 3 (stdio) | Interface 4 (OpenAI Proxy) | Interface 5 (LLM Helper) |
 |---------|-------------------|----------------------|-------------------|---------------------------|---------------------------|
-| **Transport** | Direct API | HTTP | stdio | TypeScript API | REST |
+| **Transport** | Direct API | HTTP | stdio | REST | TypeScript API |
 | **Backend** | Direct | Direct | Direct | **Proxies to OpenAI** | **Proxies to OpenAI** |
 | **API Key** | Not required | Not required | Not required | **Required (OpenAI)** | **Required (OpenAI)** |
 | **Models** | N/A | N/A | N/A | **Any OpenAI model** | **Any OpenAI model** |
 | **Filters** | Configurable | Client-controlled | Client-controlled | **Baked-in** | **Baked-in** |
-| **Use Case** | TypeScript apps | Web services | Desktop apps | LLM integrations (code) | LLM integrations (REST) |
-| **Deployment** | Library | CloudFlare Workers | **On-demand process** | Library | CloudFlare Workers |
+| **Use Case** | TypeScript apps | Web services | Desktop apps | LLM integrations (REST) | LLM integrations (code) |
+| **Deployment** | Library | CloudFlare Workers | **On-demand process** | CloudFlare Workers | Library |
 | **Tool Execution** | Manual | Manual | Manual | **Automatic** | **Automatic** |
-| **Lifecycle** | N/A | Persistent server | **Launched on-demand** | N/A | Persistent server |
+| **Lifecycle** | N/A | Persistent server | **Launched on-demand** | Persistent server | N/A |
 
 **Choose Interface 2 or 3** when you need client-controlled filters.
 **Choose Interface 3** specifically when you want **no background processes** (on-demand launching).
-**Choose Interface 5** when you need programmatic LLM integration with automatic tools (TypeScript).
 **Choose Interface 4** when you need REST API with OpenAI-compatible endpoints.
+**Choose Interface 5** when you need programmatic LLM integration with automatic tools (TypeScript).
 
 ---
 
@@ -499,8 +499,8 @@ const response = await helper.chat([
 
 - **[MCP HTTP Server](docs/MCP_SERVER.md)** - Interface 2 documentation
 - **[stdio Server](docs/STDIO_SERVER.md)** - Interface 3 documentation
-- **[LLM Helper](docs/LLM_HELPER.md)** - Interface 5 documentation
 - **[OpenAI API](docs/OPENAI_API.md)** - Interface 4 documentation
+- **[LLM Helper](docs/LLM_HELPER.md)** - Interface 5 documentation
 
 ## 🧪 Testing
 

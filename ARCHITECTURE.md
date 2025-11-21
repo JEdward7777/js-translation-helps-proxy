@@ -57,12 +57,12 @@ graph TB
             Stdio[npx Executable<br/>stdin/stdout]
         end
         
-        subgraph "Interface 5: LLM Helper"
-            Helper[TS Function Interface<br/>with Tool Execution]
-        end
-        
         subgraph "Interface 4: OpenAI API"
             OpenAI_API[Hono Server<br/>Port 8000]
+        end
+        
+        subgraph "Interface 5: LLM Helper"
+            Helper[TS Function Interface<br/>with Tool Execution]
         end
         
         subgraph "Shared Core"
@@ -287,54 +287,6 @@ await server.connect(transport);
 
 ---
 
-### Interface 5: TypeScript Function Interface
-
-**Purpose**: LLM integration helper with built-in tool execution  
-**Use Case**: Custom LLM applications, agent frameworks
-
-```typescript
-import { createLLMInterface } from 'js-translation-helps-proxy/llm';
-
-const llm = createLLMInterface({
-  upstreamUrl: 'https://translation-helps-mcp.pages.dev/api/mcp',
-  modelEndpoint: 'https://api.openai.com/v1/chat/completions',
-  modelApiKey: process.env.OPENAI_API_KEY,
-  enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
-  filterBookChapterNotes: true
-});
-
-// Automatic tool execution loop
-const response = await llm.chat([
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
-
-// Manual control
-const { tools, messages } = await llm.prepareChatRequest([
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
-
-// Send to LLM with tools
-const completion = await fetch(modelEndpoint, {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${apiKey}` },
-  body: JSON.stringify({ model: 'gpt-4', messages, tools })
-});
-
-// Execute tool calls
-const updatedMessages = await llm.executeToolCalls(
-  messages,
-  completion.choices[0].message.tool_calls
-);
-```
-
-**Key Features:**
-- Iterative tool execution loop (like MCP-Bridge)
-- Automatic tool schema injection
-- Support for any OpenAI-compatible endpoint
-- Built-in result formatting
-
----
-
 ### Interface 4: OpenAI-Compatible REST API
 
 **Purpose**: OpenAI API compatibility with MCP tools  
@@ -401,6 +353,54 @@ console.log(response.choices[0].message.content);
 - Proxies requests to actual LLM endpoint (OpenAI API) with tool augmentation
 - Requires valid OpenAI API key from client
 - Returns final LLM response after all tool executions complete
+
+---
+
+### Interface 5: TypeScript Function Interface
+
+**Purpose**: LLM integration helper with built-in tool execution
+**Use Case**: Custom LLM applications, agent frameworks
+
+```typescript
+import { createLLMInterface} from 'js-translation-helps-proxy/llm';
+
+const llm = createLLMInterface({
+  upstreamUrl: 'https://translation-helps-mcp.pages.dev/api/mcp',
+  modelEndpoint: 'https://api.openai.com/v1/chat/completions',
+  modelApiKey: process.env.OPENAI_API_KEY,
+  enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
+  filterBookChapterNotes: true
+});
+
+// Automatic tool execution loop
+const response = await llm.chat([
+  { role: 'user', content: 'What does John 3:16 say?' }
+]);
+
+// Manual control
+const { tools, messages } = await llm.prepareChatRequest([
+  { role: 'user', content: 'What does John 3:16 say?' }
+]);
+
+// Send to LLM with tools
+const completion = await fetch(modelEndpoint, {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${apiKey}` },
+  body: JSON.stringify({ model: 'gpt-4', messages, tools })
+});
+
+// Execute tool calls
+const updatedMessages = await llm.executeToolCalls(
+  messages,
+  completion.choices[0].message.tool_calls
+);
+```
+
+**Key Features:**
+- Iterative tool execution loop (like MCP-Bridge)
+- Automatic tool schema injection
+- Support for any OpenAI-compatible endpoint
+- Built-in result formatting
 
 ---
 
@@ -1091,15 +1091,15 @@ js-translation-helps-proxy/
 │   ├── stdio-server/              # Interface 3: stdio MCP
 │   │   └── index.ts               # Executable server
 │   │
-│   ├── llm-helper/                # Interface 5: LLM Helper
-│   │   ├── index.ts
-│   │   └── executor.ts
-│   │
 │   ├── openai-api/                # Interface 4: OpenAI API
 │   │   ├── index.ts
 │   │   ├── types.ts
 │   │   ├── tool-mapper.ts
 │   │   └── iterative-executor.ts
+│   │
+│   ├── llm-helper/                # Interface 5: LLM Helper
+│   │   ├── index.ts
+│   │   └── executor.ts
 │   │
 │   └── shared/                    # Shared utilities
 │       └── logger.ts
