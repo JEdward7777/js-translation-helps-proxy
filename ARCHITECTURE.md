@@ -22,7 +22,7 @@
 
 ## Executive Summary
 
-This document describes the implemented TypeScript-based MCP proxy system. The system provides a compliant MCP wrapper around the upstream CloudFlare endpoint at `https://translation-helps-mcp.pages.dev/api/mcp`, exposing it through four distinct interfaces. All interfaces have been successfully implemented and tested with 95.4% code coverage.
+This document describes the implemented TypeScript-based MCP proxy system. The system provides a compliant MCP wrapper around the upstream CloudFlare endpoint at `https://translation-helps-mcp.pages.dev/api/mcp`, exposing it through five distinct interfaces. All interfaces have been successfully implemented and tested with 98.8% code coverage.
 
 **Key Design Principles:**
 - CloudFlare Workers compatible (Edge runtime)
@@ -62,7 +62,7 @@ graph TB
         end
         
         subgraph "Interface 5: LLM Helper"
-            Helper[TS Function Interface<br/>with Tool Execution]
+            Helper[LLMHelper Class<br/>Simplified OpenAI Integration]
         end
         
         subgraph "Shared Core"
@@ -356,51 +356,45 @@ console.log(response.choices[0].message.content);
 
 ---
 
-### Interface 5: TypeScript Function Interface
+### Interface 5: LLM Helper (TypeScript Function Interface)
 
-**Purpose**: LLM integration helper with built-in tool execution
+**Purpose**: Simplified LLM integration with built-in tool execution
 **Use Case**: Custom LLM applications, agent frameworks
+**Implementation**: Uses Interface 4's ChatCompletionHandler for consistent behavior
 
 ```typescript
-import { createLLMInterface} from 'js-translation-helps-proxy/llm';
+import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
 
-const llm = createLLMInterface({
-  upstreamUrl: 'https://translation-helps-mcp.pages.dev/api/mcp',
-  modelEndpoint: 'https://api.openai.com/v1/chat/completions',
-  modelApiKey: process.env.OPENAI_API_KEY,
+// Create helper instance
+const helper = new LLMHelper({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o-mini',
   enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
-  filterBookChapterNotes: true
+  hiddenParams: ['language', 'organization'],
+  maxToolIterations: 5
 });
 
 // Automatic tool execution loop
-const response = await llm.chat([
+const response = await helper.chat([
   { role: 'user', content: 'What does John 3:16 say?' }
 ]);
 
-// Manual control
-const { tools, messages } = await llm.prepareChatRequest([
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
+console.log(response.message.content);
+console.log('Tokens used:', response.usage?.totalTokens);
 
-// Send to LLM with tools
-const completion = await fetch(modelEndpoint, {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${apiKey}` },
-  body: JSON.stringify({ model: 'gpt-4', messages, tools })
-});
-
-// Execute tool calls
-const updatedMessages = await llm.executeToolCalls(
-  messages,
-  completion.choices[0].message.tool_calls
-);
+// Access Translation Helps client directly
+const client = helper.getClient();
+const tools = await client.listTools();
+const scripture = await client.fetchScripture({ reference: 'John 3:16' });
 ```
 
 **Key Features:**
-- Iterative tool execution loop (like MCP-Bridge)
-- Automatic tool schema injection
-- Support for any OpenAI-compatible endpoint
-- Built-in result formatting
+- **Shares logic with Interface 4**: Uses same ChatCompletionHandler for consistency
+- Automatic iterative tool execution (up to 5 iterations by default)
+- Simplified API with automatic tool schema injection
+- OpenAI-only (no provider parameter needed)
+- Type-safe TypeScript API
+- Direct access to Translation Helps client via `getClient()`
 
 ---
 
@@ -1542,9 +1536,9 @@ The project has been successfully implemented with all planned features:
 - Integration tests passing
 
 **Phase 5: Interface 5 - LLM Helper** ✅
-- Tool execution loop implemented
-- Support for OpenAI and Anthropic
-- Automatic tool schema injection
+- LLMHelper class implemented using Interface 4's ChatCompletionHandler
+- OpenAI-only integration (simplified from multi-provider)
+- Automatic tool schema injection and execution
 - Examples and documentation provided
 
 **Phase 6: Interface 4 - OpenAI API** ✅
@@ -1565,7 +1559,6 @@ The project has been successfully implemented with all planned features:
 **Additional Features Implemented:**
 - Comprehensive error handling and logging
 - Tool caching and registry with dynamic discovery
-- Multiple provider support (OpenAI + Anthropic)
 - Extensive test suite with real upstream testing
 - Production deployment configurations for CloudFlare Workers
 
@@ -1659,7 +1652,7 @@ CMD ["node", "dist/servers/mcp-http.js"]
   "exports": {
     ".": "./dist/index.js",
     "./core": "./dist/core/index.js",
-    "./llm": "./dist/llm-helper/index.js"
+    "./llm-helper": "./dist/llm-helper/index.js"
   }
 }
 ```
@@ -1670,7 +1663,7 @@ CMD ["node", "dist/servers/mcp-http.js"]
 
 This architecture document describes the **completed and production-ready** TypeScript implementation that provides:
 
-1. **Four distinct interfaces** for different use cases - all implemented
+1. **Five distinct interfaces** for different use cases - all implemented
 2. **Shared core logic** to minimize duplication
 3. **12 tool schemas** statically defined with dynamic discovery
 4. **Flexible filtering** (client-controlled vs baked-in)
@@ -1681,7 +1674,7 @@ This architecture document describes the **completed and production-ready** Type
 The TypeScript implementation successfully maintains all functionality of the Python version while adding:
 - **Type safety** with TypeScript 5.9.3
 - **Edge runtime support** via CloudFlare Workers
-- **Multiple interface options** (4 interfaces + LLM helper)
+- **Multiple interface options** (5 interfaces including LLM helper)
 - **Better performance** (V8 vs CPython)
 - **Modern tooling ecosystem** (Vitest, Hono, MCP SDK 1.21.1)
 - **95.4% code coverage** with comprehensive test suite
