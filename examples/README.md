@@ -128,7 +128,11 @@ For debugging, you can increase the log level:
 To see all available tools, run:
 
 ```bash
-npx js-translation-helps-proxy --list-tools
+# Run directly from GitHub (recommended until published to npm)
+npx github:JEdward7777/js-translation-helps-proxy --list-tools
+
+# Or when published to npm:
+# npx js-translation-helps-proxy --list-tools
 ```
 
 Common tools include:
@@ -146,7 +150,7 @@ Common tools include:
 If the server doesn't start:
 
 1. Ensure Node.js 20.17.0 or higher is installed
-2. Try running manually: `npx js-translation-helps-proxy --help`
+2. Try running manually: `npx github:JEdward7777/js-translation-helps-proxy --help` (or `npx js-translation-helps-proxy --help` when published)
 3. Check the client's error logs
 4. Verify network connectivity to upstream server
 5. Try with debug logging: `--log-level debug`

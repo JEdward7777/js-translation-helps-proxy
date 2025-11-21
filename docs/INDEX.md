@@ -56,7 +56,11 @@ npm run deploy  # Deploy to CloudFlare Workers
 → **[Interface 3: stdio Server](STDIO_SERVER.md)**
 
 ```bash
-npx js-translation-helps-proxy
+# Run directly from GitHub (recommended until published to npm)
+npx github:JEdward7777/js-translation-helps-proxy
+
+# Or when published to npm:
+# npx js-translation-helps-proxy
 ```
 
 **Best for:** Desktop AI applications (Claude Desktop, Cline, etc.)
@@ -190,7 +194,11 @@ See [ARCHITECTURE.md](../ARCHITECTURE.md) for detailed architecture documentatio
 
 1. **Use with Claude Desktop:**
    ```bash
-   npx js-translation-helps-proxy
+   # Run directly from GitHub (recommended until published to npm)
+   npx github:JEdward7777/js-translation-helps-proxy
+   
+   # Or when published to npm:
+   # npx js-translation-helps-proxy
    ```
    See [STDIO_SERVER.md](STDIO_SERVER.md) for configuration.
 

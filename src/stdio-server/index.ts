@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Entry point for stdio MCP server
- * Executable via: npx js-translation-helps-proxy
+ * Executable via: npx github:JEdward7777/js-translation-helps-proxy
+ * Or when published: npx js-translation-helps-proxy
  */
 
 import { StdioMCPServer } from './server.js';
@@ -83,7 +84,8 @@ function showHelp(): void {
 js-translation-helps-proxy - MCP Server for Translation Helps
 
 USAGE:
-  npx js-translation-helps-proxy [OPTIONS]
+  npx github:JEdward7777/js-translation-helps-proxy [OPTIONS]
+  Or when published: npx js-translation-helps-proxy [OPTIONS]
 
 OPTIONS:
   --enabled-tools <tools>           Comma-separated list of tools to enable
@@ -104,26 +106,44 @@ OPTIONS:
   --help, -h                        Show this help message
 
 EXAMPLES:
-  # Start server with all tools
-  npx js-translation-helps-proxy
+  # Start server with all tools (from GitHub)
+  npx github:JEdward7777/js-translation-helps-proxy
+
+  # Or when published to npm:
+  # npx js-translation-helps-proxy
 
   # Start with only specific tools enabled
-  npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+  npx github:JEdward7777/js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+  # Or: npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
 
   # Hide language and organization parameters
-  npx js-translation-helps-proxy --hide-params "language,organization"
+  npx github:JEdward7777/js-translation-helps-proxy --hide-params "language,organization"
+  # Or: npx js-translation-helps-proxy --hide-params "language,organization"
 
   # Enable debug logging
-  npx js-translation-helps-proxy --log-level debug
+  npx github:JEdward7777/js-translation-helps-proxy --log-level debug
+  # Or: npx js-translation-helps-proxy --log-level debug
 
   # Filter out book/chapter notes
-  npx js-translation-helps-proxy --filter-book-chapter-notes
+  npx github:JEdward7777/js-translation-helps-proxy --filter-book-chapter-notes
+  # Or: npx js-translation-helps-proxy --filter-book-chapter-notes
 
   # List available tools
-  npx js-translation-helps-proxy --list-tools
+  npx github:JEdward7777/js-translation-helps-proxy --list-tools
+  # Or: npx js-translation-helps-proxy --list-tools
 
 MCP CLIENT CONFIGURATION:
   For Claude Desktop, add to your config file:
+  {
+    "mcpServers": {
+      "translation-helps": {
+        "command": "npx",
+        "args": ["github:JEdward7777/js-translation-helps-proxy"]
+      }
+    }
+  }
+
+  Or when published to npm:
   {
     "mcpServers": {
       "translation-helps": {

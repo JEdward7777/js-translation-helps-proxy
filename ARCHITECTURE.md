@@ -210,8 +210,11 @@ translation-helps-proxy \
   --hide-params "language,organization" \
   --filter-book-chapter-notes
 
-# Or via npx
-npx js-translation-helps-proxy --list-tools
+# Or via npx (from GitHub until published to npm)
+npx github:JEdward7777/js-translation-helps-proxy --list-tools
+
+# Or when published to npm:
+# npx js-translation-helps-proxy --list-tools
 ```
 
 **MCP Client Config (Claude Desktop, Cline):**

@@ -29,7 +29,11 @@ npm install -g js-translation-helps-proxy
 ### Use via npx (No Installation Required)
 
 ```bash
-npx js-translation-helps-proxy --help
+# Run directly from GitHub (recommended until published to npm)
+npx github:JEdward7777/js-translation-helps-proxy --help
+
+# Or when published to npm:
+# npx js-translation-helps-proxy --help
 ```
 
 ## Quick Start
@@ -37,14 +41,19 @@ npx js-translation-helps-proxy --help
 ### 1. Test the Server
 
 ```bash
-# Show help
-npx js-translation-helps-proxy --help
+# Show help (from GitHub)
+npx github:JEdward7777/js-translation-helps-proxy --help
 
 # List available tools
-npx js-translation-helps-proxy --list-tools
+npx github:JEdward7777/js-translation-helps-proxy --list-tools
 
 # Start the server (for testing)
-npx js-translation-helps-proxy
+npx github:JEdward7777/js-translation-helps-proxy
+
+# Or when published to npm:
+# npx js-translation-helps-proxy --help
+# npx js-translation-helps-proxy --list-tools
+# npx js-translation-helps-proxy
 ```
 
 ### 2. Configure Your MCP Client
@@ -56,7 +65,7 @@ Add to your MCP client configuration (e.g., Claude Desktop):
   "mcpServers": {
     "translation-helps": {
       "command": "npx",
-      "args": ["js-translation-helps-proxy"]
+      "args": ["github:JEdward7777/js-translation-helps-proxy"]
     }
   }
 }
@@ -77,7 +86,7 @@ The simplest configuration enables all tools with default settings:
   "mcpServers": {
     "translation-helps": {
       "command": "npx",
-      "args": ["js-translation-helps-proxy"]
+      "args": ["github:JEdward7777/js-translation-helps-proxy"]
     }
   }
 }
@@ -113,7 +122,8 @@ Comma-separated list of tools to enable. By default, all tools are enabled.
 
 **Example:**
 ```bash
-npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+npx github:JEdward7777/js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+# Or: npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
 ```
 
 **Available Tools:**
@@ -133,7 +143,8 @@ Comma-separated list of parameters to hide from tool schemas. This simplifies th
 
 **Example:**
 ```bash
-npx js-translation-helps-proxy --hide-params "language,organization"
+npx github:JEdward7777/js-translation-helps-proxy --hide-params "language,organization"
+# Or: npx js-translation-helps-proxy --hide-params "language,organization"
 ```
 
 **Common Parameters to Hide:**
@@ -146,7 +157,8 @@ Filter out book-level and chapter-level notes from translation notes responses, 
 
 **Example:**
 ```bash
-npx js-translation-helps-proxy --filter-book-chapter-notes
+npx github:JEdward7777/js-translation-helps-proxy --filter-book-chapter-notes
+# Or: npx js-translation-helps-proxy --filter-book-chapter-notes
 ```
 
 ### `--log-level <level>`
@@ -157,7 +169,8 @@ Set the logging level. Logs are written to stderr (not stdout, which is used for
 
 **Example:**
 ```bash
-npx js-translation-helps-proxy --log-level debug
+npx github:JEdward7777/js-translation-helps-proxy --log-level debug
+# Or: npx js-translation-helps-proxy --log-level debug
 ```
 
 ### `--list-tools`
@@ -166,7 +179,8 @@ List all available tools from the upstream server and exit.
 
 **Example:**
 ```bash
-npx js-translation-helps-proxy --list-tools
+npx github:JEdward7777/js-translation-helps-proxy --list-tools
+# Or: npx js-translation-helps-proxy --list-tools
 ```
 
 ### `--help`, `-h`
@@ -175,7 +189,8 @@ Show help message with all available options.
 
 **Example:**
 ```bash
-npx js-translation-helps-proxy --help
+npx github:JEdward7777/js-translation-helps-proxy --help
+# Or: npx js-translation-helps-proxy --help
 ```
 
 ## MCP Client Setup
@@ -197,7 +212,7 @@ npx js-translation-helps-proxy --help
   "mcpServers": {
     "translation-helps": {
       "command": "npx",
-      "args": ["js-translation-helps-proxy"]
+      "args": ["github:JEdward7777/js-translation-helps-proxy"]
     }
   }
 }
@@ -224,7 +239,7 @@ npx js-translation-helps-proxy --help
   "cline.mcpServers": {
     "translation-helps": {
       "command": "npx",
-      "args": ["js-translation-helps-proxy"],
+      "args": ["github:JEdward7777/js-translation-helps-proxy"],
       "disabled": false
     }
   }
@@ -238,7 +253,7 @@ npx js-translation-helps-proxy --help
 
 For other MCP clients that support stdio transport:
 
-1. Use `npx js-translation-helps-proxy` as the command
+1. Use `npx github:JEdward7777/js-translation-helps-proxy` as the command (or `npx js-translation-helps-proxy` when published)
 2. Ensure the client can execute Node.js commands
 3. Configure any client-specific options as needed
 
@@ -251,7 +266,7 @@ For other MCP clients that support stdio transport:
   "mcpServers": {
     "translation-helps": {
       "command": "npx",
-      "args": ["js-translation-helps-proxy"]
+      "args": ["github:JEdward7777/js-translation-helps-proxy"]
     }
   }
 }
@@ -267,7 +282,7 @@ For other MCP clients that support stdio transport:
     "translation-helps-scripture": {
       "command": "npx",
       "args": [
-        "js-translation-helps-proxy",
+        "github:JEdward7777/js-translation-helps-proxy",
         "--enabled-tools",
         "fetch_scripture,fetch_translation_notes"
       ]
@@ -286,7 +301,7 @@ For other MCP clients that support stdio transport:
     "translation-helps-simple": {
       "command": "npx",
       "args": [
-        "js-translation-helps-proxy",
+        "github:JEdward7777/js-translation-helps-proxy",
         "--hide-params",
         "language,organization"
       ]
@@ -305,7 +320,7 @@ For other MCP clients that support stdio transport:
     "translation-helps-verses": {
       "command": "npx",
       "args": [
-        "js-translation-helps-proxy",
+        "github:JEdward7777/js-translation-helps-proxy",
         "--enabled-tools",
         "fetch_translation_notes",
         "--filter-book-chapter-notes"
@@ -325,7 +340,7 @@ For other MCP clients that support stdio transport:
     "translation-helps-debug": {
       "command": "npx",
       "args": [
-        "js-translation-helps-proxy",
+        "github:JEdward7777/js-translation-helps-proxy",
         "--log-level",
         "debug"
       ]
@@ -351,12 +366,14 @@ For other MCP clients that support stdio transport:
 
 2. **Test server manually:**
    ```bash
-   npx js-translation-helps-proxy --help
+   npx github:JEdward7777/js-translation-helps-proxy --help
+   # Or: npx js-translation-helps-proxy --help
    ```
 
 3. **Check for errors:**
    ```bash
-   npx js-translation-helps-proxy --log-level debug
+   npx github:JEdward7777/js-translation-helps-proxy --log-level debug
+   # Or: npx js-translation-helps-proxy --log-level debug
    ```
 
 4. **Verify npx is available:**
@@ -373,7 +390,8 @@ For other MCP clients that support stdio transport:
 
 1. **List tools manually:**
    ```bash
-   npx js-translation-helps-proxy --list-tools
+   npx github:JEdward7777/js-translation-helps-proxy --list-tools
+   # Or: npx js-translation-helps-proxy --list-tools
    ```
 
 2. **Check enabled-tools filter:**
@@ -393,7 +411,7 @@ For other MCP clients that support stdio transport:
 1. **Enable debug logging:**
    ```json
    {
-     "args": ["js-translation-helps-proxy", "--log-level", "debug"]
+     "args": ["github:JEdward7777/js-translation-helps-proxy", "--log-level", "debug"]
    }
    ```
 
@@ -469,7 +487,7 @@ You can run multiple instances with different configurations:
     "translation-helps-simple": {
       "command": "npx",
       "args": [
-        "js-translation-helps-proxy",
+        "github:JEdward7777/js-translation-helps-proxy",
         "--enabled-tools",
         "fetch_scripture",
         "--hide-params",
@@ -493,7 +511,8 @@ The server respects standard Node.js environment variables:
 Logs are written to stderr to avoid interfering with the MCP protocol on stdout. To capture logs:
 
 ```bash
-npx js-translation-helps-proxy 2> server.log
+npx github:JEdward7777/js-translation-helps-proxy 2> server.log
+# Or: npx js-translation-helps-proxy 2> server.log
 ```
 
 ### Building from Source

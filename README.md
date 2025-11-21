@@ -221,8 +221,11 @@ Desktop application interface for Claude Desktop, Cline, and other MCP clients.
 # Run directly from GitHub (no installation required)
 npx github:JEdward7777/js-translation-helps-proxy --help
 
-# Or install from npm (when published)
-npx js-translation-helps-proxy --help
+# Run directly from GitHub (recommended until published to npm)
+npx github:JEdward7777/js-translation-helps-proxy --help
+
+# Or when published to npm:
+# npx js-translation-helps-proxy --help
 
 # List available tools
 npx github:JEdward7777/js-translation-helps-proxy --list-tools
@@ -235,16 +238,20 @@ npx github:JEdward7777/js-translation-helps-proxy
 
 ```bash
 # Enable specific tools only
-npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+npx github:JEdward7777/js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+# Or: npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
 
 # Hide parameters from tool schemas
-npx js-translation-helps-proxy --hide-params "language,organization"
+npx github:JEdward7777/js-translation-helps-proxy --hide-params "language,organization"
+# Or: npx js-translation-helps-proxy --hide-params "language,organization"
 
 # Filter book/chapter notes
-npx js-translation-helps-proxy --filter-book-chapter-notes
+npx github:JEdward7777/js-translation-helps-proxy --filter-book-chapter-notes
+# Or: npx js-translation-helps-proxy --filter-book-chapter-notes
 
 # Set log level
-npx js-translation-helps-proxy --log-level debug
+npx github:JEdward7777/js-translation-helps-proxy --log-level debug
+# Or: npx js-translation-helps-proxy --log-level debug
 ```
 
 **MCP Client Setup:**
@@ -414,11 +421,11 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 Use **Interface 3** (stdio):
 
 ```bash
-# Run directly from GitHub
+# Run directly from GitHub (recommended until published to npm)
 npx github:JEdward7777/js-translation-helps-proxy
 
-# Or from npm (when published)
-npx js-translation-helps-proxy
+# Or when published to npm:
+# npx js-translation-helps-proxy
 ```
 
 ### For Web Services / APIs
