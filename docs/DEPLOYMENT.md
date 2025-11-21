@@ -46,7 +46,7 @@ The project includes a pre-configured `wrangler.toml` file. Only `UPSTREAM_URL` 
 
 ```toml
 name = "js-translation-helps-proxy"
-main = "dist/openai-api/index.js"
+main = "dist/esm/openai-api/index.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
@@ -75,7 +75,11 @@ This will open a browser window for authentication.
 npm run build
 ```
 
-This compiles TypeScript to JavaScript in the `dist/` directory.
+This compiles TypeScript to JavaScript in dual formats:
+- `dist/cjs/` - CommonJS modules (for `require()`)
+- `dist/esm/` - ES modules (for `import`)
+
+The CloudFlare Workers deployment uses the ESM build (`dist/esm/`).
 
 ### Step 5: Test Locally
 

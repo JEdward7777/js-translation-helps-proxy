@@ -70,6 +70,9 @@ tests/
 ├── unit/
 ├── integration/
 └── e2e/
+dist/
+├── cjs/            # CommonJS build (for require())
+└── esm/            # ESM build (for import)
 ```
 
 ## Getting Started
@@ -93,8 +96,14 @@ npm install
 ### Development
 
 ```bash
-# Build the project
+# Build the project (creates both CJS and ESM builds)
 npm run build
+
+# Build only CJS
+npm run build:cjs
+
+# Build only ESM
+npm run build:esm
 
 # Run in development mode (stdio server)
 npm run dev
@@ -123,8 +132,9 @@ npm run deploy
 
 ### Interface 1: Core API (Direct TypeScript/JavaScript)
 
-The core API provides direct programmatic access to translation helps tools.
+The core API provides direct programmatic access to translation helps tools. **Supports both CommonJS and ESM** for maximum compatibility.
 
+**ESM (import):**
 ```typescript
 import { TranslationHelpsClient } from 'js-translation-helps-proxy';
 
@@ -136,6 +146,16 @@ const client = new TranslationHelpsClient({
 // Fetch scripture
 const scripture = await client.fetchScripture({
   reference: 'John 3:16',
+});
+```
+
+**CommonJS (require):**
+```javascript
+const { TranslationHelpsClient } = require('js-translation-helps-proxy');
+
+const client = new TranslationHelpsClient({
+  enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
+  filterBookChapterNotes: true,
 });
 ```
 
@@ -370,8 +390,9 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 
 Programmatic TypeScript interface for OpenAI integration with automatic tool execution.
 **Uses the same OpenAI logic as Interface 4** (see [comparison table](#interface-comparison)).
+**Supports both CommonJS and ESM** for maximum compatibility.
 
-**Quick Start:**
+**Quick Start (ESM):**
 
 ```typescript
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
@@ -387,6 +408,17 @@ const response = await helper.chat([
 ]);
 
 console.log(response.message.content);
+```
+
+**Quick Start (CommonJS):**
+
+```javascript
+const { LLMHelper } = require('js-translation-helps-proxy/llm-helper');
+
+const helper = new LLMHelper({
+  apiKey: process.env.OPENAI_API_KEY,
+  model: 'gpt-4o-mini',
+});
 ```
 
 **Key Features:**
@@ -463,16 +495,23 @@ npm run dev:node
 
 ### For TypeScript/JavaScript Projects
 
-Use **Interface 1** (Core API):
+Use **Interface 1** (Core API) - supports both ESM and CommonJS:
 
+**ESM:**
 ```typescript
 import { TranslationHelpsClient } from 'js-translation-helps-proxy';
 ```
 
-### For LLM Integration in TypeScript
+**CommonJS:**
+```javascript
+const { TranslationHelpsClient } = require('js-translation-helps-proxy');
+```
 
-Use **Interface 5** (LLM Helper):
+### For LLM Integration in TypeScript/JavaScript
 
+Use **Interface 5** (LLM Helper) - supports both ESM and CommonJS:
+
+**ESM:**
 ```typescript
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
 
@@ -484,6 +523,11 @@ const helper = new LLMHelper({
 const response = await helper.chat([
   { role: 'user', content: 'Fetch John 3:16' }
 ]);
+```
+
+**CommonJS:**
+```javascript
+const { LLMHelper } = require('js-translation-helps-proxy/llm-helper');
 ```
 
 ## 📚 Documentation

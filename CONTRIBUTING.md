@@ -80,9 +80,22 @@ ANTHROPIC_API_KEY=your-anthropic-key-here
 
 ### Build the Project
 
+The project now supports dual CJS/ESM builds:
+
 ```bash
+# Build both CJS and ESM
 npm run build
+
+# Build only CommonJS
+npm run build:cjs
+
+# Build only ESM
+npm run build:esm
 ```
+
+This creates two output directories:
+- `dist/cjs/` - CommonJS modules (for `require()`)
+- `dist/esm/` - ES modules (for `import`)
 
 ### Run Tests
 
@@ -145,7 +158,12 @@ js-translation-helps-proxy/
 │   └── e2e/               # End-to-end tests
 ├── docs/                  # Documentation
 ├── examples/              # Example configurations
-└── dist/                  # Build output (gitignored)
+├── dist/                  # Build output (gitignored)
+│   ├── cjs/               # CommonJS build
+│   └── esm/               # ESM build
+├── tsconfig.json          # Base TypeScript config
+├── tsconfig.cjs.json      # CommonJS build config
+└── tsconfig.esm.json      # ESM build config
 ```
 
 ### Key Files
@@ -155,8 +173,11 @@ js-translation-helps-proxy/
 - **`src/mcp-server/index.ts`** - HTTP MCP server entry point
 - **`src/openai-api/index.ts`** - OpenAI API entry point
 - **`wrangler.toml`** - CloudFlare Workers configuration
-- **`tsconfig.json`** - TypeScript configuration
+- **`tsconfig.json`** - Base TypeScript configuration (shared)
+- **`tsconfig.cjs.json`** - CommonJS build configuration
+- **`tsconfig.esm.json`** - ESM build configuration
 - **`vitest.config.ts`** - Test configuration
+- **`eslint.config.mjs`** - ESLint configuration (uses .mjs for ESM support)
 
 ---
 

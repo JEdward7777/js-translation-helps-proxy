@@ -1,17 +1,34 @@
 {
   "name": "js-translation-helps-proxy",
   "version": "0.1.0",
-  "type": "module",
   "description": "TypeScript MCP proxy for translation-helps with multiple interfaces",
-  "main": "dist/stdio-server/index.js",
+  "main": "./dist/cjs/stdio-server/index.js",
+  "module": "./dist/esm/stdio-server/index.js",
+  "types": "./dist/cjs/stdio-server/index.d.ts",
   "bin": {
-    "js-translation-helps-proxy": "dist/stdio-server/index.js"
+    "js-translation-helps-proxy": "./dist/cjs/stdio-server/index.js"
   },
   "exports": {
-    ".": "./dist/stdio-server/index.js",
-    "./llm-helper": "./dist/llm-helper/index.js",
-    "./core": "./dist/core/index.js",
-    "./openai-api": "./dist/openai-api/index.js"
+    ".": {
+      "types": "./dist/cjs/stdio-server/index.d.ts",
+      "require": "./dist/cjs/stdio-server/index.js",
+      "import": "./dist/esm/stdio-server/index.js"
+    },
+    "./llm-helper": {
+      "types": "./dist/cjs/llm-helper/index.d.ts",
+      "require": "./dist/cjs/llm-helper/index.js",
+      "import": "./dist/esm/llm-helper/index.js"
+    },
+    "./core": {
+      "types": "./dist/cjs/core/index.d.ts",
+      "require": "./dist/cjs/core/index.js",
+      "import": "./dist/esm/core/index.js"
+    },
+    "./openai-api": {
+      "types": "./dist/cjs/openai-api/index.d.ts",
+      "require": "./dist/cjs/openai-api/index.js",
+      "import": "./dist/esm/openai-api/index.js"
+    }
   },
   "files": [
     "dist",
@@ -36,8 +53,10 @@
   },
   "scripts": {
     "prepare": "npm run build",
-    "build": "tsc && npm run postbuild",
-    "postbuild": "chmod +x dist/stdio-server/index.js",
+    "build": "npm run build:cjs && npm run build:esm && npm run postbuild",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "postbuild": "chmod +x dist/cjs/stdio-server/index.js && chmod +x dist/esm/stdio-server/index.js",
     "dev": "tsx watch src/stdio-server/index.ts",
     "dev:http": "wrangler dev",
     "dev:node": "tsx watch src/openai-api/start-node.ts",
