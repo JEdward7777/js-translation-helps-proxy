@@ -7,6 +7,12 @@
   "bin": {
     "js-translation-helps-proxy": "dist/stdio-server/index.js"
   },
+  "exports": {
+    ".": "./dist/stdio-server/index.js",
+    "./llm-helper": "./dist/llm-helper/index.js",
+    "./core": "./dist/core/index.js",
+    "./openai-api": "./dist/openai-api/index.js"
+  },
   "files": [
     "dist",
     "README.md",

@@ -31,6 +31,21 @@ The LLM Helper provides:
 npm install js-translation-helps-proxy
 ```
 
+### Importing Submodules
+
+With the new exports configuration, you can import submodules cleanly:
+
+```typescript
+// Import LLM Helper
+import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
+
+// Import Core API
+import { TranslationHelpsClient } from 'js-translation-helps-proxy/core';
+
+// Import OpenAI API
+import { ChatCompletionHandler } from 'js-translation-helps-proxy/openai-api';
+```
+
 Or if using in the same project:
 
 ```typescript
@@ -65,16 +80,17 @@ interface LLMHelperConfig {
   apiKey: string;
   model: string;
   
-  // Optional: Baked-in filters (like Interface 4)
-  language?: string;             // Default: 'en'
-  organization?: string;         // Default: 'unfoldingWord'
+  // Optional: Tool filtering
+  enabledTools?: string[];           // Limit which tools are available
+  hiddenParams?: string[];           // Hide parameters from LLM (e.g., ['language', 'organization'])
+  filterBookChapterNotes?: boolean;  // Filter notes by book/chapter, default: true
   
   // Optional: Tool execution settings
-  maxToolIterations?: number;    // Default: 5
+  maxToolIterations?: number;        // Default: 5
   
   // Optional: Upstream settings
-  upstreamUrl?: string;          // Default: 'https://translation-helps-mcp.pages.dev/api/mcp'
-  timeout?: number;              // Default: 30000ms
+  upstreamUrl?: string;              // Default: 'https://translation-helps-mcp.pages.dev/api/mcp'
+  timeout?: number;                  // Default: 30000ms
 }
 ```
 
@@ -95,8 +111,9 @@ const helper = new LLMHelper({
 const helper = new LLMHelper({
   apiKey: 'sk-...',
   model: 'gpt-4o-mini',
-  language: 'en',
-  organization: 'unfoldingWord',
+  enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
+  hiddenParams: ['language', 'organization'],
+  filterBookChapterNotes: true,
   maxToolIterations: 10,
   upstreamUrl: 'https://translation-helps-mcp.pages.dev/api/mcp',
   timeout: 60000,
@@ -115,6 +132,25 @@ const response = await helper.chat([
 
 console.log(response.message.content);
 console.log('Tokens used:', response.usage?.totalTokens);
+```
+
+### Chat with OpenAI Parameters
+
+```typescript
+const response = await helper.chat(
+  [
+    { role: 'system', content: 'You are a Bible study assistant.' },
+    { role: 'user', content: 'What does John 3:16 say?' }
+  ],
+  {
+    temperature: 0.7,
+    top_p: 0.9,
+    response_format: { type: 'json_object' },
+    n: 1
+  }
+);
+
+console.log(response.message.content);
 ```
 
 ### Multi-Turn Conversation
@@ -150,14 +186,17 @@ const scripture = await client.fetchScripture({ reference: 'John 3:16' });
 
 ## Advanced Features
 
-### Custom Language and Organization
+### Tool Filtering
+
+Control which tools are available to the LLM:
 
 ```typescript
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
   model: 'gpt-4o-mini',
-  language: 'es',              // Spanish
-  organization: 'custom-org',  // Custom organization
+  enabledTools: ['fetch_scripture', 'fetch_translation_notes'],  // Only these tools
+  hiddenParams: ['language', 'organization'],  // Hide these params from LLM
+  filterBookChapterNotes: true,  // Filter notes by book/chapter
 });
 ```
 
@@ -282,8 +321,9 @@ Creates a new LLM Helper instance.
 **Parameters:**
 - `config.apiKey` (required): OpenAI API key
 - `config.model` (required): OpenAI model name (e.g., 'gpt-4o-mini')
-- `config.language` (optional): Language filter, default: 'en'
-- `config.organization` (optional): Organization filter, default: 'unfoldingWord'
+- `config.enabledTools` (optional): Array of tool names to enable
+- `config.hiddenParams` (optional): Array of parameter names to hide from LLM
+- `config.filterBookChapterNotes` (optional): Filter notes by book/chapter, default: true
 - `config.maxToolIterations` (optional): Max tool iterations, default: 5
 - `config.upstreamUrl` (optional): Upstream MCP server URL
 - `config.timeout` (optional): Request timeout in ms, default: 30000
@@ -293,22 +333,28 @@ Creates a new LLM Helper instance.
 ##### chat()
 
 ```typescript
-async chat(messages: ChatMessage[]): Promise<ChatResponse>
+async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse>
 ```
 
 Send a chat request with automatic tool execution.
 
 **Parameters:**
 - `messages`: Array of chat messages with `role` and `content`
+- `options` (optional): OpenAI parameters
+  - `temperature?: number` - Sampling temperature (0-2)
+  - `top_p?: number` - Nucleus sampling parameter (0-1)
+  - `response_format?: any` - Response format (e.g., `{ type: 'json_object' }`)
+  - `n?: number` - Number of completions to generate
 
 **Returns:**
 - `ChatResponse` with `message` and optional `usage` information
 
 **Example:**
 ```typescript
-const response = await helper.chat([
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
+const response = await helper.chat(
+  [{ role: 'user', content: 'What does John 3:16 say?' }],
+  { temperature: 0.7, top_p: 0.9 }
+);
 ```
 
 ##### getClient()
@@ -336,6 +382,17 @@ const tools = await client.listTools();
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+}
+```
+
+#### ChatOptions
+
+```typescript
+interface ChatOptions {
+  temperature?: number;      // Sampling temperature (0-2)
+  top_p?: number;           // Nucleus sampling (0-1)
+  response_format?: any;    // Response format specification
+  n?: number;               // Number of completions
 }
 ```
 

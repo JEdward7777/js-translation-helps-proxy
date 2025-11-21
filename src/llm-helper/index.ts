@@ -12,6 +12,7 @@ export interface LLMHelperConfig {
   enabledTools?: string[];
   hiddenParams?: string[];
   maxToolIterations?: number;
+  filterBookChapterNotes?: boolean;
   upstreamUrl?: string;
   timeout?: number;
 }
@@ -19,6 +20,14 @@ export interface LLMHelperConfig {
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+}
+
+export interface ChatOptions {
+  temperature?: number;
+  top_p?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI response_format accepts various formats
+  response_format?: any;
+  n?: number;
 }
 
 export interface ChatResponse {
@@ -55,6 +64,7 @@ export class LLMHelper {
       enabledTools: config.enabledTools,
       hiddenParams: config.hiddenParams,
       maxToolIterations: config.maxToolIterations || 5,
+      filterBookChapterNotes: config.filterBookChapterNotes,
       enableToolExecution: true,
       upstreamUrl: config.upstreamUrl,
       timeout: config.timeout,
@@ -64,15 +74,30 @@ export class LLMHelper {
   /**
    * Send a chat request with automatic tool execution
    */
-  async chat(messages: ChatMessage[]): Promise<ChatResponse> {
+  async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
     // Convert to OpenAI request format
-    const request = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI request accepts various optional parameters
+    const request: any = {
       model: this.model,
       messages: messages.map(m => ({
         role: m.role,
         content: m.content,
       })),
     };
+
+    // Add optional OpenAI parameters
+    if (options?.temperature !== undefined) {
+      request.temperature = options.temperature;
+    }
+    if (options?.top_p !== undefined) {
+      request.top_p = options.top_p;
+    }
+    if (options?.response_format !== undefined) {
+      request.response_format = options.response_format;
+    }
+    if (options?.n !== undefined) {
+      request.n = options.n;
+    }
 
     // Use Interface 4's handler
     const response = await this.handler.handleChatCompletion(request, this.apiKey);
