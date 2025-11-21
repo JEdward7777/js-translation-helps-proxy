@@ -42,25 +42,23 @@ npm install
 
 ### Step 2: Configure Wrangler
 
-The project includes a pre-configured `wrangler.toml` file. Review and update if needed:
+The project includes a pre-configured `wrangler.toml` file. Only `UPSTREAM_URL` is required; other variables have sensible defaults:
 
 ```toml
 name = "js-translation-helps-proxy"
 main = "dist/openai-api/index.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-NODE_ENV = "production"
+# REQUIRED: Upstream Translation Helps API endpoint
 UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp"
-TIMEOUT = "30000"
-LOG_LEVEL = "info"
 
-# OpenAI API baked-in filters (Interface 4)
-OPENAI_LANGUAGE = "en"
-OPENAI_ORGANIZATION = "unfoldingWord"
-OPENAI_FILTER_NOTES = "true"
-OPENAI_MAX_ITERATIONS = "5"
+# OPTIONAL: Override defaults (uncomment to customize)
+# LOG_LEVEL = "info"                    # Default: "info"
+# TIMEOUT = "30000"                     # Default: 30000ms
+# OPENAI_FILTER_NOTES = "true"          # Default: true
+# OPENAI_MAX_ITERATIONS = "5"           # Default: 5
 ```
 
 ### Step 3: Authenticate with CloudFlare
@@ -253,64 +251,92 @@ curl http://localhost:8787/v1/models
 
 ### CloudFlare Workers (wrangler.toml)
 
-Environment variables for CloudFlare Workers are configured in `wrangler.toml`:
+Environment variables for CloudFlare Workers are configured in `wrangler.toml`. **Most variables are optional** as the code provides sensible defaults.
+
+**Required Variables:**
+- `UPSTREAM_URL` - The upstream Translation Helps API endpoint
+
+**Optional Variables (with defaults):**
+- `LOG_LEVEL` - Logging level (default: `"info"`, options: `debug`, `info`, `warn`, `error`)
+- `TIMEOUT` - Request timeout in milliseconds (default: `30000`)
+- `OPENAI_FILTER_NOTES` - Filter book/chapter notes (default: `true`)
+- `OPENAI_MAX_ITERATIONS` - Max tool call iterations (default: `5`)
+- `OPENAI_ENABLED_TOOLS` - Comma-separated list of enabled tools (default: all tools)
+- `OPENAI_HIDDEN_PARAMS` - Comma-separated list of hidden parameters (default: none)
+
+Example configuration:
 
 ```toml
 [vars]
-NODE_ENV = "production"
+# Required
 UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp"
-TIMEOUT = "30000"
+
+# Optional overrides
 LOG_LEVEL = "info"
-OPENAI_LANGUAGE = "en"
-OPENAI_ORGANIZATION = "unfoldingWord"
+TIMEOUT = "30000"
 OPENAI_FILTER_NOTES = "true"
 OPENAI_MAX_ITERATIONS = "5"
 ```
 
+**Important:** CloudFlare Workers does NOT inherit `[vars]` from the top level to environment-specific configurations. Each environment must define its own complete set of variables.
+
 ### Local Development (.env)
 
-For local development, create a `.env` file (already in `.gitignore`):
+For local development with Node.js, create a `.env` file (already in `.gitignore`):
 
 ```bash
 # .env file (DO NOT COMMIT)
 
-# Upstream server
-UPSTREAM_MCP_URL=https://translation-helps-mcp.pages.dev/api/mcp
-TIMEOUT=30000
+# Required
+UPSTREAM_URL=https://translation-helps-mcp.pages.dev/api/mcp
+
+# Optional overrides
 LOG_LEVEL=debug
+TIMEOUT=30000
+OPENAI_FILTER_NOTES=true
+OPENAI_MAX_ITERATIONS=5
 
 # For LLM Helper tests (optional)
 OPENAI_API_KEY=your-openai-key-here
 ANTHROPIC_API_KEY=your-anthropic-key-here
-
-# OpenAI API settings
-OPENAI_LANGUAGE=en
-OPENAI_ORGANIZATION=unfoldingWord
-OPENAI_FILTER_NOTES=true
-OPENAI_MAX_ITERATIONS=5
 ```
 
 ### Environment-Specific Configuration
 
-```toml
-# Development environment
-[env.development]
-vars = { LOG_LEVEL = "debug" }
+The `wrangler.toml` defines separate worker instances for different environments:
 
-# Production environment
+```toml
+# Development environment - separate worker with debug logging
+[env.development]
+name = "js-translation-helps-proxy-dev"
+vars = {
+  UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp",
+  LOG_LEVEL = "debug"
+}
+
+# Production environment - separate worker with info logging
 [env.production]
-vars = { LOG_LEVEL = "info" }
+name = "js-translation-helps-proxy-prod"
+vars = {
+  UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp",
+  LOG_LEVEL = "info"
+}
 ```
 
 Deploy to specific environment:
 
 ```bash
-# Development
+# Development (creates js-translation-helps-proxy-dev worker)
 npx wrangler deploy --env development
 
-# Production
+# Production (creates js-translation-helps-proxy-prod worker)
 npx wrangler deploy --env production
+
+# Default (uses top-level name: js-translation-helps-proxy)
+npx wrangler deploy
 ```
+
+Each environment creates a **separate CloudFlare Worker** with its own URL and configuration.
 
 ---
 
@@ -328,15 +354,152 @@ npx wrangler deploy --env production
 
 ### Deployment
 
+Before deploying to production, always deploy to a staging/preview environment first to verify everything works correctly.
+
+#### Step 1: Authenticate with CloudFlare
+
+```bash
+npx wrangler login
+```
+
+This opens a browser window for authentication. Verify you're logged in:
+
+```bash
+npx wrangler whoami
+```
+
+#### Step 2: Deploy to Staging/Preview First
+
+CloudFlare Workers supports multiple deployment strategies for testing before production:
+
+**Option A: Deploy to Development Environment**
+
+```bash
+# Deploy to development environment (uses env.development config from wrangler.toml)
+npx wrangler deploy --env development
+```
+
+This deploys with `LOG_LEVEL = "debug"` and creates a separate worker instance for testing.
+
+**Option B: Deploy with a Custom Name (Preview)**
+
+```bash
+# Deploy with a custom name for preview/testing
+npx wrangler deploy --name js-translation-helps-proxy-preview
+```
+
+This creates a completely separate worker with a different URL for testing.
+
+**Option C: Use Wrangler's Built-in Preview**
+
+```bash
+# Deploy to a temporary preview environment
+npx wrangler deploy --dry-run
+```
+
+This validates the deployment without actually publishing.
+
+#### Step 3: Test Deployed Staging/Preview Endpoints
+
+After deploying to staging, Wrangler outputs the worker URL. Test all endpoints:
+
+```bash
+# Set your staging/preview URL
+STAGING_URL="https://js-translation-helps-proxy-development.your-subdomain.workers.dev"
+
+# Test health endpoint
+curl $STAGING_URL/health
+
+# Test OpenAI API (requires your OpenAI API key)
+curl -X POST $STAGING_URL/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Fetch John 3:16"}]
+  }'
+
+# Test MCP HTTP endpoints
+curl $STAGING_URL/mcp/info
+
+# Test MCP tools list
+curl -X POST $STAGING_URL/mcp/tools/list \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+#### Step 4: Verify All Interfaces Work
+
+- [ ] Health endpoint (`/health`) returns 200 OK
+- [ ] OpenAI API (`/v1/chat/completions`) processes requests correctly
+- [ ] MCP HTTP endpoints (`/mcp/*`) respond properly
+- [ ] Check CloudFlare Workers dashboard for errors
+- [ ] Monitor initial requests and response times
+
+#### Step 5: Deploy to Production
+
+Once staging tests pass, deploy to production:
+
+```bash
+# Deploy to production environment
+npx wrangler deploy --env production
+
+# Or use the npm script
+npm run deploy:production
+```
+
+For the default production deployment (no environment specified):
+
+```bash
+# Deploy to default production
+npm run deploy
+```
+
+#### Step 6: Verify Production Deployment
+
+```bash
+# Set your production URL
+PROD_URL="https://js-translation-helps-proxy.your-subdomain.workers.dev"
+
+# Quick health check
+curl $PROD_URL/health
+
+# Test a simple request
+curl -X POST $PROD_URL/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'
+```
+
+#### Step 7: Monitor Initial Production Requests
+
+```bash
+# Tail production logs in real-time
+npx wrangler tail --env production
+
+# Or for default production
+npx wrangler tail
+```
+
+Watch for:
+- Error rates
+- Response times
+- Unexpected behavior
+- Resource usage
+
+**Deployment Checklist:**
+
 - [ ] Authenticate with CloudFlare (`npx wrangler login`)
-- [ ] Deploy to staging/preview first
-- [ ] Test deployed endpoints
-- [ ] Verify all interfaces work:
-  - [ ] Health endpoint (`/health`)
-  - [ ] OpenAI API (`/v1/chat/completions`)
-  - [ ] MCP HTTP endpoints (`/mcp/*`)
-- [ ] Check CloudFlare Workers dashboard
-- [ ] Monitor initial requests
+- [ ] Deploy to staging/preview first (`npx wrangler deploy --env development`)
+- [ ] Test all staging endpoints thoroughly
+- [ ] Verify all interfaces work in staging
+- [ ] Check CloudFlare Workers dashboard for staging metrics
+- [ ] Deploy to production (`npx wrangler deploy --env production`)
+- [ ] Verify production endpoints
+- [ ] Monitor initial production requests
 
 ### Post-Deployment
 
@@ -515,12 +678,18 @@ If the worker is completely broken:
 # Staging environment
 [env.staging]
 name = "js-translation-helps-proxy-staging"
-vars = { LOG_LEVEL = "debug" }
+vars = {
+  UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp",
+  LOG_LEVEL = "debug"
+}
 
 # Production environment
 [env.production]
 name = "js-translation-helps-proxy-production"
-vars = { LOG_LEVEL = "info" }
+vars = {
+  UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp",
+  LOG_LEVEL = "info"
+}
 ```
 
 Deploy to specific environment:
@@ -529,6 +698,8 @@ Deploy to specific environment:
 npx wrangler deploy --env staging
 npx wrangler deploy --env production
 ```
+
+**Note:** Each environment must include `UPSTREAM_URL` as it's required and not inherited from the top level.
 
 ### CI/CD Integration
 

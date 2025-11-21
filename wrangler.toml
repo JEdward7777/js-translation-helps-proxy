@@ -4,22 +4,16 @@ compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-NODE_ENV = "production"
-# Upstream Translation Helps API
+# REQUIRED: Upstream Translation Helps API endpoint
 UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp"
-TIMEOUT = "30000"
-LOG_LEVEL = "info"
 
-# OpenAI API baked-in filters (Interface 4)
-OPENAI_LANGUAGE = "en"
-OPENAI_ORGANIZATION = "unfoldingWord"
-OPENAI_FILTER_NOTES = "true"
-OPENAI_MAX_ITERATIONS = "5"
-
-# Optional: KV namespace for caching (if needed in future)
-# [[kv_namespaces]]
-# binding = "TRANSLATION_CACHE"
-# id = "your_kv_namespace_id_here"
+# OPTIONAL: Override defaults (uncomment to customize)
+# LOG_LEVEL = "info"                    # Default: "info" (options: debug, info, warn, error)
+# TIMEOUT = "30000"                     # Default: 30000ms
+# OPENAI_FILTER_NOTES = "true"          # Default: true (filter book/chapter notes)
+# OPENAI_MAX_ITERATIONS = "5"           # Default: 5 (max tool call iterations)
+# OPENAI_ENABLED_TOOLS = "tool1,tool2"  # Default: all tools enabled
+# OPENAI_HIDDEN_PARAMS = "language,org" # Default: none hidden
 
 [build]
 command = "npm run build"
@@ -30,10 +24,12 @@ command = "npm run build"
 #   { pattern = "translation-helps.example.com/*", zone_name = "example.com" }
 # ]
 
-# Development configuration
+# Development environment - separate worker with debug logging
 [env.development]
-vars = { LOG_LEVEL = "debug" }
+name = "js-translation-helps-proxy-dev"
+vars = { UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp", LOG_LEVEL = "debug" }
 
-# Production configuration
+# Production environment - separate worker with info logging
 [env.production]
-vars = { LOG_LEVEL = "info" }
+name = "js-translation-helps-proxy-prod"
+vars = { UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp", LOG_LEVEL = "info" }

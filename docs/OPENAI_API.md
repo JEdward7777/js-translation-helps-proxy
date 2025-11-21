@@ -428,23 +428,21 @@ Response Returned to Client:
 
 ### Environment Variables
 
-Configure via `wrangler.toml`:
+Configure via `wrangler.toml`. Only `UPSTREAM_URL` is required; other variables have defaults:
 
 ```toml
 [vars]
-# Upstream API
+# REQUIRED: Upstream API endpoint
 UPSTREAM_URL = "https://translation-helps-mcp.pages.dev/api/mcp"
-TIMEOUT = "30000"
 
-# OpenAI API baked-in filters
-OPENAI_LANGUAGE = "en"
-OPENAI_ORGANIZATION = "unfoldingWord"
-OPENAI_FILTER_NOTES = "true"
-OPENAI_MAX_ITERATIONS = "5"
-
-# Logging
-LOG_LEVEL = "info"
+# OPTIONAL: Override defaults (uncomment to customize)
+# TIMEOUT = "30000"                     # Default: 30000ms
+# OPENAI_FILTER_NOTES = "true"          # Default: true (filter book/chapter notes)
+# OPENAI_MAX_ITERATIONS = "5"           # Default: 5 (max tool call iterations)
+# LOG_LEVEL = "info"                    # Default: "info" (options: debug, info, warn, error)
 ```
+
+**Note:** The baked-in filters (language=en, organization=unfoldingWord) are hardcoded in the tool execution logic and cannot be configured via environment variables.
 
 ### Programmatic Configuration
 
@@ -452,13 +450,15 @@ LOG_LEVEL = "info"
 import { createOpenAIRoutes } from 'js-translation-helps-proxy/openai-api';
 
 const routes = createOpenAIRoutes({
-  language: 'en',
-  organization: 'unfoldingWord',
-  filterBookChapterNotes: true,
-  maxToolIterations: 5,
-  enableToolExecution: true,
+  filterBookChapterNotes: true,      // Default: true
+  maxToolIterations: 5,              // Default: 5
+  enableToolExecution: true,         // Default: true
+  enabledTools: ['fetch_scripture'], // Optional: limit tools
+  hiddenParams: ['language'],        // Optional: hide parameters
 });
 ```
+
+**Note:** The `language` and `organization` filters are applied automatically during tool execution and are not configurable at the route level.
 
 ## Deployment
 

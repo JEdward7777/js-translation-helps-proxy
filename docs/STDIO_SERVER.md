@@ -484,8 +484,9 @@ You can run multiple instances with different configurations:
 
 The server respects standard Node.js environment variables:
 
-- `NODE_ENV` - Set to "development" for additional debugging
-- `NODE_OPTIONS` - Pass Node.js runtime options
+- `NODE_OPTIONS` - Pass Node.js runtime options (e.g., `--max-old-space-size=4096`)
+
+**Note:** The server uses command-line arguments for configuration (see [Command-Line Options](#command-line-options)), not environment variables like `NODE_ENV`.
 
 ### Logging
 
