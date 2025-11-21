@@ -13,7 +13,7 @@ Welcome to the JS Translation Helps Proxy documentation! This guide will help yo
 - [Interface 1: Core API](#interface-1-core-api) - Direct TypeScript/JavaScript API
 - [Interface 2: MCP HTTP Server](MCP_SERVER.md) - HTTP MCP server
 - [Interface 3: stdio Server](STDIO_SERVER.md) - Desktop application interface
-- [Interface 3.5: LLM Helper](LLM_HELPER.md) - TypeScript LLM integration
+- [Interface 5: LLM Helper](LLM_HELPER.md) - TypeScript LLM integration
 - [Interface 4: OpenAI API](OPENAI_API.md) - OpenAI-compatible REST API
 
 ### Deployment & Operations
@@ -72,7 +72,7 @@ npx github:JEdward7777/js-translation-helps-proxy
 ---
 
 ### I want to integrate with an LLM in TypeScript
-→ **[Interface 3.5: LLM Helper](LLM_HELPER.md)**
+→ **[Interface 5: LLM Helper](LLM_HELPER.md)**
 
 ```typescript
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
@@ -150,7 +150,7 @@ response = client.chat.completions.create(
 │                    └───────┬────────┘                        │
 │                            │                                 │
 │  ┌──────────────┐  ┌──────▼────────┐                        │
-│  │ Interface 3.5│  │ Interface 4   │                        │
+│  │ Interface 5  │  │ Interface 4   │                        │
 │  │  LLM Helper  │  │  OpenAI API   │                        │
 │  └──────┬───────┘  └──────┬────────┘                        │
 │         │                  │                                 │
@@ -395,7 +395,7 @@ docs/
 ├── ARCHITECTURE.md               # System architecture
 ├── MCP_SERVER.md                 # Interface 2: MCP HTTP Server
 ├── STDIO_SERVER.md               # Interface 3: stdio Server
-├── LLM_HELPER.md                 # Interface 3.5: LLM Helper
+├── LLM_HELPER.md                 # Interface 5: LLM Helper
 ├── OPENAI_API.md                 # Interface 4: OpenAI API
 ├── DEPLOYMENT.md                 # Deployment guide
 ├── TESTING.md                    # Testing documentation

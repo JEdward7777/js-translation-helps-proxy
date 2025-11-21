@@ -193,7 +193,7 @@ export interface ToolExecutionContext {
 // ============================================================================
 
 export interface OpenAIBridgeConfig {
-  // Filter configuration (consistent with Interface 3.5)
+  // Filter configuration (consistent with Interface 5)
   enabledTools?: string[]; // Limit which tools are available
   hiddenParams?: string[]; // Hide parameters from LLM (e.g., ['language', 'organization'])
   filterBookChapterNotes?: boolean; // Default: true

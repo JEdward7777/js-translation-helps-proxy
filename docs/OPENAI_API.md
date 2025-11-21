@@ -645,5 +645,5 @@ const client = new OpenAI({
 
 - [MCP Server Documentation](./MCP_SERVER.md) - Interface 2 with client-controlled filters
 - [stdio Server Documentation](./STDIO_SERVER.md) - Interface 3 for CLI usage
-- [LLM Helper Documentation](./LLM_HELPER.md) - Interface 3.5 for TypeScript LLM integration
+- [LLM Helper Documentation](./LLM_HELPER.md) - Interface 5 for TypeScript LLM integration
 - [Main README](../README.md) - Project overview

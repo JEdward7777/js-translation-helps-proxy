@@ -128,7 +128,7 @@ js-translation-helps-proxy/
 │   │   └── routes.ts
 │   ├── stdio-server/      # Interface 3: stdio Server
 │   │   └── index.ts
-│   ├── llm-helper/        # Interface 3.5: LLM Helper
+│   ├── llm-helper/        # Interface 5: LLM Helper
 │   │   ├── index.ts
 │   │   ├── llm-client.ts
 │   │   └── tool-executor.ts

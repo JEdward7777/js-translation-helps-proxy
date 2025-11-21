@@ -57,7 +57,7 @@ graph TB
             Stdio[npx Executable<br/>stdin/stdout]
         end
         
-        subgraph "Interface 3.5: LLM Helper"
+        subgraph "Interface 5: LLM Helper"
             Helper[TS Function Interface<br/>with Tool Execution]
         end
         
@@ -287,7 +287,7 @@ await server.connect(transport);
 
 ---
 
-### Interface 3.5: TypeScript Function Interface
+### Interface 5: TypeScript Function Interface
 
 **Purpose**: LLM integration helper with built-in tool execution  
 **Use Case**: Custom LLM applications, agent frameworks
@@ -1091,7 +1091,7 @@ js-translation-helps-proxy/
 │   ├── stdio-server/              # Interface 3: stdio MCP
 │   │   └── index.ts               # Executable server
 │   │
-│   ├── llm-helper/                # Interface 3.5: LLM Helper
+│   ├── llm-helper/                # Interface 5: LLM Helper
 │   │   ├── index.ts
 │   │   └── executor.ts
 │   │
@@ -1541,7 +1541,7 @@ The project has been successfully implemented with all planned features:
 - Ready for CloudFlare Workers deployment
 - Integration tests passing
 
-**Phase 5: Interface 3.5 - LLM Helper** ✅
+**Phase 5: Interface 5 - LLM Helper** ✅
 - Tool execution loop implemented
 - Support for OpenAI and Anthropic
 - Automatic tool schema injection

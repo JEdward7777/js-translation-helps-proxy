@@ -157,7 +157,7 @@ ANTHROPIC_API_KEY=your-key npm test
 - **Integration Tests:** 16 tests passing
 - **Status:** Fully working
 
-### Interface 3.5: LLM Helper ⚠️
+### Interface 5: LLM Helper ⚠️
 - **Unit Tests:** 13 tests passing
 - **Integration Tests:** 2/6 passing (2 skipped - need API keys)
 - **Status:** Core functionality tested, full tests require API keys

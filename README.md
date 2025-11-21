@@ -21,7 +21,7 @@ A production-ready TypeScript MCP proxy for translation-helps with multiple inte
   - [Interface 1: Core API](#interface-1-core-api-direct-typescriptjavascript)
   - [Interface 2: MCP HTTP Server](#interface-2-ssehttp-mcp-server)
   - [Interface 3: stdio Server](#interface-3-stdio-mcp-server-npx-executable)
-  - [Interface 3.5: LLM Helper](#interface-35-typescript-llm-helper)
+  - [Interface 5: LLM Helper](#interface-5-typescript-llm-helper)
   - [Interface 4: OpenAI API](#interface-4-openai-compatible-api)
 - [Interface Comparison](#interface-comparison)
 - [Documentation](#documentation)
@@ -63,7 +63,7 @@ src/
 ├── core/           # Interface 1: Core API
 ├── mcp-server/     # Interface 2: HTTP MCP
 ├── stdio-server/   # Interface 3: stdio MCP
-├── llm-helper/     # Interface 3.5: TypeScript LLM interface
+├── llm-helper/     # Interface 5: TypeScript LLM interface
 ├── openai-api/     # Interface 4: OpenAI-compatible API
 └── shared/         # Shared utilities
 tests/
@@ -296,7 +296,7 @@ Or to use the latest GitHub version:
 
 ---
 
-### Interface 3.5: TypeScript LLM Helper
+### Interface 5: TypeScript LLM Helper
 
 Programmatic TypeScript interface for OpenAI integration with automatic tool execution.
 **Uses the same OpenAI logic as Interface 4.**
@@ -401,7 +401,7 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 
 ## Interface Comparison
 
-| Feature | Interface 1 (Core) | Interface 2 (MCP HTTP) | Interface 3 (stdio) | Interface 3.5 (LLM Helper) | Interface 4 (OpenAI Proxy) |
+| Feature | Interface 1 (Core) | Interface 2 (MCP HTTP) | Interface 3 (stdio) | Interface 5 (LLM Helper) | Interface 4 (OpenAI Proxy) |
 |---------|-------------------|----------------------|-------------------|---------------------------|---------------------------|
 | **Transport** | Direct API | HTTP | stdio | TypeScript API | REST |
 | **Backend** | Direct | Direct | Direct | **Proxies to OpenAI** | **Proxies to OpenAI** |
@@ -415,7 +415,7 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 
 **Choose Interface 2 or 3** when you need client-controlled filters.
 **Choose Interface 3** specifically when you want **no background processes** (on-demand launching).
-**Choose Interface 3.5** when you need programmatic LLM integration with automatic tools (TypeScript).
+**Choose Interface 5** when you need programmatic LLM integration with automatic tools (TypeScript).
 **Choose Interface 4** when you need REST API with OpenAI-compatible endpoints.
 
 ---
@@ -472,7 +472,7 @@ import { TranslationHelpsClient } from 'js-translation-helps-proxy';
 
 ### For LLM Integration in TypeScript
 
-Use **Interface 3.5** (LLM Helper):
+Use **Interface 5** (LLM Helper):
 
 ```typescript
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
@@ -499,7 +499,7 @@ const response = await helper.chat([
 
 - **[MCP HTTP Server](docs/MCP_SERVER.md)** - Interface 2 documentation
 - **[stdio Server](docs/STDIO_SERVER.md)** - Interface 3 documentation
-- **[LLM Helper](docs/LLM_HELPER.md)** - Interface 3.5 documentation
+- **[LLM Helper](docs/LLM_HELPER.md)** - Interface 5 documentation
 - **[OpenAI API](docs/OPENAI_API.md)** - Interface 4 documentation
 
 ## 🧪 Testing

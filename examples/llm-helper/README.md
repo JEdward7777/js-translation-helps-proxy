@@ -1,6 +1,6 @@
 # LLM Helper Examples
 
-This directory contains examples demonstrating how to use the LLM Helper (Interface 3.5).
+This directory contains examples demonstrating how to use the LLM Helper (Interface 5).
 
 ## Examples
 

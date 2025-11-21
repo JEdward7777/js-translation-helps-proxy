@@ -1,6 +1,6 @@
 # LLM Helper - TypeScript Function Interface
 
-Interface 3.5 provides a TypeScript function interface for making LLM calls with MCP tools automatically integrated. **This interface uses the same OpenAI integration logic as Interface 4**, ensuring consistent behavior and automatic improvements.
+Interface 5 provides a TypeScript function interface for making LLM calls with MCP tools automatically integrated. **This interface uses the same OpenAI integration logic as Interface 4**, ensuring consistent behavior and automatic improvements.
 
 ## Table of Contents
 

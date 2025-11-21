@@ -16,7 +16,7 @@ export interface UnifiedServerConfig {
     filterBookChapterNotes?: boolean;
   };
   
-  // OpenAI API config (Interface 4) - now uses same filter approach as Interface 3.5
+  // OpenAI API config (Interface 4) - now uses same filter approach as Interface 5
   openai?: {
     enabledTools?: string[]; // Limit which tools are available
     hiddenParams?: string[]; // Hide parameters from LLM (e.g., ['language', 'organization'])
@@ -65,7 +65,7 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
   });
 
   // Mount OpenAI routes (Interface 4)
-  // Now uses FilterEngine like Interface 3.5
+  // Now uses FilterEngine like Interface 5
   // Defaults are applied in createOpenAIRoutes()
   const openaiRoutes = createOpenAIRoutes({
     enabledTools: config.openai?.enabledTools,
