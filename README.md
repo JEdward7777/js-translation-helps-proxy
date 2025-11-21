@@ -221,14 +221,17 @@ Desktop application interface for Claude Desktop, Cline, and other MCP clients.
 **Quick Start:**
 
 ```bash
-# Show help
+# Run directly from GitHub (no installation required)
+npx github:JEdward7777/js-translation-helps-proxy --help
+
+# Or install from npm (when published)
 npx js-translation-helps-proxy --help
 
 # List available tools
-npx js-translation-helps-proxy --list-tools
+npx github:JEdward7777/js-translation-helps-proxy --list-tools
 
 # Start the server
-npx js-translation-helps-proxy
+npx github:JEdward7777/js-translation-helps-proxy
 ```
 
 **Configuration Options:**
@@ -250,6 +253,19 @@ npx js-translation-helps-proxy --log-level debug
 **MCP Client Setup:**
 
 For Claude Desktop, add to your config file:
+
+```json
+{
+  "mcpServers": {
+    "translation-helps": {
+      "command": "npx",
+      "args": ["github:JEdward7777/js-translation-helps-proxy"]
+    }
+  }
+}
+```
+
+Or when published to npm:
 
 ```json
 {
@@ -401,6 +417,10 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 Use **Interface 3** (stdio):
 
 ```bash
+# Run directly from GitHub
+npx github:JEdward7777/js-translation-helps-proxy
+
+# Or from npm (when published)
 npx js-translation-helps-proxy
 ```
 
