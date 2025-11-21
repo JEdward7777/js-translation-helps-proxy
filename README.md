@@ -1,4 +1,6 @@
-# JS Translation Helps Proxy
+> **WARNING:** This project was vibe coded including this readme.  Take the instructions with a grain of salt and do not be fooled by the overly optimistic documentation. 
+
+---# JS Translation Helps Proxy
 
 [![Tests](https://img.shields.io/badge/tests-160%2F162%20passing-brightgreen)](TESTING.md)
 [![Coverage](https://img.shields.io/badge/coverage-98.8%25-brightgreen)](TESTING.md)
