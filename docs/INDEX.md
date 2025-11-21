@@ -53,10 +53,13 @@ npm run deploy  # Deploy to CloudFlare Workers
 ---
 
 ### I want to use it with Claude Desktop or Cline
-→ **[Interface 3: stdio Server](STDIO_SERVER.md)**
+→ **[Interface 3: stdio Interface](STDIO_SERVER.md)** (On-Demand Process)
 
 ```bash
-# Run directly from GitHub (recommended until published to npm)
+# The MCP client launches this process automatically when needed
+# You just configure it in your MCP client settings
+
+# For manual testing:
 npx github:JEdward7777/js-translation-helps-proxy
 
 # Or when published to npm:
@@ -64,6 +67,7 @@ npx github:JEdward7777/js-translation-helps-proxy
 ```
 
 **Best for:** Desktop AI applications (Claude Desktop, Cline, etc.)
+**Key advantage:** No background processes - launched on-demand by the client
 
 ---
 
@@ -115,7 +119,8 @@ response = client.chat.completions.create(
 | **Language** | TypeScript/JS | Any (HTTP) | Any (MCP) | TypeScript | Any (HTTP) |
 | **Backend** | Direct | Direct | Direct | **Proxies to OpenAI** | **Proxies to OpenAI** |
 | **API Key** | Not required | Not required | Not required | **Required (OpenAI)** | **Required (OpenAI)** |
-| **Deployment** | Library | CloudFlare Workers | Local process | Library | CloudFlare Workers |
+| **Deployment** | Library | CloudFlare Workers | **On-demand process** | Library | CloudFlare Workers |
+| **Lifecycle** | N/A | Persistent server | **Launched on-demand** | N/A | Persistent server |
 | **Filters** | Configurable | Client-controlled | Client-controlled | Baked-in | Baked-in |
 | **Tool Execution** | Manual | Manual | Manual | Automatic | Automatic |
 | **Use Case** | Direct integration | Web services | Desktop apps | LLM apps (code) | LLM apps (REST) |

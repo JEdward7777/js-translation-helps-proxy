@@ -1,6 +1,15 @@
-# stdio MCP Server Documentation
+# stdio MCP Interface Documentation
 
-The stdio MCP server provides a standard input/output interface for the Translation Helps Proxy, making it compatible with MCP clients like Claude Desktop and Cline.
+The stdio MCP interface provides an **on-demand, client-launched process** for the Translation Helps Proxy, making it compatible with MCP clients like Claude Desktop and Cline.
+
+**Key Characteristics:**
+- ✅ **Launched on-demand** by the MCP client (not a persistent server)
+- ✅ **No background processes** - runs only when the client needs it
+- ✅ **Automatic lifecycle** - terminates when the client disconnects
+- ✅ **stdio transport** - communicates via standard input/output with the parent process
+- ✅ **Resource efficient** - no idle processes consuming memory or CPU
+
+Unlike Interfaces 2 & 4 (which are persistent HTTP servers), this interface is a **process that the MCP client spawns** when it needs to use translation tools, and automatically terminates when done.
 
 ## Table of Contents
 
@@ -38,7 +47,9 @@ npx github:JEdward7777/js-translation-helps-proxy --help
 
 ## Quick Start
 
-### 1. Test the Server
+### 1. Test the Interface
+
+You can test the interface manually (it will wait for MCP protocol messages on stdin):
 
 ```bash
 # Show help (from GitHub)
@@ -47,7 +58,7 @@ npx github:JEdward7777/js-translation-helps-proxy --help
 # List available tools
 npx github:JEdward7777/js-translation-helps-proxy --list-tools
 
-# Start the server (for testing)
+# Test manually (for debugging - will wait for MCP messages on stdin)
 npx github:JEdward7777/js-translation-helps-proxy
 
 # Or when published to npm:
@@ -55,6 +66,8 @@ npx github:JEdward7777/js-translation-helps-proxy
 # npx js-translation-helps-proxy --list-tools
 # npx js-translation-helps-proxy
 ```
+
+**Note:** When run manually, the process waits for MCP protocol messages on stdin. In normal use, your MCP client (Claude Desktop, Cline) launches this process automatically when needed.
 
 ### 2. Configure Your MCP Client
 
@@ -73,7 +86,7 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 
 ### 3. Restart Your MCP Client
 
-Restart Claude Desktop or your MCP client to load the new server.
+Restart Claude Desktop or your MCP client to load the new configuration. The client will now **launch the process on-demand** when it needs to use translation tools.
 
 ## Configuration
 
@@ -195,6 +208,8 @@ npx github:JEdward7777/js-translation-helps-proxy --help
 
 ## MCP Client Setup
 
+**Important:** The MCP client (Claude Desktop, Cline, etc.) **launches this process on-demand** when it needs translation tools. You don't need to start or manage any server - the client handles the process lifecycle automatically.
+
 ### Claude Desktop
 
 **Configuration File Locations:**
@@ -223,9 +238,10 @@ npx github:JEdward7777/js-translation-helps-proxy --help
 
 **Verify Setup:**
 - Open Claude Desktop
-- Look for the MCP server indicator
-- Try asking: "What tools do you have available?"
+- Look for the MCP server indicator (Claude will launch the process when needed)
+- Try asking: "What tools do you have available?" (this triggers the process launch)
 - Test a tool: "Fetch John 3:16 scripture"
+- The process runs in the background while Claude needs it, then terminates automatically
 
 ### Cline (VS Code Extension)
 
@@ -247,7 +263,7 @@ npx github:JEdward7777/js-translation-helps-proxy --help
 ```
 
 3. Reload VS Code
-4. Open Cline and verify the server is connected
+4. Open Cline and verify the configuration is loaded (Cline will launch the process when needed)
 
 ### Other MCP Clients
 
@@ -353,9 +369,9 @@ For other MCP clients that support stdio transport:
 
 ## Troubleshooting
 
-### Server Won't Start
+### Process Won't Launch
 
-**Problem:** MCP client shows server connection error.
+**Problem:** MCP client shows connection error or can't launch the process.
 
 **Solutions:**
 
@@ -364,11 +380,13 @@ For other MCP clients that support stdio transport:
    node --version  # Should be 20.17.0 or higher
    ```
 
-2. **Test server manually:**
+2. **Test process manually:**
    ```bash
    npx github:JEdward7777/js-translation-helps-proxy --help
    # Or: npx js-translation-helps-proxy --help
    ```
+   
+   This verifies the process can be launched successfully.
 
 3. **Check for errors:**
    ```bash

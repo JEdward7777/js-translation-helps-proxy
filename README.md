@@ -211,9 +211,17 @@ npx @modelcontextprotocol/inspector
 
 ---
 
-### Interface 3: stdio MCP Server (npx executable)
+### Interface 3: stdio MCP Interface (On-Demand Process)
 
-Desktop application interface for Claude Desktop, Cline, and other MCP clients.
+**On-demand process** launched by MCP clients (Claude Desktop, Cline, etc.) - not a persistent server.
+
+**Key Advantages:**
+- ✅ **No background processes** - launched only when the client needs it
+- ✅ **Automatic lifecycle** - terminates when the client disconnects
+- ✅ **Resource efficient** - no idle processes consuming memory
+- ✅ **stdio transport** - communicates via stdin/stdout with the parent MCP client
+
+Unlike Interfaces 2 & 4 (persistent HTTP servers), this is a **process that the MCP client spawns on-demand**.
 
 **Quick Start:**
 
@@ -230,9 +238,11 @@ npx github:JEdward7777/js-translation-helps-proxy --help
 # List available tools
 npx github:JEdward7777/js-translation-helps-proxy --list-tools
 
-# Start the server
+# Launch the process (for manual testing - normally the MCP client launches it)
 npx github:JEdward7777/js-translation-helps-proxy
 ```
+
+**Note:** In normal use, your MCP client (Claude Desktop, Cline) automatically launches this process when needed. You don't need to start or manage it manually.
 
 **Configuration Options:**
 
@@ -283,10 +293,11 @@ Or when published to npm:
 ```
 
 **Key Features:**
-- ✅ Client-controlled filters
-- ✅ Works with Claude Desktop, Cline, etc.
-- ✅ stdio transport (standard input/output)
-- ✅ Easy npx installation
+- ✅ **On-demand process** - no persistent server running
+- ✅ **Client-controlled filters** - configure per MCP client
+- ✅ **Works with Claude Desktop, Cline, etc.** - any MCP client supporting stdio
+- ✅ **stdio transport** - standard input/output communication
+- ✅ **Easy npx deployment** - client launches via npx when needed
 
 **Documentation:** [stdio Server Guide](docs/STDIO_SERVER.md) | [Example Configs](examples/README.md)
 
@@ -405,10 +416,12 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 | **Models** | N/A | N/A | N/A | **Any OpenAI model** | **Any OpenAI model** |
 | **Filters** | Configurable | Client-controlled | Client-controlled | **Baked-in** | **Baked-in** |
 | **Use Case** | TypeScript apps | Web services | Desktop apps | LLM integrations (code) | LLM integrations (REST) |
-| **Deployment** | Library | CloudFlare Workers | Local process | Library | CloudFlare Workers |
+| **Deployment** | Library | CloudFlare Workers | **On-demand process** | Library | CloudFlare Workers |
 | **Tool Execution** | Manual | Manual | Manual | **Automatic** | **Automatic** |
+| **Lifecycle** | N/A | Persistent server | **Launched on-demand** | N/A | Persistent server |
 
 **Choose Interface 2 or 3** when you need client-controlled filters.
+**Choose Interface 3** specifically when you want **no background processes** (on-demand launching).
 **Choose Interface 3.5** when you need programmatic LLM integration with automatic tools (TypeScript).
 **Choose Interface 4** when you need REST API with OpenAI-compatible endpoints.
 
@@ -557,8 +570,9 @@ To use:
 4. Select the appropriate debug configuration
 
 **Important:**
-- **Interface 3 (stdio)** communicates via standard input/output, NOT HTTP/REST
-- **Interfaces 2 & 4** are HTTP/REST servers accessible at `http://localhost:8787`
+- **Interface 3 (stdio)** is an **on-demand process** launched by the MCP client, communicating via stdin/stdout (NOT HTTP/REST)
+- **Interfaces 2 & 4** are **persistent HTTP/REST servers** accessible at `http://localhost:8787`
+- Interface 3 has **no background process** - it's launched when needed and terminates when done
 - The server will start with `LOG_LEVEL=debug` for detailed logging
 
 ## 🤝 Contributing

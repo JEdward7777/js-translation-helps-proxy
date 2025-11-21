@@ -194,11 +194,20 @@ const { content } = await result.json();
 
 ---
 
-### Interface 3: stdio MCP Server
+### Interface 3: stdio MCP Interface (On-Demand Process)
 
-**Purpose**: Standard MCP stdio protocol  
-**Use Case**: Desktop apps, CLI tools, Claude Desktop, Cline  
-**Deployment**: npx executable
+**Purpose**: Standard MCP stdio protocol via on-demand process launching
+**Use Case**: Desktop apps, CLI tools, Claude Desktop, Cline
+**Deployment**: npx executable (launched on-demand by MCP client)
+**Lifecycle**: **Process launched by client when needed, terminates when done**
+
+**Key Architectural Difference:**
+Unlike Interfaces 2 & 4 (persistent HTTP servers), Interface 3 is **not a running server**. Instead:
+- The MCP client (Claude Desktop, Cline) **spawns the process** when it needs translation tools
+- The process communicates via **stdin/stdout** with its parent (the MCP client)
+- The process **terminates automatically** when the client disconnects
+- **No background processes** consume resources when idle
+- **Resource efficient** - only runs when actively needed
 
 ```bash
 # Installation
@@ -241,6 +250,9 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { TranslationHelpsCore } from './core';
 
+// This process is launched by the MCP client (Claude Desktop, Cline, etc.)
+// It runs only while the client needs it, then terminates automatically
+
 const server = new Server({
   name: 'translation-helps-mcp-proxy',
   version: '1.0.0'
@@ -266,9 +278,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   return { content: result };
 });
 
-// Run
+// Connect via stdio transport (stdin/stdout with parent MCP client)
 const transport = new StdioServerTransport();
 await server.connect(transport);
+
+// Process runs until the MCP client disconnects, then terminates
 ```
 
 ---
