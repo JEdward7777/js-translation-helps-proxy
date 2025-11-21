@@ -294,7 +294,7 @@ describe('MCP Streamable HTTP Transport (E2E)', () => {
         
         // Verify properties are well-formed objects
         const properties = tool.inputSchema.properties as Record<string, any>;
-        for (const [propName, propSchema] of Object.entries(properties)) {
+        for (const propSchema of Object.values(properties)) {
           expect(propSchema).toBeDefined();
           expect(typeof propSchema).toBe('object');
           // Properties should have type information

@@ -154,7 +154,7 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
  * Start the unified server (for standalone use)
  */
 export async function startServer(config: UnifiedServerConfig = {}): Promise<void> {
-  const app = createUnifiedServer(config);
+  createUnifiedServer(config);
   const port = config.port || 8000;
 
   logger.info(`Starting unified HTTP server on port ${port}`);

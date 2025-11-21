@@ -6,12 +6,9 @@
 import {
   UpstreamClientConfig,
   Tool,
-  ToolResult,
-  TextContent,
   UpstreamResponse,
   UpstreamConnectionError,
   UpstreamResponseError,
-  InvalidArgumentsError
 } from './types.js';
 import { logger } from '../shared/index.js';
 

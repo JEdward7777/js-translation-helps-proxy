@@ -2,7 +2,7 @@
  * Integration tests for stdio MCP server
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { StdioMCPServer } from '../../../src/stdio-server/server.js';
 
 describe('StdioMCPServer', () => {

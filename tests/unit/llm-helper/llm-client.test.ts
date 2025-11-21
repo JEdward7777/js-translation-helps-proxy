@@ -9,7 +9,7 @@ import { ChatCompletionHandler } from '../../../src/openai-api/chat-completion.j
 // Mock the ChatCompletionHandler
 vi.mock('../../../src/openai-api/chat-completion.js', () => {
   // Create a proper constructor function mock
-  const MockChatCompletionHandler = vi.fn(function(this: any, config: any) {
+  const MockChatCompletionHandler = vi.fn(function(this: any, _config: any) {
     // Return the mock handler instance that will be set in beforeEach
     return mockHandlerInstance;
   });

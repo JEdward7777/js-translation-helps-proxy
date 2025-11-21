@@ -8,7 +8,6 @@ import { TranslationHelpsClient } from '../core/index.js';
 import {
   ChatCompletionRequest,
   ChatCompletionResponse,
-  ChatCompletionMessage,
   OpenAIBridgeConfig,
   OpenAIAPIError,
   ToolCall,
@@ -135,7 +134,7 @@ export class ChatCompletionHandler {
     request: ChatCompletionRequest,
     tools: any[]
   ): Promise<ChatCompletionResponse> {
-    let currentMessages = [...request.messages];
+    const currentMessages = [...request.messages];
     let iteration = 0;
     const n = request.n || 1;
 
