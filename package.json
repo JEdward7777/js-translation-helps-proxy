@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "type": "module",
   "description": "TypeScript MCP proxy for translation-helps with multiple interfaces",
-  "main": "dist/stdio-server.js",
+  "main": "dist/stdio-server/index.js",
   "bin": {
-    "js-translation-helps-proxy": "dist/stdio-server.js"
+    "js-translation-helps-proxy": "dist/stdio-server/index.js"
   },
   "engines": {
     "node": ">=20.17.0"
