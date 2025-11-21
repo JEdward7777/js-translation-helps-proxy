@@ -1,6 +1,6 @@
 name = "js-translation-helps-proxy"
 main = "dist/openai-api/index.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
