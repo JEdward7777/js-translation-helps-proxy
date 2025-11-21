@@ -19,6 +19,7 @@ export class ResponseFormatter {
 
     // Handle MCP-like format (already formatted)
     if ('content' in response && Array.isArray(response.content)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
       return response.content.map((item: any) => {
         if (item.type === 'text') {
           return { type: 'text', text: item.text } as TextContent;
@@ -45,10 +46,12 @@ export class ResponseFormatter {
     if ('items' in response && Array.isArray(response.items)) {
       // Check if this is translation questions (has Question/Response fields)
       if (response.items.length > 0 && ('Question' in response.items[0] || 'question' in response.items[0])) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
         return this.formatQuestions(response.items, (response as any).reference);
       }
       // Check if this is translation words (has term/definition fields)
       if (response.items.length > 0 && ('term' in response.items[0] || 'definition' in response.items[0])) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
         return this.formatWords(response.items, (response as any).reference);
       }
       // Otherwise, it's translation notes (has Note field)
@@ -67,11 +70,13 @@ export class ResponseFormatter {
   /**
    * Format scripture response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   private static formatScripture(scriptureList: any[]): TextContent[] {
     if (!scriptureList || scriptureList.length === 0) {
       return [{ type: 'text', text: 'No scripture text found' }];
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
     const formatted = scriptureList.map((s: any) => {
       let text = s.text || '';
       if (s.translation) {
@@ -87,12 +92,14 @@ export class ResponseFormatter {
    * Format translation notes response
    * Upstream format: items array with Note field
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   private static formatNotes(response: any, notes: any[]): TextContent[] {
     if (!Array.isArray(notes) || notes.length === 0) {
       return [{ type: 'text', text: 'No translation notes found for this reference.' }];
     }
 
     let text = `Translation Notes for ${response.reference || 'Reference'}:\n\n`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
     notes.forEach((note: any, i: number) => {
       // Upstream uses 'Note' field (capital N)
       const content = note.Note || note.note || note.text || note.content || String(note);
@@ -106,12 +113,14 @@ export class ResponseFormatter {
    * Format translation words response
    * Upstream format: items array with term and definition fields
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   private static formatWords(words: any[], reference?: string): TextContent[] {
     if (!Array.isArray(words) || words.length === 0) {
       return [{ type: 'text', text: 'No translation words found for this reference.' }];
     }
 
     let text = `Translation Words for ${reference || 'Reference'}:\n\n`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
     words.forEach((word: any) => {
       const term = word.term || word.name || 'Unknown Term';
       const definition = word.definition || word.content || 'No definition available';
@@ -125,12 +134,14 @@ export class ResponseFormatter {
    * Format translation questions response
    * Upstream format: items array with Question and Response fields
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   private static formatQuestions(questions: any[], reference?: string): TextContent[] {
     if (!Array.isArray(questions) || questions.length === 0) {
       return [{ type: 'text', text: 'No translation questions found for this reference.' }];
     }
 
     let text = `Translation Questions for ${reference || 'Reference'}:\n\n`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
     questions.forEach((q: any, i: number) => {
       // Upstream uses 'Question' and 'Response' fields (capital letters)
       const question = q.Question || q.question || 'No question';
@@ -145,12 +156,14 @@ export class ResponseFormatter {
    * Format context response (aggregated data from multiple sources)
    * Upstream format: object with translationNotes, translationWords, etc. arrays
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   private static formatContext(response: any): TextContent[] {
     let text = `Context for ${response.reference || 'Reference'}:\n\n`;
 
     // Add scripture if present
     if (response.scripture && Array.isArray(response.scripture) && response.scripture.length > 0) {
       text += '## Scripture\n\n';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
       response.scripture.forEach((s: any) => {
         let scriptureText = s.text || '';
         if (s.translation) {
@@ -163,6 +176,7 @@ export class ResponseFormatter {
     // Add translation notes if present
     if (response.translationNotes && Array.isArray(response.translationNotes) && response.translationNotes.length > 0) {
       text += '## Translation Notes\n\n';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
       response.translationNotes.forEach((note: any, i: number) => {
         const content = note.Note || note.note || note.text || note.content || String(note);
         text += `${i + 1}. ${content}\n\n`;
@@ -172,6 +186,7 @@ export class ResponseFormatter {
     // Add translation words if present
     if (response.translationWords && Array.isArray(response.translationWords) && response.translationWords.length > 0) {
       text += '## Translation Words\n\n';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
       response.translationWords.forEach((word: any) => {
         const term = word.term || word.name || 'Unknown Term';
         const definition = word.definition || word.content || 'No definition available';
@@ -182,6 +197,7 @@ export class ResponseFormatter {
     // Add translation questions if present
     if (response.translationQuestions && Array.isArray(response.translationQuestions) && response.translationQuestions.length > 0) {
       text += '## Translation Questions\n\n';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
       response.translationQuestions.forEach((q: any, i: number) => {
         const question = q.Question || q.question || 'No question';
         const answer = q.Response || q.response || q.Answer || q.answer || 'No answer';
@@ -195,6 +211,7 @@ export class ResponseFormatter {
   /**
    * Format wrapped result response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   private static formatResult(result: any): TextContent[] {
     const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
     return [{ type: 'text', text }];
@@ -203,6 +220,7 @@ export class ResponseFormatter {
   /**
    * Format fallback response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   private static formatFallback(response: any): TextContent[] {
     const text = JSON.stringify(response, null, 2);
     return [{ type: 'text', text }];

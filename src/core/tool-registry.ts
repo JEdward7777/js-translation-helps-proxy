@@ -103,6 +103,7 @@ export class ToolRegistry {
   /**
    * Validate tool arguments against schema
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tool arguments validation
   async validateToolArgs(name: string, args: Record<string, any>): Promise<boolean> {
     const tool = await this.getTool(name);
     if (!tool) {

@@ -75,6 +75,7 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
       logger.error('Error in chat completion endpoint', error);
 
       if (error instanceof OpenAIAPIError) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Hono status code type
         return c.json(error.toJSON(), error.statusCode as any);
       }
 
@@ -106,11 +107,13 @@ export function createOpenAIRoutes(config: OpenAIBridgeConfig = {}): Hono {
       logger.error('Error listing models', error);
 
       if (error instanceof OpenAIAPIError) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Hono status code type
         return c.json(error.toJSON(), error.statusCode as any);
       }
 
       // Handle OpenAI SDK errors
       if (error && typeof error === 'object' && 'status' in error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI SDK error type
         const openaiError = error as any;
         return c.json({
           error: {

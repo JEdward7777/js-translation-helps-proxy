@@ -158,9 +158,11 @@ async function listTools(): Promise<void> {
     }
 
     // Get tools through the client
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing internal client
     const tools = await (server as any).client.listTools();
 
     console.log(`✅ Found ${tools.length} available tools:\n`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic tool format
     tools.forEach((tool: any, index: number) => {
       console.log(`${(index + 1).toString().padStart(2)}. ${tool.name.padEnd(30)} - ${tool.description}`);
     });

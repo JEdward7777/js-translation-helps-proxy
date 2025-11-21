@@ -109,6 +109,7 @@ export class ChatCompletionHandler {
       
       // Handle OpenAI SDK errors
       if (error && typeof error === 'object' && 'status' in error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI SDK error type
         const openaiError = error as any;
         throw new OpenAIAPIError(
           openaiError.message || 'OpenAI API error',
@@ -129,6 +130,7 @@ export class ChatCompletionHandler {
    * Execute iterative tool calling loop with OpenAI
    * Supports n > 1 and structured outputs
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI tool format
   private async executeToolCallingLoop(
     openai: OpenAI,
     request: ChatCompletionRequest,
@@ -143,8 +145,10 @@ export class ChatCompletionHandler {
       logger.debug(`Tool calling iteration ${iteration}/${this.config.maxToolIterations}`);
 
       // Build request parameters, preserving all OpenAI options including structured outputs
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI request parameters
       const requestParams: any = {
         model: request.model,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI message format
         messages: currentMessages as any,
         tools: tools,
         n: n, // Preserve n parameter
@@ -162,7 +166,9 @@ export class ChatCompletionHandler {
       if (request.logit_bias        !== undefined) requestParams.logit_bias        = request.logit_bias;
       
       // Support for structured outputs (response_format)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extended OpenAI request type
       if ((request as any).response_format !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extended OpenAI request type
         requestParams.response_format = (request as any).response_format;
       }
 
@@ -205,6 +211,7 @@ export class ChatCompletionHandler {
 
       // Execute all tool calls in parallel
       const toolResults = await Promise.all(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI tool call format
         message.tool_calls!.map(async (toolCall: any) => {
           try {
             const mcpCall = openaiToolCallToMCP(toolCall);
@@ -238,8 +245,10 @@ export class ChatCompletionHandler {
     logger.warn(`Reached maximum tool iterations (${this.config.maxToolIterations})`);
     
     // Make one final call to get a response (without tools to avoid infinite loop)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI request parameters
     const finalRequestParams: any = {
       model: request.model,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI message format
       messages: currentMessages as any,
       n: n, // Preserve n parameter
     };
@@ -248,7 +257,9 @@ export class ChatCompletionHandler {
     if (request.temperature !== undefined) finalRequestParams.temperature = request.temperature;
     if (request.top_p !== undefined) finalRequestParams.top_p = request.top_p;
     if (request.max_tokens !== undefined) finalRequestParams.max_tokens = request.max_tokens;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extended OpenAI request type
     if ((request as any).response_format !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extended OpenAI request type
       finalRequestParams.response_format = (request as any).response_format;
     }
 

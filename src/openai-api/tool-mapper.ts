@@ -42,6 +42,7 @@ export function mcpToolsToOpenAI(mcpTools: Tool[]): ChatCompletionTool[] {
  * Convert OpenAI tool call to MCP tool call format
  * Parses the function arguments JSON string
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tool arguments
 export function openaiToolCallToMCP(toolCall: ToolCall): {
   name: string;
   arguments: Record<string, any>;
@@ -49,6 +50,7 @@ export function openaiToolCallToMCP(toolCall: ToolCall): {
 } {
   logger.debug(`Converting OpenAI tool call to MCP format: ${toolCall.function.name}`);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tool arguments
   let args: Record<string, any> = {};
   
   try {
@@ -95,6 +97,7 @@ export function mcpResultToOpenAI(
 /**
  * Validate OpenAI tool call structure
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type guard function
 export function validateToolCall(toolCall: any): toolCall is ToolCall {
   if (!toolCall || typeof toolCall !== 'object') {
     return false;

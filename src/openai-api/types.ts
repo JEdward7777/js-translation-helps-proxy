@@ -27,6 +27,7 @@ export interface ToolCall {
 export interface FunctionDefinition {
   name: string;
   description?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI function parameters format
   parameters?: Record<string, any>;
   strict?: boolean;
 }
@@ -53,6 +54,7 @@ export interface ChatCompletionRequest {
   frequency_penalty?: number;
   logit_bias?: Record<string, number>;
   user?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Allow additional OpenAI properties
   [key: string]: any; // Allow additional properties
 }
 
@@ -64,6 +66,7 @@ export interface ChatCompletionChoice {
   index: number;
   message: ChatCompletionMessage;
   finish_reason: 'stop' | 'length' | 'tool_calls' | 'content_filter' | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI logprobs format
   logprobs?: any;
 }
 

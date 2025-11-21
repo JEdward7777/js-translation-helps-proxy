@@ -44,10 +44,12 @@ export class UpstreamClient {
     try {
       logger.debug('Fetching tools from upstream');
       const response = await this.callUpstream('tools/list', {});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
       if (!response || !('tools' in response) || !Array.isArray((response as any).tools)) {
         throw new UpstreamResponseError('Invalid tools response from upstream');
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
       const tools: Tool[] = (response as any).tools.map((toolData: any) => ({
         name: toolData.name,
         description: toolData.description,
@@ -66,6 +68,7 @@ export class UpstreamClient {
    * Call a specific tool on the upstream server
    * Returns raw response for filtering and formatting by the caller
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tool arguments
   async callTool(name: string, args: Record<string, any>): Promise<UpstreamResponse | null> {
     try {
       logger.debug(`Calling tool: ${name}`, args);
@@ -84,10 +87,12 @@ export class UpstreamClient {
   /**
    * Internal method to call upstream server with routing logic
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic method parameters
   private async callUpstream(method: string, params: Record<string, any>): Promise<UpstreamResponse | null> {
     try {
       let response: Response;
       let url: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic request body
       let body: any = null;
 
       if (method === 'tools/list') {
@@ -140,6 +145,7 @@ export class UpstreamClient {
   /**
    * Route tool calls to specific API endpoints (preserved from Python)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tool arguments
   private routeToolCall(toolName: string, args: Record<string, any>): { url: string; options: RequestInit } {
     const baseUrl = this.config.upstreamUrl.replace('/api/mcp', '');
 
@@ -307,6 +313,7 @@ export class UpstreamClient {
   /**
    * Build query string from object
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic query parameters
   private buildQueryString(params: Record<string, any>): string {
     const filtered = Object.entries(params)
       .filter(([_, value]) => value !== undefined && value !== null)

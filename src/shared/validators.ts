@@ -102,6 +102,7 @@ export class Validator {
   /**
    * Type-safe tool argument validation by tool name
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Returns validated arguments of varying types
   static validateToolArguments(toolName: string, args: unknown): any {
     switch (toolName) {
       case 'fetch_scripture':

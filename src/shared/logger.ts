@@ -42,30 +42,35 @@ export class Logger {
     return level >= this.level;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Variadic logger arguments
   private formatMessage(level: string, message: string, ...args: any[]): string {
     const timestamp = new Date().toISOString();
     const formattedArgs = args.length > 0 ? ` ${JSON.stringify(args)}` : '';
     return `${timestamp} ${this.prefix} ${level}: ${message}${formattedArgs}`;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Variadic logger arguments
   debug(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
       console.debug(this.formatMessage('DEBUG', message, ...args));
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Variadic logger arguments
   info(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.INFO)) {
       console.info(this.formatMessage('INFO', message, ...args));
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Variadic logger arguments
   warn(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.WARN)) {
       console.warn(this.formatMessage('WARN', message, ...args));
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Variadic logger arguments
   error(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       console.error(this.formatMessage('ERROR', message, ...args));

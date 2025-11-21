@@ -68,6 +68,7 @@ export class FilterEngine {
    * Filter book and chapter notes from translation notes response
    * Preserves exact logic from Python implementation
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   filterBookChapterNotes(response: any): any {
     if (!this.config.filterBookChapterNotes) {
       return response;
@@ -81,6 +82,7 @@ export class FilterEngine {
     const items = response.items;
 
     // Filter out book-level and chapter-level notes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
     const filteredItems = items.filter((item: any) => {
       const reference = item.Reference || '';
       // Skip book-level notes (front:intro)
