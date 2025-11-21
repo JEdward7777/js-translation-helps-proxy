@@ -11,6 +11,7 @@
     "node": ">=20.17.0"
   },
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc && npm run postbuild",
     "postbuild": "chmod +x dist/stdio-server/index.js",
     "dev": "tsx watch src/stdio-server/index.ts",
