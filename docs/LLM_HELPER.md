@@ -1,6 +1,6 @@
 # LLM Helper - TypeScript Function Interface
 
-Interface 5 provides a TypeScript function interface for making LLM calls with MCP tools automatically integrated. **This interface uses the same OpenAI integration logic as Interface 4**, ensuring consistent behavior and automatic improvements.
+Interface 5 provides a TypeScript function interface for making LLM calls with MCP tools automatically integrated. **This interface uses the same OpenAI integration logic as [Interface 4](./OPENAI_API.md)**, ensuring consistent behavior and automatic improvements.
 
 ## Table of Contents
 
@@ -372,7 +372,9 @@ See the [examples directory](../examples/llm-helper/) for complete working examp
 
 ## Related Documentation
 
-- [OpenAI API Interface](./OPENAI_API.md) - Interface 4 (shares same logic)
+- **[OpenAI API Interface](./OPENAI_API.md)** - Interface 4 (shares same ChatCompletionHandler logic)
+- **[MCP Server](./MCP_SERVER.md)** - Interface 2 (for web services with client-controlled filters)
+- **[stdio Server](./STDIO_SERVER.md)** - Interface 3 (for desktop apps like Claude Desktop)
 - [Core API Documentation](./INDEX.md)
 - [Architecture Overview](../ARCHITECTURE.md)
 - [Main README](../README.md)

@@ -1,6 +1,6 @@
 # stdio MCP Interface Documentation
 
-The stdio MCP interface provides an **on-demand, client-launched process** for the Translation Helps Proxy, making it compatible with MCP clients like Claude Desktop and Cline.
+The stdio MCP interface provides an **on-demand, client-launched process** for the Translation Helps Proxy, making it compatible with MCP clients like Claude Desktop and Cline. For web services, see [Interface 2 (MCP HTTP)](./MCP_SERVER.md). For LLM integration, see [Interface 4](./OPENAI_API.md) or [Interface 5](./LLM_HELPER.md).
 
 **Key Characteristics:**
 - ✅ **Launched on-demand** by the MCP client (not a persistent server)
@@ -539,10 +539,12 @@ node dist/stdio-server/index.js
 
 ## See Also
 
+- **[MCP HTTP Server](./MCP_SERVER.md)** - Interface 2 for web services with client-controlled filters
+- **[OpenAI API](./OPENAI_API.md)** - Interface 4 for REST API with automatic tool execution
+- **[LLM Helper](./LLM_HELPER.md)** - Interface 5 for TypeScript LLM integration
 - [Main README](../README.md) - Project overview
 - [Architecture Documentation](../ARCHITECTURE.md) - Technical details
 - [Example Configurations](../examples/README.md) - More configuration examples
-- [API Documentation](./API.md) - Core API reference
 
 ## Support
 

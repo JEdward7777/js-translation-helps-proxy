@@ -141,23 +141,21 @@ const result = await client.callTool('get_system_prompt', {
 **Framework**: Hono (CloudFlare Workers compatible)
 
 ```typescript
-// Server implementation (runs in same process as Interface 4)
+// Server implementation
 import { Hono } from 'hono';
-import { createMCPServer } from './mcp-server';
+import { createMCPRoutes } from './mcp-server';
 
 const app = new Hono();
 
-const mcpServer = createMCPServer({
+// Create MCP routes with configuration
+const mcpRoutes = createMCPRoutes({
   enabledTools: process.env.ENABLED_TOOLS?.split(','),
   hiddenParams: process.env.HIDDEN_PARAMS?.split(','),
   filterBookChapterNotes: process.env.FILTER_NOTES === 'true'
 });
 
-// HTTP POST endpoint for MCP messages
-app.post('/mcp/message', async (c) => {
-  const message = await c.req.json();
-  return c.json(await mcpServer.handleMessage(message));
-});
+// Mount MCP routes
+app.route('/', mcpRoutes);
 ```
 
 **Client Usage:**
@@ -191,6 +189,8 @@ const { content } = await result.json();
 1. Client sends MCP request via HTTP POST
 2. Server processes request and returns JSON response
 3. Client-controlled filtering via configuration
+
+**See Also:** [MCP Server Guide](docs/MCP_SERVER.md) | [Interface 3 (stdio)](#interface-3-stdio-mcp-interface-on-demand-process) for desktop apps
 
 ---
 
@@ -347,12 +347,14 @@ console.log(response.choices[0].message.content);
 **Note**: The proxy requires a valid OpenAI API key in the Authorization header. The server automatically injects Translation Helps tools and handles iterative tool execution server-side.
 
 **Key Differences from Interfaces 1-3:**
-- Filtering is **baked into server config**, not client-controllable
+- Filtering is **baked into server config**, not client-controllable (unlike [Interface 2](docs/MCP_SERVER.md) and [Interface 3](docs/STDIO_SERVER.md))
 - Tools are **automatically injected** into all chat completion requests
 - Iterative tool execution loop managed server-side (up to 5 iterations by default)
 - Proxies requests to actual LLM endpoint (OpenAI API) with tool augmentation
 - Requires valid OpenAI API key from client
 - Returns final LLM response after all tool executions complete
+
+**See Also:** [OpenAI API Guide](docs/OPENAI_API.md) | [Interface 5 (LLM Helper)](#interface-5-llm-helper-typescript-function-interface) uses same logic
 
 ---
 
@@ -389,12 +391,14 @@ const scripture = await client.fetchScripture({ reference: 'John 3:16' });
 ```
 
 **Key Features:**
-- **Shares logic with Interface 4**: Uses same ChatCompletionHandler for consistency
+- **Shares logic with Interface 4**: Uses same ChatCompletionHandler for consistency (see [OpenAI API docs](docs/OPENAI_API.md))
 - Automatic iterative tool execution (up to 5 iterations by default)
 - Simplified API with automatic tool schema injection
 - OpenAI-only (no provider parameter needed)
 - Type-safe TypeScript API
 - Direct access to Translation Helps client via `getClient()`
+
+**See Also:** [LLM Helper Guide](docs/LLM_HELPER.md) | [Examples](examples/llm-helper/)
 
 ---
 
@@ -1078,25 +1082,32 @@ js-translation-helps-proxy/
 │   │   └── types.ts               # Shared TypeScript types (12 tools)
 │   │
 │   ├── mcp-server/                # Interface 2: HTTP MCP
-│   │   ├── index.ts
-│   │   ├── server.ts
-│   │   └── routes.ts
+│   │   ├── index.ts               # Module exports
+│   │   ├── streamable-transport.ts # Official MCP Streamable HTTP
+│   │   ├── server.ts              # SSE server (legacy)
+│   │   └── routes.ts              # HTTP routes (legacy)
 │   │
 │   ├── stdio-server/              # Interface 3: stdio MCP
-│   │   └── index.ts               # Executable server
+│   │   ├── index.ts               # CLI entry point
+│   │   └── server.ts              # MCP stdio server
 │   │
 │   ├── openai-api/                # Interface 4: OpenAI API
-│   │   ├── index.ts
-│   │   ├── types.ts
-│   │   ├── tool-mapper.ts
-│   │   └── iterative-executor.ts
+│   │   ├── index.ts               # Unified server (MCP + OpenAI)
+│   │   ├── routes.ts              # OpenAI route handlers
+│   │   ├── chat-completion.ts     # Chat completion handler
+│   │   ├── tool-mapper.ts         # MCP <-> OpenAI conversion
+│   │   ├── types.ts               # Type definitions
+│   │   └── start-node.ts          # Node.js server starter
 │   │
 │   ├── llm-helper/                # Interface 5: LLM Helper
-│   │   ├── index.ts
-│   │   └── executor.ts
+│   │   ├── index.ts               # LLMHelper class
+│   │   └── types.ts               # Type definitions
 │   │
 │   └── shared/                    # Shared utilities
-│       └── logger.ts
+│       ├── index.ts               # Module exports
+│       ├── logger.ts              # Logging utilities
+│       ├── errors.ts              # Error classes
+│       └── validators.ts          # Validation utilities
 │
 ├── tests/
 │   ├── unit/
@@ -1644,10 +1655,10 @@ CMD ["node", "dist/servers/mcp-http.js"]
 {
   "name": "js-translation-helps-proxy",
   "version": "0.1.0",
-  "main": "dist/stdio-server.js",
+  "main": "dist/stdio-server/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "js-translation-helps-proxy": "dist/stdio-server.js"
+    "js-translation-helps-proxy": "dist/stdio-server/index.js"
   },
   "exports": {
     ".": "./dist/index.js",

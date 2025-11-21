@@ -1,6 +1,6 @@
 # MCP HTTP Server (Interface 2)
 
-The MCP HTTP Server provides a web-based interface to the Translation Helps proxy using the official Model Context Protocol Streamable HTTP transport.
+The MCP HTTP Server provides a web-based interface to the Translation Helps proxy using the official Model Context Protocol Streamable HTTP transport. For desktop apps, see [Interface 3 (stdio)](./STDIO_SERVER.md). For OpenAI integration, see [Interface 4](./OPENAI_API.md) or [Interface 5](./LLM_HELPER.md).
 
 ## Overview
 
@@ -418,7 +418,8 @@ If tool calls fail:
 
 ## See Also
 
+- **[stdio Server](./STDIO_SERVER.md)** - Interface 3 for desktop apps (Claude Desktop, Cline)
+- **[OpenAI API](./OPENAI_API.md)** - Interface 4 with baked-in filters and automatic tool execution
+- **[LLM Helper](./LLM_HELPER.md)** - Interface 5 for TypeScript LLM integration
 - [MCP Specification - Streamable HTTP Transport](https://spec.modelcontextprotocol.io/specification/2024-11-05/transport/http/)
-- [OpenAI API Documentation](./OPENAI_API.md) - Interface 4 with baked-in filters
-- [stdio Server Documentation](./STDIO_SERVER.md) - Interface 3 for CLI usage
 - [Main README](../README.md) - Project overview

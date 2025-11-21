@@ -1,6 +1,6 @@
 # OpenAI-Compatible API (Interface 4)
 
-The OpenAI-Compatible API provides a **proxy to OpenAI's API** with automatic Translation Helps tool injection and baked-in filters for consistent behavior.
+The OpenAI-Compatible API provides a **proxy to OpenAI's API** with automatic Translation Helps tool injection and baked-in filters for consistent behavior. For TypeScript integration, see [Interface 5 (LLM Helper)](./LLM_HELPER.md) which uses the same logic.
 
 ## Overview
 
@@ -643,7 +643,8 @@ const client = new OpenAI({
 
 ## See Also
 
-- [MCP Server Documentation](./MCP_SERVER.md) - Interface 2 with client-controlled filters
-- [stdio Server Documentation](./STDIO_SERVER.md) - Interface 3 for CLI usage
-- [LLM Helper Documentation](./LLM_HELPER.md) - Interface 5 for TypeScript LLM integration
+- **[LLM Helper](./LLM_HELPER.md)** - Interface 5 for TypeScript (uses same ChatCompletionHandler logic)
+- **[MCP Server](./MCP_SERVER.md)** - Interface 2 with client-controlled filters (for web services)
+- **[stdio Server](./STDIO_SERVER.md)** - Interface 3 for desktop apps (Claude Desktop, Cline)
 - [Main README](../README.md) - Project overview
+- [Architecture Documentation](../ARCHITECTURE.md) - Technical details

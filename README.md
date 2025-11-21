@@ -32,11 +32,11 @@ A production-ready TypeScript MCP proxy for translation-helps with multiple inte
 
 ## 🎯 Overview
 
-This project provides a production-ready unified proxy service that bridges translation-helps APIs with multiple interface protocols. All 4 interfaces are fully implemented and tested with 95.4% test coverage.
+This project provides a production-ready unified proxy service that bridges translation-helps APIs with multiple interface protocols. All 5 interfaces are fully implemented and tested with 98.8% test coverage.
 
 ### ✨ Features
 
-- **4 Complete Interfaces** - Core API, MCP HTTP, stdio, LLM Helper, OpenAI API
+- **5 Complete Interfaces** - Core API, MCP HTTP, stdio, OpenAI API, LLM Helper
 - **162 Tests** - 98.8% passing (160/162), comprehensive coverage
 - **CloudFlare Workers** - Serverless deployment ready
 - **Type-Safe** - Full TypeScript with strict mode
@@ -52,7 +52,7 @@ See [`ARCHITECTURE.md`](ARCHITECTURE.md) for detailed system design and componen
 
 - **Lines of Code:** ~5,000+
 - **Test Coverage:** 98.8% (160/162 tests passing)
-- **Interfaces:** 4 complete interfaces
+- **Interfaces:** 5 complete interfaces
 - **Documentation:** 8 comprehensive guides
 - **Examples:** Multiple configuration examples
 
@@ -298,7 +298,7 @@ Or to use the latest GitHub version:
 
 ### Interface 4: OpenAI-Compatible API
 
-REST API that **proxies to OpenAI** with automatic Translation Helps tool injection and **baked-in filters**.
+REST API that **proxies to OpenAI** with automatic Translation Helps tool injection and **baked-in filters** (see [Interface 5](#interface-5-typescript-llm-helper) for TypeScript equivalent).
 
 **Start Server:**
 
@@ -369,7 +369,7 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 ### Interface 5: TypeScript LLM Helper
 
 Programmatic TypeScript interface for OpenAI integration with automatic tool execution.
-**Uses the same OpenAI logic as Interface 4.**
+**Uses the same OpenAI logic as Interface 4** (see [comparison table](#interface-comparison)).
 
 **Quick Start:**
 
@@ -413,10 +413,9 @@ console.log(response.message.content);
 | **Tool Execution** | Manual | Manual | Manual | **Automatic** | **Automatic** |
 | **Lifecycle** | N/A | Persistent server | **Launched on-demand** | Persistent server | N/A |
 
-**Choose Interface 2 or 3** when you need client-controlled filters.
+**Choose Interface 2 or 3** when you need client-controlled filters (see [MCP Server](docs/MCP_SERVER.md) or [stdio Server](docs/STDIO_SERVER.md)).
 **Choose Interface 3** specifically when you want **no background processes** (on-demand launching).
-**Choose Interface 4** when you need REST API with OpenAI-compatible endpoints.
-**Choose Interface 5** when you need programmatic LLM integration with automatic tools (TypeScript).
+**Choose Interface 4 or 5** when you need OpenAI integration with automatic tool execution ([REST API](docs/OPENAI_API.md) vs [TypeScript](docs/LLM_HELPER.md)).
 
 ---
 
