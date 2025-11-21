@@ -355,7 +355,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines.
 
 ## 📄 License
 
-ISC
+MIT - See [LICENSE](../LICENSE) file for details.
 
 ---
 

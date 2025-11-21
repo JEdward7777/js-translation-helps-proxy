@@ -7,7 +7,7 @@
 [![Tests](https://img.shields.io/badge/tests-160%2F162%20passing-brightgreen)](TESTING.md)
 [![Coverage](https://img.shields.io/badge/coverage-98.8%25-brightgreen)](TESTING.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/license-ISC-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![CloudFlare Workers](https://img.shields.io/badge/CloudFlare-Workers-orange)](https://workers.cloudflare.com/)
 
 A production-ready TypeScript MCP proxy for translation-helps with multiple interfaces, built for CloudFlare Workers.
@@ -572,7 +572,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## 📄 License
 
-ISC
+MIT - See [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
