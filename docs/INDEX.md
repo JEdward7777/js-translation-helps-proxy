@@ -199,11 +199,11 @@ See [ARCHITECTURE.md](../ARCHITECTURE.md) for detailed architecture documentatio
 
 1. **Use with Claude Desktop:**
    ```bash
-   # Run directly from GitHub (recommended until published to npm)
-   npx github:JEdward7777/js-translation-helps-proxy
+   # Run from npm (recommended)
+   npx js-translation-helps-proxy
    
-   # Or when published to npm:
-   # npx js-translation-helps-proxy
+   # Or directly from GitHub for latest development version:
+   # npx github:JEdward7777/js-translation-helps-proxy
    ```
    See [STDIO_SERVER.md](STDIO_SERVER.md) for configuration.
 

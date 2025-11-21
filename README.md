@@ -226,20 +226,17 @@ Unlike Interfaces 2 & 4 (persistent HTTP servers), this is a **process that the 
 **Quick Start:**
 
 ```bash
-# Run directly from GitHub (no installation required)
-npx github:JEdward7777/js-translation-helps-proxy --help
+# Run from npm (recommended)
+npx js-translation-helps-proxy --help
 
-# Run directly from GitHub (recommended until published to npm)
-npx github:JEdward7777/js-translation-helps-proxy --help
-
-# Or when published to npm:
-# npx js-translation-helps-proxy --help
+# Or directly from GitHub:
+# npx github:JEdward7777/js-translation-helps-proxy --help
 
 # List available tools
-npx github:JEdward7777/js-translation-helps-proxy --list-tools
+npx js-translation-helps-proxy --list-tools
 
 # Launch the process (for manual testing - normally the MCP client launches it)
-npx github:JEdward7777/js-translation-helps-proxy
+npx js-translation-helps-proxy
 ```
 
 **Note:** In normal use, your MCP client (Claude Desktop, Cline) automatically launches this process when needed. You don't need to start or manage it manually.
@@ -248,20 +245,16 @@ npx github:JEdward7777/js-translation-helps-proxy
 
 ```bash
 # Enable specific tools only
-npx github:JEdward7777/js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
-# Or: npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
+npx js-translation-helps-proxy --enabled-tools "fetch_scripture,fetch_translation_notes"
 
 # Hide parameters from tool schemas
-npx github:JEdward7777/js-translation-helps-proxy --hide-params "language,organization"
-# Or: npx js-translation-helps-proxy --hide-params "language,organization"
+npx js-translation-helps-proxy --hide-params "language,organization"
 
 # Filter book/chapter notes
-npx github:JEdward7777/js-translation-helps-proxy --filter-book-chapter-notes
-# Or: npx js-translation-helps-proxy --filter-book-chapter-notes
+npx js-translation-helps-proxy --filter-book-chapter-notes
 
 # Set log level
-npx github:JEdward7777/js-translation-helps-proxy --log-level debug
-# Or: npx js-translation-helps-proxy --log-level debug
+npx js-translation-helps-proxy --log-level debug
 ```
 
 **MCP Client Setup:**
@@ -273,20 +266,20 @@ For Claude Desktop, add to your config file:
   "mcpServers": {
     "translation-helps": {
       "command": "npx",
-      "args": ["github:JEdward7777/js-translation-helps-proxy"]
+      "args": ["js-translation-helps-proxy"]
     }
   }
 }
 ```
 
-Or when published to npm:
+Or to use the latest GitHub version:
 
 ```json
 {
   "mcpServers": {
     "translation-helps": {
       "command": "npx",
-      "args": ["js-translation-helps-proxy"]
+      "args": ["github:JEdward7777/js-translation-helps-proxy"]
     }
   }
 }
@@ -434,11 +427,11 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 Use **Interface 3** (stdio):
 
 ```bash
-# Run directly from GitHub (recommended until published to npm)
-npx github:JEdward7777/js-translation-helps-proxy
+# Run from npm (recommended)
+npx js-translation-helps-proxy
 
-# Or when published to npm:
-# npx js-translation-helps-proxy
+# Or directly from GitHub for latest development version:
+# npx github:JEdward7777/js-translation-helps-proxy
 ```
 
 ### For Web Services / APIs

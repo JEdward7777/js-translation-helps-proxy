@@ -7,6 +7,24 @@
   "bin": {
     "js-translation-helps-proxy": "dist/stdio-server/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "ARCHITECTURE.md",
+    "CONTRIBUTING.md",
+    "TESTING.md",
+    "docs",
+    "examples"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JEdward7777/js-translation-helps-proxy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JEdward7777/js-translation-helps-proxy/issues"
+  },
+  "homepage": "https://github.com/JEdward7777/js-translation-helps-proxy#readme",
   "engines": {
     "node": ">=20.17.0"
   },
