@@ -261,8 +261,16 @@ Environment variables for CloudFlare Workers are configured in `wrangler.toml`. 
 - `TIMEOUT` - Request timeout in milliseconds (default: `30000`)
 - `OPENAI_FILTER_NOTES` - Filter book/chapter notes (default: `true`)
 - `OPENAI_MAX_ITERATIONS` - Max tool call iterations (default: `5`)
-- `OPENAI_ENABLED_TOOLS` - Comma-separated list of enabled tools (default: all tools)
-- `OPENAI_HIDDEN_PARAMS` - Comma-separated list of hidden parameters (default: none)
+- `OPENAI_ENABLED_TOOLS` - Comma-separated list of enabled tools (default for Interface 4: `"fetch_translation_notes"`)
+- `OPENAI_HIDDEN_PARAMS` - Comma-separated list of hidden parameters (default for Interface 4: `"language,organization"`)
+
+**Important:** Interface 4 (OpenAI API) has **opinionated defaults** to provide a simplified experience:
+- Only `fetch_translation_notes` tool is enabled by default
+- `language` and `organization` parameters are hidden by default (hardcoded to `en` and `unfoldingWord`)
+- To enable all tools, set `OPENAI_ENABLED_TOOLS=""` (empty string)
+- To show all parameters, set `OPENAI_HIDDEN_PARAMS=""` (empty string)
+
+Interface 2 (MCP HTTP) does not have these defaults and exposes all tools/parameters unless explicitly configured.
 
 Example configuration:
 
