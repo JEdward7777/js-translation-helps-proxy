@@ -130,10 +130,10 @@ export class ChatCompletionHandler {
    * Execute iterative tool calling loop with OpenAI
    * Supports n > 1 and structured outputs
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI tool format
   private async executeToolCallingLoop(
     openai: OpenAI,
     request: ChatCompletionRequest,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI tool format
     tools: any[]
   ): Promise<ChatCompletionResponse> {
     const currentMessages = [...request.messages];

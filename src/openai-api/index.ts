@@ -171,10 +171,12 @@ export * from './tool-mapper.js';
 
 // Default export for CloudFlare Workers
 export default {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- CloudFlare Workers env and ctx types
   async fetch(request: Request, env: any, ctx: any) {
     const config: UnifiedServerConfig = {
       upstreamUrl: env.UPSTREAM_URL,
       timeout: env.TIMEOUT ? parseInt(env.TIMEOUT) : undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- CloudFlare Workers env type
       logLevel: env.LOG_LEVEL as any,
       openai: {
         enabledTools: env.OPENAI_ENABLED_TOOLS ? env.OPENAI_ENABLED_TOOLS.split(',') : undefined,

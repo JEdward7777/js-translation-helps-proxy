@@ -310,6 +310,7 @@ export interface Tool {
   description: string;
   inputSchema: {
     type: 'object';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool schema properties are dynamic
     properties: Record<string, any>;
     required: string[];
   };
@@ -330,6 +331,7 @@ export interface OpenAITool {
   function: {
     name: string;
     description: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI function parameters are dynamic
     parameters: Record<string, any>;
     strict?: boolean;
   };
@@ -364,6 +366,7 @@ export interface TranslationHelpsClientConfig extends FilterConfig {
 }
 
 // Tool call arguments (generic)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tool arguments
 export type ToolArguments = Record<string, any>;
 
 // Upstream response types
@@ -425,11 +428,13 @@ export interface QuestionsResponse {
 }
 
 export interface GenericResponse {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic response result
   result?: any;
   content?: Array<{
     type: 'text';
     text: string;
   }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Allow additional response properties
   [key: string]: any;
 }
 
