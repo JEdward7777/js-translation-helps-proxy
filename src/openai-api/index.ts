@@ -117,7 +117,7 @@ export function createUnifiedServer(config: UnifiedServerConfig = {}): Hono {
           },
         },
       },
-      documentation: 'https://github.com/yourusername/js-translation-helps-proxy',
+      documentation: 'https://github.com/JEdward7777/js-translation-helps-proxy',
     });
   });
 

@@ -584,8 +584,8 @@ ISC
 ## 📞 Support
 
 - **Documentation:** [docs/INDEX.md](docs/INDEX.md)
-- **Issues:** [GitHub Issues](https://github.com/yourusername/js-translation-helps-proxy/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/js-translation-helps-proxy/discussions)
+- **Issues:** [GitHub Issues](https://github.com/JEdward7777/js-translation-helps-proxy/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/JEdward7777/js-translation-helps-proxy/discussions)
 
 ---
 

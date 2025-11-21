@@ -501,7 +501,7 @@ If you want to modify the server:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/js-translation-helps-proxy.git
+git clone https://github.com/JEdward7777/js-translation-helps-proxy.git
 cd js-translation-helps-proxy
 
 # Install dependencies
@@ -525,8 +525,8 @@ node dist/stdio-server/index.js
 
 For issues, questions, or contributions:
 
-- GitHub Issues: https://github.com/yourusername/js-translation-helps-proxy/issues
-- Documentation: https://github.com/yourusername/js-translation-helps-proxy/docs
+- GitHub Issues: https://github.com/JEdward7777/js-translation-helps-proxy/issues
+- Documentation: https://github.com/JEdward7777/js-translation-helps-proxy/docs
 
 ## License
 

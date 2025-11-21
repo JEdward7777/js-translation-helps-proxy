@@ -361,15 +361,14 @@ ISC
 
 ## 🔗 Related Projects
 
-- [Translation Helps MCP](https://github.com/yourusername/translation-helps-mcp) - Upstream MCP server
-- [Translation Helps Python Proxy](https://github.com/yourusername/translation-helps-mcp-proxy) - Python version
+- [Translation Helps MCP](https://github.com/klappy/translation-helps-mcp) - Upstream MCP server
 
 ---
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/js-translation-helps-proxy/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/js-translation-helps-proxy/discussions)
+- **Issues:** [GitHub Issues](https://github.com/JEdward7777/js-translation-helps-proxy/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/JEdward7777/js-translation-helps-proxy/discussions)
 - **Documentation:** This documentation index
 
 ---

@@ -136,7 +136,7 @@ MCP CLIENT CONFIGURATION:
   For Cline (VS Code extension), add similar configuration in settings.
 
 MORE INFO:
-  GitHub: https://github.com/yourusername/js-translation-helps-proxy
+  GitHub: https://github.com/JEdward7777/js-translation-helps-proxy
   Documentation: See README.md and docs/STDIO_SERVER.md
 `);
 }
