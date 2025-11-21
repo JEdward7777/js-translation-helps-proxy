@@ -220,9 +220,8 @@ Run before pushing to catch integration issues.
 
 ### Deployment Pipeline
 ```bash
-# 1. Lint and format
+# 1. Lint
 npm run lint
-npm run format
 
 # 2. Build
 npm run build

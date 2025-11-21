@@ -320,7 +320,6 @@ npx wrangler deploy --env production
 
 - [ ] All tests passing (`npm test`)
 - [ ] Code linted (`npm run lint`)
-- [ ] Code formatted (`npm run format`)
 - [ ] Build successful (`npm run build`)
 - [ ] Local testing complete (`npm run dev:http`)
 - [ ] Environment variables configured

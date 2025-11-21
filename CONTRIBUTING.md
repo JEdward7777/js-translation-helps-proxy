@@ -173,14 +173,11 @@ js-translation-helps-proxy/
 
 ### Code Style
 
-We use **ESLint** and **Prettier** for code formatting:
+We use **ESLint**:
 
 ```bash
 # Lint code
 npm run lint
-
-# Format code
-npm run format
 ```
 
 ### Naming Conventions
@@ -303,7 +300,6 @@ npm run test:watch
 4. **Run all checks:**
    ```bash
    npm run lint
-   npm run format
    npm run build
    npm test
    ```
