@@ -362,6 +362,7 @@ ISC
 ## 🔗 Related Projects
 
 - [Translation Helps MCP](https://github.com/klappy/translation-helps-mcp) - Upstream MCP server
+- [Translation Helps Python Proxy](https://github.com/JEdward7777/translation_helps_mcp_proxy) - Python version
 
 ---
 
