@@ -477,12 +477,41 @@ npm run deploy:production
 
 ### Local Development
 
+For detailed local development and testing instructions, see the [Deployment Guide](./DEPLOYMENT.md#local-development).
+
+**Quick Start:**
+
 ```bash
-# Start development server
+# Start development server (Wrangler - CloudFlare Workers runtime)
 npm run dev:http
+
+# Or use Native Node.js (better for debugging)
+npm run dev:node
 
 # Server will be available at http://localhost:8787
 ```
+
+**Test the endpoints:**
+
+```bash
+# Health check
+curl http://localhost:8787/health
+
+# List models (requires your OpenAI API key)
+curl -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
+  http://localhost:8787/v1/models
+
+# Chat completion
+curl -X POST http://localhost:8787/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-YOUR-OPENAI-KEY" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Fetch John 3:16"}]
+  }'
+```
+
+For more details on debugging, VSCode configuration, and troubleshooting, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Comparison with Interface 2 (MCP)
 
