@@ -1,6 +1,6 @@
 /**
  * HTTP client for communicating with the upstream Translation Helps API
- * Preserves exact routing logic from Python implementation
+ * Uses pure MCP passthrough - upstream is fully MCP-compliant as of v6.6.3
  */
 
 import {
@@ -143,100 +143,28 @@ export class UpstreamClient {
   }
 
   /**
-   * Route tool calls to specific API endpoints (preserved from Python)
+   * Route tool calls to MCP endpoint (pure passthrough)
+   * Works for ANY tool - upstream is fully MCP-compliant as of v6.6.3
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tool arguments
   private routeToolCall(toolName: string, args: Record<string, any>): { url: string; options: RequestInit } {
-    const baseUrl = this.config.upstreamUrl.replace('/api/mcp', '');
-
-    switch (toolName) {
-      case 'fetch_scripture':
-        return {
-          url: `${baseUrl}/api/fetch-scripture?${this.buildQueryString({
-            reference: args.reference,
-            language: args.language,
-            organization: args.organization
-          })}`,
-          options: { method: 'GET', headers: this.getHeaders() }
-        };
-
-      case 'fetch_translation_notes':
-        return {
-          url: `${baseUrl}/api/translation-notes?${this.buildQueryString({
-            reference: args.reference,
-            language: args.language,
-            organization: args.organization
-          })}`,
-          options: { method: 'GET', headers: this.getHeaders() }
-        };
-
-      case 'fetch_translation_questions':
-        return {
-          url: `${baseUrl}/api/translation-questions?${this.buildQueryString({
-            reference: args.reference,
-            language: args.language,
-            organization: args.organization
-          })}`,
-          options: { method: 'GET', headers: this.getHeaders() }
-        };
-
-      case 'get_translation_word':
-      case 'fetch_translation_words':
-        return {
-          url: `${baseUrl}/api/fetch-translation-words?${this.buildQueryString({
-            reference: args.reference,
-            wordId: args.wordId,
-            language: args.language,
-            organization: args.organization
-          })}`,
-          options: { method: 'GET', headers: this.getHeaders() }
-        };
-
-      case 'browse_translation_words':
-        return {
-          url: `${baseUrl}/api/browse-translation-words?${this.buildQueryString({
-            language: args.language,
-            organization: args.organization,
-            category: args.category,
-            search: args.search,
-            limit: args.limit
-          })}`,
-          options: { method: 'GET', headers: this.getHeaders() }
-        };
-
-      case 'get_context':
-        return {
-          url: `${baseUrl}/api/get-context?${this.buildQueryString({
-            reference: args.reference,
-            language: args.language,
-            organization: args.organization
-          })}`,
-          options: { method: 'GET', headers: this.getHeaders() }
-        };
-
-      case 'extract_references':
-        return {
-          url: `${baseUrl}/api/extract-references?${this.buildQueryString({
-            text: args.text,
-            includeContext: args.includeContext
-          })}`,
-          options: { method: 'GET', headers: this.getHeaders() }
-        };
-
-      default:
-        // Fallback to MCP endpoint
-        return {
-          url: this.config.upstreamUrl,
-          options: {
-            method: 'POST',
-            headers: this.getHeaders(),
-            body: JSON.stringify({
-              method: 'tools/call',
-              params: { name: toolName, arguments: args }
-            })
+    // Pure MCP passthrough - works for ANY tool
+    return {
+      url: this.config.upstreamUrl,
+      options: {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: Date.now(),
+          method: 'tools/call',
+          params: {
+            name: toolName,
+            arguments: args
           }
-        };
-    }
+        })
+      }
+    };
   }
 
   /**
@@ -308,17 +236,6 @@ export class UpstreamClient {
       
       throw error;
     }
-  }
-
-  /**
-   * Build query string from object
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic query parameters
-  private buildQueryString(params: Record<string, any>): string {
-    const filtered = Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null)
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
-    return filtered.join('&');
   }
 
   /**

@@ -3,22 +3,7 @@
  * Dynamically loads tools from upstream and provides lookup functionality
  */
 
-import {
-  Tool,
-  ToolSchema,
-  fetchScriptureSchema,
-  fetchTranslationNotesSchema,
-  getSystemPromptSchema,
-  fetchTranslationQuestionsSchema,
-  getTranslationWordSchema,
-  browseTranslationWordsSchema,
-  getContextSchema,
-  extractReferencesSchema,
-  fetchResourcesSchema,
-  getWordsForReferenceSchema,
-  searchResourcesSchema,
-  getLanguagesSchema
-} from './types.js';
+import { Tool } from './types.js';
 import { UpstreamClient } from './upstream-client.js';
 import { logger } from '../shared/index.js';
 
@@ -27,22 +12,6 @@ export class ToolRegistry {
   private cachedTools: Tool[] | null = null;
   private lastFetchTime: number = 0;
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-  // Static tool schemas for validation (exact schemas from Python)
-  private static readonly TOOL_SCHEMAS: Record<string, ToolSchema> = {
-    fetch_scripture: fetchScriptureSchema,
-    fetch_translation_notes: fetchTranslationNotesSchema,
-    get_system_prompt: getSystemPromptSchema,
-    fetch_translation_questions: fetchTranslationQuestionsSchema,
-    get_translation_word: getTranslationWordSchema,
-    browse_translation_words: browseTranslationWordsSchema,
-    get_context: getContextSchema,
-    extract_references: extractReferencesSchema,
-    fetch_resources: fetchResourcesSchema,
-    get_words_for_reference: getWordsForReferenceSchema,
-    search_resources: searchResourcesSchema,
-    get_languages: getLanguagesSchema
-  };
 
   constructor(upstreamClient: UpstreamClient) {
     this.upstreamClient = upstreamClient;
@@ -120,20 +89,6 @@ export class ToolRegistry {
     }
 
     return true;
-  }
-
-  /**
-   * Get static tool schema (for validation purposes)
-   */
-  getStaticToolSchema(name: string): ToolSchema | null {
-    return ToolRegistry.TOOL_SCHEMAS[name] || null;
-  }
-
-  /**
-   * Get all static tool schemas
-   */
-  getAllStaticSchemas(): Record<string, ToolSchema> {
-    return { ...ToolRegistry.TOOL_SCHEMAS };
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "name": "js-translation-helps-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript MCP proxy for translation-helps with multiple interfaces",
   "main": "./dist/cjs/stdio-server/index.js",
   "module": "./dist/esm/stdio-server/index.js",

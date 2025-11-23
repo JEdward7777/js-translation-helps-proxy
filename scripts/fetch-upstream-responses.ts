@@ -75,53 +75,49 @@ const testCases: TestCase[] = [
   }
 ];
 
-function buildQueryString(params: Record<string, any>): string {
-  return Object.entries(params)
-    .filter(([_, value]) => value !== undefined && value !== null)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
-    .join('&');
-}
-
-function getEndpointUrl(tool: string, params: Record<string, any>): string {
-  switch (tool) {
-    case 'fetch_scripture':
-      return `${UPSTREAM_URL}/api/fetch-scripture?${buildQueryString(params)}`;
-    case 'fetch_translation_notes':
-      return `${UPSTREAM_URL}/api/translation-notes?${buildQueryString(params)}`;
-    case 'fetch_translation_questions':
-      return `${UPSTREAM_URL}/api/translation-questions?${buildQueryString(params)}`;
-    case 'get_translation_word':
-    case 'fetch_translation_words':
-      return `${UPSTREAM_URL}/api/fetch-translation-words?${buildQueryString(params)}`;
-    case 'browse_translation_words':
-      return `${UPSTREAM_URL}/api/browse-translation-words?${buildQueryString(params)}`;
-    case 'get_context':
-      return `${UPSTREAM_URL}/api/get-context?${buildQueryString(params)}`;
-    case 'extract_references':
-      return `${UPSTREAM_URL}/api/extract-references?${buildQueryString(params)}`;
-    default:
-      throw new Error(`Unknown tool: ${tool}`);
+/**
+ * Fetch tool response via MCP protocol
+ * Upstream is fully MCP-compliant as of v6.6.3
+ */
+async function fetchViaMCP(tool: string, params: Record<string, any>): Promise<any> {
+  const url = `${UPSTREAM_URL}/api/mcp`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: Date.now(),
+      method: 'tools/call',
+      params: {
+        name: tool,
+        arguments: params
+      }
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
+  
+  const mcpResponse = await response.json();
+  
+  // Extract the actual data from MCP response
+  if (mcpResponse.error) {
+    throw new Error(`MCP Error: ${mcpResponse.error.message}`);
+  }
+  
+  return mcpResponse.result;
 }
 
 async function fetchResponse(testCase: TestCase): Promise<any> {
-  const url = getEndpointUrl(testCase.tool, testCase.params);
   console.log(`Fetching ${testCase.tool}...`);
-  console.log(`  URL: ${url}`);
+  console.log(`  Via MCP: ${UPSTREAM_URL}/api/mcp`);
   
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchViaMCP(testCase.tool, testCase.params);
     console.log(`  ✓ Success (${JSON.stringify(data).length} bytes)`);
     return data;
   } catch (error) {

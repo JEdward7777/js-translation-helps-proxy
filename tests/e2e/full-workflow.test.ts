@@ -37,21 +37,21 @@ describe('Full Workflow (E2E)', () => {
 
       // Step 3: Fetch scripture
       console.log('   Step 3: Fetching scripture for John 3:16...');
-      const scripture = await client.fetchScripture({ reference: 'John 3:16' });
+      const scripture = await client.callTool('fetch_scripture', { reference: 'John 3:16' });
       expect(scripture).toBeDefined();
       expect(scripture.length).toBeGreaterThan(0);
       console.log(`   ✅ Scripture retrieved: ${scripture[0].text.substring(0, 50)}...`);
 
       // Step 4: Fetch translation notes
       console.log('   Step 4: Fetching translation notes...');
-      const notes = await client.fetchTranslationNotes({ reference: 'John 3:16' });
+      const notes = await client.callTool('fetch_translation_notes', { reference: 'John 3:16' });
       expect(notes).toBeDefined();
       expect(notes.length).toBeGreaterThan(0);
       console.log('   ✅ Translation notes retrieved');
 
       // Step 5: Get context
       console.log('   Step 5: Getting context...');
-      const context = await client.getContext({ reference: 'John 3:16' });
+      const context = await client.callTool('get_context', { reference: 'John 3:16' });
       expect(context).toBeDefined();
       expect(context.length).toBeGreaterThan(0);
       console.log('   ✅ Context retrieved');
@@ -84,7 +84,7 @@ describe('Full Workflow (E2E)', () => {
 
       // Test that enabled tools work
       console.log('   Step 2: Testing enabled tool...');
-      const result = await filteredClient.fetchScripture({ reference: 'John 3:16' });
+      const result = await filteredClient.callTool('fetch_scripture', { reference: 'John 3:16' });
       expect(result).toBeDefined();
       console.log('   ✅ Enabled tool works correctly');
 
@@ -119,7 +119,7 @@ describe('Full Workflow (E2E)', () => {
 
       // Test that tool still works without hidden params
       console.log('   Step 3: Testing tool without hidden params...');
-      const result = await clientWithHiddenParams.fetchScripture({ reference: 'John 3:16' });
+      const result = await clientWithHiddenParams.callTool('fetch_scripture', { reference: 'John 3:16' });
       expect(result).toBeDefined();
       console.log('   ✅ Tool works without hidden parameters');
 
@@ -139,7 +139,7 @@ describe('Full Workflow (E2E)', () => {
       });
 
       console.log('   Step 1: Fetching notes with filtering enabled...');
-      const notes = await filteringClient.fetchTranslationNotes({ reference: 'John 3:16' });
+      const notes = await filteringClient.callTool('fetch_translation_notes', { reference: 'John 3:16' });
       expect(notes).toBeDefined();
       console.log('   ✅ Notes retrieved with filtering');
 
@@ -160,7 +160,7 @@ describe('Full Workflow (E2E)', () => {
       
       for (const reference of references) {
         console.log(`   Fetching scripture for ${reference}...`);
-        const result = await client.fetchScripture({ reference });
+        const result = await client.callTool('fetch_scripture', { reference });
         expect(result).toBeDefined();
         expect(result.length).toBeGreaterThan(0);
         console.log(`   ✅ ${reference} retrieved`);
@@ -177,7 +177,7 @@ describe('Full Workflow (E2E)', () => {
       const text = 'For God so loved the world (John 3:16), and in the beginning (Genesis 1:1)';
 
       console.log('   Step 1: Extracting references from text...');
-      const extracted = await client.extractReferences({ text });
+      const extracted = await client.callTool('extract_references', { text });
       expect(extracted).toBeDefined();
       expect(extracted.length).toBeGreaterThan(0);
       console.log('   ✅ References extracted');
@@ -207,7 +207,7 @@ describe('Full Workflow (E2E)', () => {
       console.log(`   ✅ Updated config: filterBookChapterNotes=${updatedConfig.filterBookChapterNotes}`);
 
       console.log('   Step 3: Verifying client still works...');
-      const result = await client.fetchScripture({ reference: 'John 3:16' });
+      const result = await client.callTool('fetch_scripture', { reference: 'John 3:16' });
       expect(result).toBeDefined();
       console.log('   ✅ Client works after configuration update');
 

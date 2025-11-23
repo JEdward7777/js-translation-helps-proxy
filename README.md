@@ -34,6 +34,10 @@ A production-ready TypeScript MCP proxy for translation-helps with multiple inte
 
 This project provides a production-ready unified proxy service that bridges translation-helps APIs with multiple interface protocols. All 5 interfaces are fully implemented and tested with 98.8% test coverage.
 
+### Upstream Service
+
+The upstream translation-helps-mcp service is **fully MCP-compliant** (as of v6.6.3), providing all tools via the standard MCP protocol at `https://translation-helps-mcp.pages.dev/api/mcp`. This proxy uses dynamic tool discovery to stay in sync with upstream changes automatically.
+
 ### ✨ Features
 
 - **5 Complete Interfaces** - Core API, MCP HTTP, stdio, OpenAI API, LLM Helper
@@ -143,8 +147,8 @@ const client = new TranslationHelpsClient({
   filterBookChapterNotes: true,
 });
 
-// Fetch scripture
-const scripture = await client.fetchScripture({
+// Call tools using the generic callTool method
+const scripture = await client.callTool('fetch_scripture', {
   reference: 'John 3:16',
 });
 ```
@@ -657,7 +661,7 @@ MIT - See [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **Translation Helps MCP** - Upstream server
+- **Translation Helps MCP** - Fully MCP-compliant upstream server (v6.6.3+)
 - **Model Context Protocol** - MCP specification
 - **CloudFlare Workers** - Serverless platform
 - **All Contributors** - Thank you!
@@ -670,4 +674,8 @@ MIT - See [LICENSE](LICENSE) file for details.
 
 ---
 
-**Version:** 0.1.0 | **Last Updated:** 2025-11-11 | **Status:** Production Ready ✅
+**Version:** 0.2.0 | **Last Updated:** 2025-11-23 | **Status:** Production Ready ✅
+
+## Dynamic Tool Discovery
+
+This proxy uses dynamic tool discovery from the upstream MCP server. Tool schemas are fetched at runtime, ensuring we're always in sync with the upstream service. No manual updates needed when upstream adds/removes tools!

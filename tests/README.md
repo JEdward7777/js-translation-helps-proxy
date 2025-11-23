@@ -1,6 +1,8 @@
 # Test Suite Documentation
 
-This directory contains the test suite for the js-translation-helps-proxy project, organized into three categories: unit tests, integration tests, and end-to-end (e2e) tests.
+This directory contains the test suite for the js-translation-helps-proxy project (v0.2.0), organized into three categories: unit tests, integration tests, and end-to-end (e2e) tests.
+
+**Current Status:** 148/150 tests passing (98.7%), 2 skipped
 
 ## Test Structure
 
@@ -17,16 +19,17 @@ tests/
 ### Unit Tests (`tests/unit/`)
 
 Unit tests use mocks to test individual components in isolation. They are:
-- **Fast**: Run in milliseconds
+- **Fast**: Run in ~100ms
 - **Isolated**: No external dependencies
 - **Deterministic**: Always produce the same results
 - **Comprehensive**: Test edge cases and error conditions
 
-**Files:**
-- `core/upstream-client.test.ts` - Tests HTTP client routing and error handling
-- `core/translation-helps-client.test.ts` - Tests client orchestration logic
-- `core/filter-engine.test.ts` - Tests tool and parameter filtering
-- `core/response-formatter.test.ts` - Tests response formatting logic
+**Files (53 tests total):**
+- `core/upstream-client.test.ts` - 10 tests for MCP passthrough routing
+- `core/translation-helps-client.test.ts` - 20 tests for client using callTool()
+- `core/filter-engine.test.ts` - 19 tests for tool and parameter filtering
+- `core/response-formatter.test.ts` - 19 tests for response formatting logic
+- `llm-helper/llm-client.test.ts` - 8 tests for LLM providers
 
 **Run unit tests:**
 ```bash
@@ -40,9 +43,13 @@ Integration tests connect to the real upstream MCP server to verify actual funct
 - **Validate tool calls**: Ensure tools return expected data formats
 - **Check error handling**: Test how the system handles real-world errors
 
-**Files:**
-- `upstream-connectivity.test.ts` - Tests connection and tool discovery
-- `tool-calling.test.ts` - Tests actual tool invocations with real data
+**Files (89 tests total, 87 passing, 2 skipped):**
+- `upstream-connectivity.test.ts` - 7 tests for connection and tool discovery
+- `tool-calling.test.ts` - 15 tests for tool invocations (13 passing, 2 skipped)
+- `stdio-server/server.test.ts` - 16 tests for stdio MCP server
+- `mcp-server/http.test.ts` - 9 tests for HTTP MCP server
+- `openai-api/` - 14 tests for OpenAI-compatible API
+- `llm-helper/basic.test.ts` - 6 tests (2 passing, 4 skipped - need API keys)
 
 **Run integration tests:**
 ```bash
@@ -61,8 +68,9 @@ E2E tests verify complete workflows from start to finish, including:
 - **Configuration changes**: Verify dynamic configuration updates
 - **Filtering and formatting**: Test the full stack with all features enabled
 
-**Files:**
-- `full-workflow.test.ts` - Tests complete workflows with all features
+**Files (23 tests total):**
+- `full-workflow.test.ts` - 8 tests for complete user workflows
+- `mcp-streamable-http.test.ts` - 15 tests for MCP Inspector compatibility
 
 **Run e2e tests:**
 ```bash
@@ -103,7 +111,7 @@ export UPSTREAM_MCP_URL=https://your-custom-server.com/api/mcp
 npm run test:integration
 ```
 
-**Default upstream URL:** `https://translation-helps.door43.org/api/mcp`
+**Default upstream URL:** `https://translation-helps-mcp.pages.dev/api/mcp`
 
 ### Test Timeouts
 

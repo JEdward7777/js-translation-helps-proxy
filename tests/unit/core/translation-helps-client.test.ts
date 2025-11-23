@@ -161,7 +161,7 @@ describe('TranslationHelpsClient', () => {
     });
   });
 
-  describe('type-safe tool methods', () => {
+  describe('generic callTool method', () => {
     beforeEach(() => {
       (client as any).filterEngine.isToolEnabled.mockReturnValue(true);
       mockToolRegistry.hasTool.mockResolvedValue(true);
@@ -172,50 +172,50 @@ describe('TranslationHelpsClient', () => {
       (ResponseFormatter.formatResponse as any).mockReturnValue([{ type: 'text', text: 'Test response' }]);
     });
 
-    it('should call fetchScripture', async () => {
-      const result = await client.fetchScripture({ reference: 'John 3:16' });
+    it('should call fetch_scripture via callTool', async () => {
+      const result = await client.callTool('fetch_scripture', { reference: 'John 3:16' });
       expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('fetch_scripture', { reference: 'John 3:16' });
       expect(result).toHaveLength(1);
     });
 
-    it('should call fetchTranslationNotes', async () => {
-      const result = await client.fetchTranslationNotes({ reference: 'John 3:16' });
+    it('should call fetch_translation_notes via callTool', async () => {
+      const result = await client.callTool('fetch_translation_notes', { reference: 'John 3:16' });
       expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('fetch_translation_notes', { reference: 'John 3:16' });
       expect(result).toHaveLength(1);
     });
 
-    it('should call getSystemPrompt', async () => {
-      const result = await client.getSystemPrompt();
+    it('should call get_system_prompt via callTool', async () => {
+      const result = await client.callTool('get_system_prompt', {});
       expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('get_system_prompt', {});
       expect(result).toHaveLength(1);
     });
 
-    it('should call fetchTranslationQuestions', async () => {
-      const result = await client.fetchTranslationQuestions({ reference: 'John 3:16' });
+    it('should call fetch_translation_questions via callTool', async () => {
+      const result = await client.callTool('fetch_translation_questions', { reference: 'John 3:16' });
       expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('fetch_translation_questions', { reference: 'John 3:16' });
       expect(result).toHaveLength(1);
     });
 
-    it('should call getTranslationWord', async () => {
-      const result = await client.getTranslationWord({ reference: 'John 3:16' });
-      expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('get_translation_word', { reference: 'John 3:16' });
+    it('should call get_words_for_reference via callTool', async () => {
+      const result = await client.callTool('get_words_for_reference', { reference: 'John 3:16' });
+      expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('get_words_for_reference', { reference: 'John 3:16' });
       expect(result).toHaveLength(1);
     });
 
-    it('should call browseTranslationWords', async () => {
-      const result = await client.browseTranslationWords();
+    it('should call browse_translation_words via callTool', async () => {
+      const result = await client.callTool('browse_translation_words', {});
       expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('browse_translation_words', {});
       expect(result).toHaveLength(1);
     });
 
-    it('should call getContext', async () => {
-      const result = await client.getContext({ reference: 'John 3:16' });
+    it('should call get_context via callTool', async () => {
+      const result = await client.callTool('get_context', { reference: 'John 3:16' });
       expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('get_context', { reference: 'John 3:16' });
       expect(result).toHaveLength(1);
     });
 
-    it('should call extractReferences', async () => {
-      const result = await client.extractReferences({ text: 'John 3:16' });
+    it('should call extract_references via callTool', async () => {
+      const result = await client.callTool('extract_references', { text: 'John 3:16' });
       expect(mockUpstreamClient.callTool).toHaveBeenCalledWith('extract_references', { text: 'John 3:16' });
       expect(result).toHaveLength(1);
     });

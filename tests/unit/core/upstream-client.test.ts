@@ -80,7 +80,7 @@ describe('UpstreamClient', () => {
   });
 
   describe('callTool', () => {
-    it('should call fetch_scripture tool correctly and return raw response', async () => {
+    it('should call fetch_scripture tool via MCP passthrough', async () => {
       const mockResponse = {
         scripture: [{ text: 'In the beginning', translation: 'KJV' }]
       };
@@ -92,17 +92,24 @@ describe('UpstreamClient', () => {
 
       const result = await client.callTool('fetch_scripture', { reference: 'Genesis 1:1' });
 
+      // All tools now use MCP passthrough (POST to /api/mcp)
       expect(fetchMock).toHaveBeenCalledWith(
-        'https://test.example.com/api/fetch-scripture?reference=Genesis%201%3A1',
-        expect.objectContaining({ method: 'GET' })
+        'https://test.example.com/api/mcp',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"method":"tools/call"'),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json'
+          })
+        })
       );
 
-      // Should return raw response, not formatted
+      // Should return raw response
       expect(result).toEqual(mockResponse);
       expect(result).toHaveProperty('scripture');
     });
 
-    it('should call fetch_translation_notes tool correctly and return raw response', async () => {
+    it('should call fetch_translation_notes tool via MCP passthrough', async () => {
       const mockResponse = {
         items: [{ Note: 'Test note', Reference: 'John 3:16' }],
         reference: 'John 3:16'
@@ -115,33 +122,40 @@ describe('UpstreamClient', () => {
 
       const result = await client.callTool('fetch_translation_notes', { reference: 'John 3:16' });
 
+      // All tools now use MCP passthrough (POST to /api/mcp)
       expect(fetchMock).toHaveBeenCalledWith(
-        'https://test.example.com/api/translation-notes?reference=John%203%3A16',
-        expect.objectContaining({ method: 'GET' })
+        'https://test.example.com/api/mcp',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"method":"tools/call"'),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json'
+          })
+        })
       );
 
-      // Should return raw response, not formatted
+      // Should return raw response
       expect(result).toEqual(mockResponse);
       expect(result).toHaveProperty('items');
     });
 
-    it('should handle unknown tools by falling back to MCP endpoint', async () => {
-      const mockResponse = { content: [{ type: 'text', text: 'Unknown tool result' }] };
+    it('should handle all tools via MCP passthrough', async () => {
+      const mockResponse = { content: [{ type: 'text', text: 'Tool result' }] };
 
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockResponse)
       });
 
-      const result = await client.callTool('unknown_tool', { param: 'value' });
+      const result = await client.callTool('any_tool', { param: 'value' });
 
       expect(fetchMock).toHaveBeenCalledWith(
         'https://test.example.com/api/mcp',
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({
-            method: 'tools/call',
-            params: { name: 'unknown_tool', arguments: { param: 'value' } }
+          body: expect.stringContaining('"method":"tools/call"'),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json'
           })
         })
       );
@@ -166,43 +180,15 @@ describe('UpstreamClient', () => {
   });
 
   describe('routing logic', () => {
-    it('should route all expected tools to correct endpoints', async () => {
+    it('should route all tools via MCP passthrough', async () => {
       const testCases = [
-        {
-          tool: 'fetch_scripture',
-          args: { reference: 'John 3:16' },
-          expectedUrl: 'https://test.example.com/api/fetch-scripture?reference=John%203%3A16'
-        },
-        {
-          tool: 'fetch_translation_notes',
-          args: { reference: 'John 3:16' },
-          expectedUrl: 'https://test.example.com/api/translation-notes?reference=John%203%3A16'
-        },
-        {
-          tool: 'fetch_translation_questions',
-          args: { reference: 'John 3:16' },
-          expectedUrl: 'https://test.example.com/api/translation-questions?reference=John%203%3A16'
-        },
-        {
-          tool: 'get_translation_word',
-          args: { reference: 'John 3:16' },
-          expectedUrl: 'https://test.example.com/api/fetch-translation-words?reference=John%203%3A16'
-        },
-        {
-          tool: 'browse_translation_words',
-          args: { language: 'en' },
-          expectedUrl: 'https://test.example.com/api/browse-translation-words?language=en'
-        },
-        {
-          tool: 'get_context',
-          args: { reference: 'John 3:16' },
-          expectedUrl: 'https://test.example.com/api/get-context?reference=John%203%3A16'
-        },
-        {
-          tool: 'extract_references',
-          args: { text: 'John 3:16' },
-          expectedUrl: 'https://test.example.com/api/extract-references?text=John%203%3A16'
-        }
+        { tool: 'fetch_scripture', args: { reference: 'John 3:16' } },
+        { tool: 'fetch_translation_notes', args: { reference: 'John 3:16' } },
+        { tool: 'fetch_translation_questions', args: { reference: 'John 3:16' } },
+        { tool: 'get_words_for_reference', args: { reference: 'John 3:16' } },
+        { tool: 'browse_translation_words', args: { language: 'en' } },
+        { tool: 'get_context', args: { reference: 'John 3:16' } },
+        { tool: 'extract_references', args: { text: 'John 3:16' } }
       ];
 
       for (const testCase of testCases) {
@@ -213,9 +199,16 @@ describe('UpstreamClient', () => {
 
         await client.callTool(testCase.tool, testCase.args);
 
+        // All tools now route to MCP endpoint with POST
         expect(fetchMock).toHaveBeenCalledWith(
-          testCase.expectedUrl,
-          expect.objectContaining({ method: 'GET' })
+          'https://test.example.com/api/mcp',
+          expect.objectContaining({
+            method: 'POST',
+            body: expect.stringContaining(`"name":"${testCase.tool}"`),
+            headers: expect.objectContaining({
+              'Content-Type': 'application/json'
+            })
+          })
         );
       }
     });

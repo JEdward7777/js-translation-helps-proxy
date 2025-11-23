@@ -8,7 +8,6 @@ import {
   Tool,
   ToolArguments,
   ToolResult,
-  TextContent,
   ToolNotFoundError,
   ToolDisabledError,
   InvalidArgumentsError
@@ -112,82 +111,6 @@ export class TranslationHelpsClient {
       logger.debug(`Tool ${name} completed successfully`);
       return formattedResult;
     }, `calling tool '${name}'`);
-  }
-
-  // ============================================================================
-  // Type-safe tool methods (matching Python implementation)
-  // ============================================================================
-
-  /**
-   * Fetch Bible scripture text for a specific reference
-   * @param args Tool arguments
-   * @returns Scripture text
-   */
-  async fetchScripture(args: { reference: string; language?: string; organization?: string }): Promise<TextContent[]> {
-    return this.callTool('fetch_scripture', args);
-  }
-
-  /**
-   * Fetch translation notes for a specific Bible reference
-   * @param args Tool arguments
-   * @returns Translation notes
-   */
-  async fetchTranslationNotes(args: { reference: string; language?: string; organization?: string }): Promise<TextContent[]> {
-    return this.callTool('fetch_translation_notes', args);
-  }
-
-  /**
-   * Get the complete system prompt and constraints
-   * @param args Tool arguments
-   * @returns System prompt
-   */
-  async getSystemPrompt(args: { includeImplementationDetails?: boolean } = {}): Promise<TextContent[]> {
-    return this.callTool('get_system_prompt', args);
-  }
-
-  /**
-   * Fetch translation questions for a specific Bible reference
-   * @param args Tool arguments
-   * @returns Translation questions
-   */
-  async fetchTranslationQuestions(args: { reference: string; language?: string; organization?: string }): Promise<TextContent[]> {
-    return this.callTool('fetch_translation_questions', args);
-  }
-
-  /**
-   * Get translation words linked to a specific Bible reference
-   * @param args Tool arguments
-   * @returns Translation words
-   */
-  async getTranslationWord(args: { reference: string; wordId?: string; language?: string; organization?: string }): Promise<TextContent[]> {
-    return this.callTool('get_translation_word', args);
-  }
-
-  /**
-   * Browse and search translation words by category or term
-   * @param args Tool arguments
-   * @returns Translation words list
-   */
-  async browseTranslationWords(args: { language?: string; organization?: string; category?: string; search?: string; limit?: number } = {}): Promise<TextContent[]> {
-    return this.callTool('browse_translation_words', args);
-  }
-
-  /**
-   * Get contextual information for a Bible reference
-   * @param args Tool arguments
-   * @returns Context information
-   */
-  async getContext(args: { reference: string; language?: string; organization?: string }): Promise<TextContent[]> {
-    return this.callTool('get_context', args);
-  }
-
-  /**
-   * Extract and parse Bible references from text
-   * @param args Tool arguments
-   * @returns Extracted references
-   */
-  async extractReferences(args: { text: string; includeContext?: boolean }): Promise<TextContent[]> {
-    return this.callTool('extract_references', args);
   }
 
   // ============================================================================

@@ -38,10 +38,11 @@ describe('Upstream Server Connectivity (Integration)', () => {
       console.log(`✅ Discovered ${tools.length} tools from upstream`);
     }, 30000);
 
-    it('should discover at least 12 tools', async () => {
+    it('should discover exactly 11 tools', async () => {
       const tools = await upstreamClient.listTools();
       
-      expect(tools.length).toBeGreaterThanOrEqual(12);
+      // If this fails, check if upstream added/removed tools at https://translation-helps-mcp.pages.dev/api/mcp
+      expect(tools.length).toBe(11);
       
       console.log('📋 Available tools:');
       tools.slice(0, 3).forEach((tool, i) => {
@@ -105,25 +106,31 @@ describe('Upstream Server Connectivity (Integration)', () => {
   });
 
   describe('Expected Tools', () => {
-    it('should include core translation tools', async () => {
+    it('should include all 11 current tools from upstream', async () => {
       const tools = await upstreamClient.listTools();
       const toolNames = tools.map(t => t.name);
       
+      // Current 11 tools from upstream as of v6.6.3
+      // If this test fails, upstream may have changed. Verify at https://translation-helps-mcp.pages.dev/api/mcp
       const expectedTools = [
+        'get_system_prompt',
         'fetch_scripture',
         'fetch_translation_notes',
+        'get_languages',
         'fetch_translation_questions',
-        'get_translation_word',
         'browse_translation_words',
         'get_context',
-        'extract_references'
+        'extract_references',
+        'fetch_resources',
+        'get_words_for_reference',
+        'search_biblical_resources'
       ];
       
       expectedTools.forEach(expectedTool => {
         expect(toolNames).toContain(expectedTool);
       });
       
-      console.log('✅ All expected core tools are available');
+      console.log('✅ All expected 11 tools are available');
     }, 30000);
   });
 });

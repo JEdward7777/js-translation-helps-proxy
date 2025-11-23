@@ -8,58 +8,6 @@ import { toolArgumentsSchema, clientConfigSchema, filterConfigSchema } from '../
 import { InvalidArgumentsError } from './errors.js';
 
 // ============================================================================
-// Tool-specific validation schemas
-// ============================================================================
-
-const fetchScriptureArgsSchema = z.object({
-  reference: z.string().min(1, 'Reference is required'),
-  language: z.string().optional().default('en'),
-  organization: z.string().optional().default('unfoldingWord')
-});
-
-const fetchTranslationNotesArgsSchema = z.object({
-  reference: z.string().min(1, 'Reference is required'),
-  language: z.string().optional().default('en'),
-  organization: z.string().optional().default('unfoldingWord')
-});
-
-const getSystemPromptArgsSchema = z.object({
-  includeImplementationDetails: z.boolean().optional().default(false)
-});
-
-const fetchTranslationQuestionsArgsSchema = z.object({
-  reference: z.string().min(1, 'Reference is required'),
-  language: z.string().optional().default('en'),
-  organization: z.string().optional().default('unfoldingWord')
-});
-
-const getTranslationWordArgsSchema = z.object({
-  reference: z.string().min(1, 'Reference is required'),
-  wordId: z.string().optional(),
-  language: z.string().optional().default('en'),
-  organization: z.string().optional().default('unfoldingWord')
-});
-
-const browseTranslationWordsArgsSchema = z.object({
-  language: z.string().optional().default('en'),
-  organization: z.string().optional().default('unfoldingWord'),
-  category: z.string().optional(),
-  search: z.string().optional(),
-  limit: z.number().int().positive().optional().default(50)
-});
-
-const getContextArgsSchema = z.object({
-  reference: z.string().min(1, 'Reference is required'),
-  language: z.string().optional().default('en'),
-  organization: z.string().optional().default('unfoldingWord')
-});
-
-const extractReferencesArgsSchema = z.object({
-  text: z.string().min(1, 'Text is required'),
-  includeContext: z.boolean().optional().default(false)
-});
-
-// ============================================================================
 // Validation functions
 // ============================================================================
 
@@ -101,31 +49,13 @@ export class Validator {
 
   /**
    * Type-safe tool argument validation by tool name
+   * Note: This is a legacy method. Prefer using ToolRegistry.validateToolArgs() for dynamic validation.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Returns validated arguments of varying types
   static validateToolArguments(toolName: string, args: unknown): any {
-    switch (toolName) {
-      case 'fetch_scripture':
-        return this.validateToolArgs(toolName, args, fetchScriptureArgsSchema);
-      case 'fetch_translation_notes':
-        return this.validateToolArgs(toolName, args, fetchTranslationNotesArgsSchema);
-      case 'get_system_prompt':
-        return this.validateToolArgs(toolName, args, getSystemPromptArgsSchema);
-      case 'fetch_translation_questions':
-        return this.validateToolArgs(toolName, args, fetchTranslationQuestionsArgsSchema);
-      case 'get_translation_word':
-      case 'fetch_translation_words':
-        return this.validateToolArgs(toolName, args, getTranslationWordArgsSchema);
-      case 'browse_translation_words':
-        return this.validateToolArgs(toolName, args, browseTranslationWordsArgsSchema);
-      case 'get_context':
-        return this.validateToolArgs(toolName, args, getContextArgsSchema);
-      case 'extract_references':
-        return this.validateToolArgs(toolName, args, extractReferencesArgsSchema);
-      default:
-        // For unknown tools, do basic validation
-        return toolArgumentsSchema.parse(args);
-    }
+    // For backward compatibility, do basic validation
+    // Dynamic validation should be done via ToolRegistry.validateToolArgs()
+    return toolArgumentsSchema.parse(args);
   }
 
   /**

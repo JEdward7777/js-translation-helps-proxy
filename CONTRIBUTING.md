@@ -205,7 +205,7 @@ npm run lint
 
 - **Files:** `kebab-case.ts` (e.g., `upstream-client.ts`)
 - **Classes:** `PascalCase` (e.g., `TranslationHelpsClient`)
-- **Functions:** `camelCase` (e.g., `fetchScripture`)
+- **Functions:** `camelCase` (e.g., `callTool`)
 - **Constants:** `UPPER_SNAKE_CASE` (e.g., `DEFAULT_TIMEOUT`)
 - **Interfaces:** `PascalCase` (e.g., `ToolConfig`)
 - **Types:** `PascalCase` (e.g., `ToolName`)
@@ -223,25 +223,28 @@ npm run lint
 
 ```typescript
 /**
- * Fetches scripture text for a given reference.
- * 
- * @param args - The scripture fetch arguments
- * @returns Promise resolving to scripture content
+ * Calls a tool on the upstream server.
+ *
+ * @param toolName - The name of the tool to call
+ * @param args - The tool arguments
+ * @returns Promise resolving to tool content
  * @throws {UpstreamConnectionError} If cannot connect to upstream
  * @throws {ToolNotFoundError} If tool is not available
+ * @throws {ToolDisabledError} If tool is disabled by configuration
  */
-export async function fetchScripture(
-  args: FetchScriptureArgs
+export async function callTool(
+  toolName: string,
+  args: Record<string, any>
 ): Promise<ToolContent[]> {
-  // Validate arguments
-  if (!args.reference) {
-    throw new InvalidArgumentsError('reference is required');
+  // Validate tool is enabled
+  if (!this.filterEngine.isToolEnabled(toolName)) {
+    throw new ToolDisabledError(toolName);
   }
 
-  // Call upstream
-  const result = await this.callTool('fetch_scripture', args);
+  // Call upstream via MCP passthrough
+  const result = await this.upstreamClient.callTool(toolName, args);
   
-  return result;
+  return this.responseFormatter.formatResponse(result);
 }
 ```
 

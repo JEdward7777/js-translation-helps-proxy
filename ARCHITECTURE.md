@@ -1,9 +1,10 @@
 # Translation Helps Proxy - TypeScript Architecture
 
-> **Version**: 0.1.0
+> **Version**: 0.2.0
 > **Status**: Implemented and Production-Ready
 > **Target**: CloudFlare Workers + Node.js v20.17.0
 > **Based on**: Python translation_helps_mcp_proxy + MCP-Bridge
+> **Upstream**: Fully MCP-compliant as of v6.6.3
 
 ## Table of Contents
 
@@ -456,36 +457,33 @@ export class UpstreamClient {
 
 **Note**: `UpstreamClient.callTool()` returns raw upstream responses. The `TranslationHelpsClient` (Interface 1) handles filtering and formatting to produce `ToolResult` (TextContent[]).
 
-**Routing Logic** (preserved from Python):
+**Routing Logic** (MCP Passthrough):
 ```typescript
 private routeToolCall(toolName: string, args: Record<string, any>) {
-  const baseUrl = this.config.upstreamUrl.replace('/api/mcp', '');
-  
-  switch (toolName) {
-    case 'fetch_scripture':
-      return this.get(`${baseUrl}/api/fetch-scripture`, args);
-    case 'fetch_translation_notes':
-      return this.get(`${baseUrl}/api/translation-notes`, args);
-    case 'fetch_translation_questions':
-      return this.get(`${baseUrl}/api/translation-questions`, args);
-    case 'get_translation_word':
-    case 'fetch_translation_words':
-      return this.get(`${baseUrl}/api/fetch-translation-words`, args);
-    case 'browse_translation_words':
-      return this.get(`${baseUrl}/api/browse-translation-words`, args);
-    case 'get_context':
-      return this.get(`${baseUrl}/api/get-context`, args);
-    case 'extract_references':
-      return this.get(`${baseUrl}/api/extract-references`, args);
-    default:
-      // Fallback to MCP endpoint
-      return this.post(`${this.config.upstreamUrl}`, {
+  // Pure MCP passthrough - upstream is fully MCP-compliant as of v6.6.3
+  return {
+    url: this.config.upstreamUrl,
+    options: {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: Date.now(),
         method: 'tools/call',
         params: { name: toolName, arguments: args }
-      });
-  }
+      })
+    }
+  };
 }
 ```
+
+## MCP Passthrough Architecture
+
+The proxy now uses pure MCP protocol passthrough:
+- All tools accessed via `/api/mcp` endpoint
+- No custom routing logic
+- Dynamic tool discovery
+- Future-proof against upstream changes
 
 ---
 
@@ -1720,4 +1718,4 @@ The TypeScript implementation successfully maintains all functionality of the Py
 - **95.4% code coverage** with comprehensive test suite
 - **Production-ready** with real upstream integration testing
 
-**Current Version**: 0.1.0 - Fully implemented and tested with retry mechanism for Cloudflare Worker cold starts, ready for production use.
+**Current Version**: 0.2.0 - Fully implemented with pure MCP passthrough, dynamic tool discovery, and simplified codebase (~415 lines removed). Ready for production use.

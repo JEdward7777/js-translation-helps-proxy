@@ -32,13 +32,13 @@ describe('Tool Calling (Integration)', () => {
         reference: 'John 3:16'
       });
 
-      // UpstreamClient now returns raw response objects
+      // UpstreamClient now returns MCP response format with content array
       expect(result).toBeDefined();
-      expect(result).toHaveProperty('scripture');
-      expect(Array.isArray((result as any).scripture)).toBe(true);
-      expect((result as any).scripture.length).toBeGreaterThan(0);
+      expect(result).toHaveProperty('content');
+      expect(Array.isArray((result as any).content)).toBe(true);
+      expect((result as any).content.length).toBeGreaterThan(0);
 
-      console.log('✅ fetch_scripture returned raw response with scripture array');
+      console.log('✅ fetch_scripture returned MCP response with content array');
     }, 30000);
 
     it('should fetch scripture with language parameter', async () => {
@@ -48,7 +48,7 @@ describe('Tool Calling (Integration)', () => {
       });
 
       expect(result).toBeDefined();
-      expect(result).toHaveProperty('scripture');
+      expect(result).toHaveProperty('content');
       
       console.log('✅ fetch_scripture with language returned data');
     }, 30000);
@@ -60,12 +60,12 @@ describe('Tool Calling (Integration)', () => {
         reference: 'John 3:16'
       });
 
-      // UpstreamClient now returns raw response objects
+      // UpstreamClient now returns MCP response format with content array
       expect(result).toBeDefined();
-      expect(result).toHaveProperty('items');
-      expect(Array.isArray((result as any).items)).toBe(true);
+      expect(result).toHaveProperty('content');
+      expect(Array.isArray((result as any).content)).toBe(true);
 
-      console.log('✅ fetch_translation_notes returned raw response with items array');
+      console.log('✅ fetch_translation_notes returned MCP response with content array');
     }, 30000);
 
     it('should handle references with no notes gracefully', async () => {
@@ -85,25 +85,25 @@ describe('Tool Calling (Integration)', () => {
         reference: 'John 3:16'
       });
 
-      // UpstreamClient now returns raw response objects
+      // UpstreamClient now returns MCP response format with content array
       expect(result).toBeDefined();
-      expect(result).toHaveProperty('items');
+      expect(result).toHaveProperty('content');
 
-      console.log('✅ fetch_translation_questions returned raw response');
+      console.log('✅ fetch_translation_questions returned MCP response');
     }, 30000);
   });
 
-  describe('get_translation_word', () => {
+  describe('get_words_for_reference', () => {
     it('should fetch translation words for a reference', async () => {
-      const result = await upstreamClient.callTool('get_translation_word', {
+      const result = await upstreamClient.callTool('get_words_for_reference', {
         reference: 'John 3:16'
       });
 
-      // UpstreamClient now returns raw response objects
+      // UpstreamClient now returns MCP response format with content array
       expect(result).toBeDefined();
-      expect(result).toHaveProperty('items');
+      expect(result).toHaveProperty('content');
 
-      console.log('✅ get_translation_word returned raw response');
+      console.log('✅ get_words_for_reference returned MCP response');
     }, 30000);
   });
 
@@ -138,11 +138,11 @@ describe('Tool Calling (Integration)', () => {
         reference: 'John 3:16'
       });
 
-      // UpstreamClient now returns raw response objects
+      // UpstreamClient now returns MCP response format with content array
       expect(result).toBeDefined();
-      expect(result).toHaveProperty('reference');
+      expect(result).toHaveProperty('content');
 
-      console.log('✅ get_context returned raw context response');
+      console.log('✅ get_context returned MCP response');
     }, 30000);
   });
 
@@ -152,16 +152,17 @@ describe('Tool Calling (Integration)', () => {
         text: 'See John 3:16 and Genesis 1:1 for more information'
       });
 
-      // UpstreamClient now returns raw response objects
+      // UpstreamClient now returns MCP response format with content array
       expect(result).toBeDefined();
+      expect(result).toHaveProperty('content');
 
-      console.log('✅ extract_references returned raw response');
+      console.log('✅ extract_references returned MCP response');
     }, 30000);
   });
 
   describe('TranslationHelpsClient Tool Methods', () => {
-    it('should call fetchScripture', async () => {
-      const result = await translationHelpsClient.fetchScripture({
+    it('should call tools via callTool method', async () => {
+      const result = await translationHelpsClient.callTool('fetch_scripture', {
         reference: 'John 3:16'
       });
 
@@ -169,29 +170,29 @@ describe('Tool Calling (Integration)', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
 
-      console.log('✅ TranslationHelpsClient.fetchScripture works');
+      console.log('✅ TranslationHelpsClient.callTool works');
     }, 30000);
 
-    it('should call fetchTranslationNotes', async () => {
-      const result = await translationHelpsClient.fetchTranslationNotes({
+    it('should call fetch_translation_notes via callTool', async () => {
+      const result = await translationHelpsClient.callTool('fetch_translation_notes', {
         reference: 'John 3:16'
       });
 
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
 
-      console.log('✅ TranslationHelpsClient.fetchTranslationNotes works');
+      console.log('✅ TranslationHelpsClient.callTool(fetch_translation_notes) works');
     }, 30000);
 
-    it('should call getContext', async () => {
-      const result = await translationHelpsClient.getContext({
+    it('should call get_context via callTool', async () => {
+      const result = await translationHelpsClient.callTool('get_context', {
         reference: 'John 3:16'
       });
 
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
 
-      console.log('✅ TranslationHelpsClient.getContext works');
+      console.log('✅ TranslationHelpsClient.callTool(get_context) works');
     }, 30000);
   });
 
