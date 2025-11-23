@@ -38,14 +38,14 @@ Each file contains:
 
 ## Last Updated
 
-2025-11-23T20:33:05.046Z
+2025-11-14T22:19:31.095Z
 
 ## Results
 
 - ✓ fetch_scripture
-- ✗ fetch_translation_notes - HTTP 404: Not Found
-- ✗ fetch_translation_questions - HTTP 404: Not Found
-- ✗ get_translation_word - HTTP 404: Not Found
-- ✗ browse_translation_words - HTTP 404: Not Found
-- ✗ get_context - HTTP 404: Not Found
-- ✗ extract_references - HTTP 404: Not Found
+- ✓ fetch_translation_notes
+- ✓ fetch_translation_questions
+- ✓ get_translation_word
+- ✗ browse_translation_words - HTTP 500: Internal Server Error
+- ✓ get_context
+- ✓ extract_references

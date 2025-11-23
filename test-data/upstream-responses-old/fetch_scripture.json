@@ -1,6 +1,6 @@
 {
   "tool": "fetch_scripture",
-  "timestamp": "2025-11-23T20:33:04.661Z",
+  "timestamp": "2025-11-14T22:19:27.397Z",
   "request": {
     "reference": "John 3:16",
     "language": "en",
@@ -10,11 +10,11 @@
     "scripture": [
       {
         "text": "For God so loved the world, that he gave his One and Only Son, so that everyone believing in him would not perish but would have eternal life.",
-        "translation": "ULT v87"
+        "translation": "ULT v86"
       },
       {
         "text": "This is because God loved the world’s people in this way, so that he gave his Unique Son in order that anyone who trusts in his Son would not die but would live forever.",
-        "translation": "UST v87"
+        "translation": "UST v86"
       },
       {
         "text": "God loved us people [MTY] in the world so much that he gave his only Son as a sacrifice for us, in order that everyone who believes in him would not be separated from God forever. Instead, they would have eternal life.",
@@ -23,24 +23,16 @@
       {
         "text": "For God so loved the world, that he gave his one and only Son, that whoever believes in him will not perish but have eternal life.",
         "translation": "UEB v0"
-      },
-      {
-        "text": "For God so loved the world, that he gave his One and Only Son, so that everyone believing in him would not perish but would have eternal life.",
-        "translation": "ULT v87"
-      },
-      {
-        "text": "This is because God loved the world’s people in this way, so that he gave his Unique Son in order that anyone who trusts in his Son would not die but would live forever.",
-        "translation": "UST v87"
       }
     ],
     "reference": "John 3:16",
     "language": "en",
     "organization": "unfoldingWord",
     "metadata": {
-      "totalCount": 6,
+      "totalCount": 4,
       "resources": [
-        "ULT v87",
-        "UST v87",
+        "ULT v86",
+        "UST v86",
         "T4T v1",
         "UEB v0"
       ],
@@ -49,17 +41,13 @@
         "ult",
         "ust",
         "t4t",
-        "ueb",
-        "glt",
-        "gst"
+        "ueb"
       ],
       "foundResources": [
         "ult",
         "ust",
         "t4t",
-        "ueb",
-        "ult",
-        "ust"
+        "ueb"
       ]
     }
   }
