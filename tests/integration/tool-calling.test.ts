@@ -108,27 +108,29 @@ describe('Tool Calling (Integration)', () => {
   });
 
   describe('browse_translation_words', () => {
-    it.skip('should browse translation words', async () => {
-      // Skipping because upstream returns 500 error for this endpoint
+    it('should browse translation words', async () => {
+      // Retry mechanism will handle transient 500 errors from cold starts
       const result = await upstreamClient.callTool('browse_translation_words', {
         language: 'en'
       });
 
       expect(result).toBeDefined();
+      expect(result).toHaveProperty('content');
 
-      console.log('✅ browse_translation_words returned word list');
+      console.log('✅ browse_translation_words returned MCP response');
     }, 30000);
 
-    it.skip('should browse with search parameter', async () => {
-      // Skipping because upstream returns 500 error for this endpoint
+    it('should browse with search parameter', async () => {
+      // Retry mechanism will handle transient 500 errors from cold starts
       const result = await upstreamClient.callTool('browse_translation_words', {
         language: 'en',
         search: 'love'
       });
 
       expect(result).toBeDefined();
+      expect(result).toHaveProperty('content');
 
-      console.log('✅ browse_translation_words with search returned results');
+      console.log('✅ browse_translation_words with search returned MCP response');
     }, 30000);
   });
 
