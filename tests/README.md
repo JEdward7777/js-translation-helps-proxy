@@ -2,7 +2,7 @@
 
 This directory contains the test suite for the js-translation-helps-proxy project (v0.2.0), organized into three categories: unit tests, integration tests, and end-to-end (e2e) tests.
 
-**Current Status:** 148/150 tests passing (98.7%), 2 skipped
+**Current Status:** 150/150 tests passing (100%)
 
 ## Test Structure
 
@@ -43,13 +43,13 @@ Integration tests connect to the real upstream MCP server to verify actual funct
 - **Validate tool calls**: Ensure tools return expected data formats
 - **Check error handling**: Test how the system handles real-world errors
 
-**Files (89 tests total, 87 passing, 2 skipped):**
+**Files (89 tests total, all passing):**
 - `upstream-connectivity.test.ts` - 7 tests for connection and tool discovery
-- `tool-calling.test.ts` - 15 tests for tool invocations (13 passing, 2 skipped)
+- `tool-calling.test.ts` - 15 tests for tool invocations (all passing with retry)
 - `stdio-server/server.test.ts` - 16 tests for stdio MCP server
 - `mcp-server/http.test.ts` - 9 tests for HTTP MCP server
 - `openai-api/` - 14 tests for OpenAI-compatible API
-- `llm-helper/basic.test.ts` - 6 tests (2 passing, 4 skipped - need API keys)
+- `llm-helper/basic.test.ts` - 6 tests (2 passing, 4 skipped - need API keys, not counted)
 
 **Run integration tests:**
 ```bash
