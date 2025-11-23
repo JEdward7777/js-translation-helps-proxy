@@ -1,6 +1,6 @@
-# LLM Helper - TypeScript Function Interface
+# LLM Helper - OpenAI-Compatible TypeScript Client
 
-Interface 5 provides a TypeScript function interface for making LLM calls with MCP tools automatically integrated. **This interface uses the same OpenAI integration logic as [Interface 4](./OPENAI_API.md)**, ensuring consistent behavior and automatic improvements.
+Interface 5 provides a **drop-in replacement for the OpenAI client** as a TypeScript class with Translation Helps tools automatically integrated. Unlike [Interface 4](./OPENAI_API.md) (HTTP/REST API), this is a direct TypeScript client with no network serialization overhead. **Both interfaces share the same OpenAI integration logic**, ensuring consistent behavior.
 
 ## Table of Contents
 
@@ -18,9 +18,12 @@ Interface 5 provides a TypeScript function interface for making LLM calls with M
 
 The LLM Helper provides:
 
+- **Drop-In OpenAI Replacement**: Implements the same interface as `OpenAI.chat.completions.create()`
+- **Full Response Compatibility**: Returns complete OpenAI `ChatCompletion` objects (not simplified)
 - **Shares Logic with Interface 4**: Uses the same OpenAI SDK integration as Interface 4
 - **Automatic Tool Integration**: Translation Helps tools are automatically available to the LLM
 - **Iterative Tool Execution**: Automatically executes tool calls and feeds results back to the LLM
+- **Supports All OpenAI Parameters**: Including `n > 1`, `temperature`, `response_format`, etc.
 - **Baked-in Filters**: Language and organization filters applied automatically (like Interface 4)
 - **Type-Safe API**: Full TypeScript support with comprehensive type definitions
 - **CloudFlare Workers Compatible**: Works in both Node.js and CloudFlare Workers environments
@@ -57,17 +60,36 @@ import { LLMHelper } from './src/llm-helper/index.js';
 ```typescript
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
 
+// Drop-in replacement for OpenAI client
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
 });
 
-// Simple chat with automatic tool execution
-const response = await helper.chat([
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
+// Use the same API as OpenAI
+const response = await helper.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{ role: 'user', content: 'What does John 3:16 say?' }]
+});
 
-console.log(response.message.content);
+console.log(response.choices[0].message.content);
+```
+
+### Interchangeability with OpenAI
+
+```typescript
+import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
+import OpenAI from 'openai';
+
+// Can use either client with the same code!
+const client: OpenAI | LLMHelper = useTranslationHelps
+  ? new LLMHelper({ apiKey })
+  : new OpenAI({ apiKey });
+
+// Same API works for both
+const response = await client.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
 ```
 
 ## Configuration
@@ -76,9 +98,8 @@ console.log(response.message.content);
 
 ```typescript
 interface LLMHelperConfig {
-  // Required: OpenAI settings
+  // Required
   apiKey: string;
-  model: string;
   
   // Optional: Tool filtering
   enabledTools?: string[];           // Limit which tools are available
@@ -101,7 +122,6 @@ interface LLMHelperConfig {
 ```typescript
 const helper = new LLMHelper({
   apiKey: 'sk-...',
-  model: 'gpt-4o-mini',
 });
 ```
 
@@ -110,7 +130,6 @@ const helper = new LLMHelper({
 ```typescript
 const helper = new LLMHelper({
   apiKey: 'sk-...',
-  model: 'gpt-4o-mini',
   enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
   hiddenParams: ['language', 'organization'],
   filterBookChapterNotes: true,
@@ -125,52 +144,64 @@ const helper = new LLMHelper({
 ### Basic Chat
 
 ```typescript
-const response = await helper.chat([
-  { role: 'system', content: 'You are a Bible study assistant.' },
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
+const response = await helper.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [
+    { role: 'system', content: 'You are a Bible study assistant.' },
+    { role: 'user', content: 'What does John 3:16 say?' }
+  ]
+});
 
-console.log(response.message.content);
-console.log('Tokens used:', response.usage?.totalTokens);
+console.log(response.choices[0].message.content);
+console.log('Tokens used:', response.usage?.total_tokens);
 ```
 
 ### Chat with OpenAI Parameters
 
 ```typescript
-const response = await helper.chat(
-  [
+const response = await helper.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [
     { role: 'system', content: 'You are a Bible study assistant.' },
     { role: 'user', content: 'What does John 3:16 say?' }
   ],
-  {
-    temperature: 0.7,
-    top_p: 0.9,
-    response_format: { type: 'json_object' },
-    n: 1
-  }
-);
+  temperature: 0.7,
+  top_p: 0.9,
+  response_format: { type: 'json_object' },
+  n: 2  // Generate 2 completions
+});
 
-console.log(response.message.content);
+// Access all choices when n > 1
+console.log('First:', response.choices[0].message.content);
+console.log('Second:', response.choices[1].message.content);
 ```
 
 ### Multi-Turn Conversation
 
 ```typescript
-const messages = [
+import OpenAI from 'openai';
+
+const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
   { role: 'system', content: 'You are a Bible study assistant.' },
   { role: 'user', content: 'What does John 3:16 say?' }
 ];
 
 // First turn
-let response = await helper.chat(messages);
-messages.push(response.message);
+let response = await helper.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages
+});
+messages.push(response.choices[0].message);
 
 // Second turn
 messages.push({ role: 'user', content: 'What are the translation notes for this verse?' });
-response = await helper.chat(messages);
-messages.push(response.message);
+response = await helper.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages
+});
+messages.push(response.choices[0].message);
 
-console.log('Final response:', response.message.content);
+console.log('Final response:', response.choices[0].message.content);
 ```
 
 ### Access Translation Helps Client
@@ -193,7 +224,6 @@ Control which tools are available to the LLM:
 ```typescript
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
   enabledTools: ['fetch_scripture', 'fetch_translation_notes'],  // Only these tools
   hiddenParams: ['language', 'organization'],  // Hide these params from LLM
   filterBookChapterNotes: true,  // Filter notes by book/chapter
@@ -205,7 +235,6 @@ const helper = new LLMHelper({
 ```typescript
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
   upstreamUrl: 'http://localhost:8787/api/mcp',  // Local development
 });
 ```
@@ -215,7 +244,6 @@ const helper = new LLMHelper({
 ```typescript
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
   maxToolIterations: 3,  // Limit to 3 iterations
 });
 ```
@@ -226,10 +254,11 @@ const helper = new LLMHelper({
 
 ```typescript
 try {
-  const response = await helper.chat([
-    { role: 'user', content: 'Fetch John 3:16' }
-  ]);
-  console.log(response.message.content);
+  const response = await helper.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: 'Fetch John 3:16' }]
+  });
+  console.log(response.choices[0].message.content);
 } catch (error) {
   console.error('Error:', error.message);
 }
@@ -239,10 +268,11 @@ try {
 
 ```typescript
 try {
-  const response = await helper.chat([
-    { role: 'user', content: 'Fetch John 3:16' }
-  ]);
-  return response.message.content;
+  const response = await helper.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: 'Fetch John 3:16' }]
+  });
+  return response.choices[0].message.content;
 } catch (error) {
   // Fallback to a default response
   return 'Sorry, I encountered an error processing your request.';
@@ -256,16 +286,16 @@ try {
 ```typescript
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
 });
 ```
 
 ### 2. Use gpt-4o-mini for Cost Efficiency
 
 ```typescript
-const helper = new LLMHelper({
-  apiKey: process.env.OPENAI_API_KEY!,
+// Use gpt-4o-mini in your requests
+const response = await helper.chat.completions.create({
   model: 'gpt-4o-mini',  // Cheaper and faster than gpt-4
+  messages: [{ role: 'user', content: 'Hello' }]
 });
 ```
 
@@ -274,7 +304,6 @@ const helper = new LLMHelper({
 ```typescript
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
   timeout: 60000,  // 60 seconds for tool calls
 });
 ```
@@ -284,7 +313,6 @@ const helper = new LLMHelper({
 ```typescript
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
   maxToolIterations: 3,  // Prevent infinite loops
 });
 ```
@@ -295,14 +323,14 @@ const helper = new LLMHelper({
 // Create once
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
 });
 
 // Reuse for multiple conversations
 async function handleUserQuery(query: string) {
-  return await helper.chat([
-    { role: 'user', content: query }
-  ]);
+  return await helper.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: query }]
+  });
 }
 ```
 
@@ -320,7 +348,6 @@ Creates a new LLM Helper instance.
 
 **Parameters:**
 - `config.apiKey` (required): OpenAI API key
-- `config.model` (required): OpenAI model name (e.g., 'gpt-4o-mini')
 - `config.enabledTools` (optional): Array of tool names to enable
 - `config.hiddenParams` (optional): Array of parameter names to hide from LLM
 - `config.filterBookChapterNotes` (optional): Filter notes by book/chapter, default: true
@@ -330,31 +357,51 @@ Creates a new LLM Helper instance.
 
 #### Methods
 
-##### chat()
+##### chat.completions.create()
 
 ```typescript
-async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse>
+async chat.completions.create(
+  request: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming
+): Promise<OpenAI.Chat.Completions.ChatCompletion>
 ```
 
-Send a chat request with automatic tool execution.
+Send a chat completion request with automatic tool execution. **This method implements the same interface as OpenAI's `chat.completions.create()`**, making LLMHelper a drop-in replacement.
 
 **Parameters:**
-- `messages`: Array of chat messages with `role` and `content`
-- `options` (optional): OpenAI parameters
+- `request`: OpenAI chat completion request object
+  - `model` (required): Model name (e.g., 'gpt-4o-mini')
+  - `messages` (required): Array of chat messages
   - `temperature?: number` - Sampling temperature (0-2)
   - `top_p?: number` - Nucleus sampling parameter (0-1)
   - `response_format?: any` - Response format (e.g., `{ type: 'json_object' }`)
   - `n?: number` - Number of completions to generate
+  - All other OpenAI parameters are supported
 
 **Returns:**
-- `ChatResponse` with `message` and optional `usage` information
+- Full OpenAI `ChatCompletion` object with:
+  - `id`: Completion ID
+  - `object`: 'chat.completion'
+  - `created`: Unix timestamp
+  - `model`: Model used
+  - `choices[]`: Array of completion choices (length = n)
+  - `usage`: Token usage information
 
 **Example:**
 ```typescript
-const response = await helper.chat(
-  [{ role: 'user', content: 'What does John 3:16 say?' }],
-  { temperature: 0.7, top_p: 0.9 }
-);
+const response = await helper.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{ role: 'user', content: 'What does John 3:16 say?' }],
+  temperature: 0.7,
+  n: 2
+});
+
+// Access first choice
+console.log(response.choices[0].message.content);
+
+// When n > 1, access all choices
+response.choices.forEach((choice, i) => {
+  console.log(`Choice ${i}:`, choice.message.content);
+});
 ```
 
 ##### getClient()
@@ -374,40 +421,38 @@ const client = helper.getClient();
 const tools = await client.listTools();
 ```
 
-### Types
+### Response Format
 
-#### ChatMessage
-
-```typescript
-interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-```
-
-#### ChatOptions
+LLMHelper returns the **full OpenAI `ChatCompletion` response**, not a simplified format:
 
 ```typescript
-interface ChatOptions {
-  temperature?: number;      // Sampling temperature (0-2)
-  top_p?: number;           // Nucleus sampling (0-1)
-  response_format?: any;    // Response format specification
-  n?: number;               // Number of completions
-}
-```
-
-#### ChatResponse
-
-```typescript
-interface ChatResponse {
-  message: ChatMessage;
+interface ChatCompletion {
+  id: string;
+  object: 'chat.completion';
+  created: number;
+  model: string;
+  choices: Array<{
+    index: number;
+    message: {
+      role: 'assistant';
+      content: string | null;
+      tool_calls?: ToolCall[];
+    };
+    finish_reason: 'stop' | 'length' | 'tool_calls' | 'content_filter';
+  }>;
   usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
   };
 }
 ```
+
+This ensures:
+- ✅ Full compatibility with OpenAI SDK
+- ✅ All choices preserved when `n > 1`
+- ✅ Complete metadata (id, created, model)
+- ✅ No conversion overhead
 
 ## Supported Models
 
@@ -436,29 +481,44 @@ See the [examples directory](../examples/llm-helper/) for complete working examp
 - [Architecture Overview](../ARCHITECTURE.md)
 - [Main README](../README.md)
 
-## Migration from Old API
+## Migration Guide
 
-If you were using the old LLM Helper with `provider` parameter:
+### From Old LLMHelper API
 
-### Before
+**Old API (Simplified):**
 ```typescript
 const helper = new LLMHelper({
-  provider: 'openai',  // ❌ No longer needed
-  apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4',
+  apiKey: 'sk-...',
+  model: 'gpt-4o-mini',
 });
+
+const response = await helper.chat(
+  [{ role: 'user', content: 'Hello' }],
+  { temperature: 0.7 }
+);
+
+console.log(response.message.content);  // Simplified response
 ```
 
-### After
+**New API (OpenAI-Compatible):**
 ```typescript
 const helper = new LLMHelper({
-  // provider removed - OpenAI only
-  apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',  // Use newer, cheaper model
+  apiKey: 'sk-...',
+  // model removed from config - specify in each request
 });
+
+const response = await helper.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{ role: 'user', content: 'Hello' }],
+  temperature: 0.7
+});
+
+console.log(response.choices[0].message.content);  // Full OpenAI response
 ```
 
 **Breaking Changes:**
-- ❌ `provider` parameter removed (OpenAI only)
-- ❌ Anthropic support removed
-- ✅ Everything else stays the same
+- ❌ `model` removed from config (specify per request)
+- ❌ `helper.chat()` method removed
+- ✅ Use `helper.chat.completions.create()` instead
+- ✅ Returns full OpenAI response, not simplified format
+- ✅ Fixes `n > 1` bug - all choices now preserved

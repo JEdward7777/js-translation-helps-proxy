@@ -4,4 +4,4 @@
  */
 
 // Re-export from main index
-export type { LLMHelperConfig, ChatMessage, ChatResponse } from './index.js';
+export type { LLMHelperConfig } from './index.js';

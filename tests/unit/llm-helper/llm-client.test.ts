@@ -43,14 +43,17 @@ describe('LLMHelper', () => {
     it('should create helper with valid config', () => {
       const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'gpt-4o-mini',
       });
 
       expect(helper).toBeDefined();
+      expect(helper.chat).toBeDefined();
+      expect(helper.chat.completions).toBeDefined();
+      expect(helper.chat.completions.create).toBeDefined();
       expect(ChatCompletionHandler).toHaveBeenCalledWith({
         enabledTools: undefined,
         hiddenParams: undefined,
         maxToolIterations: 5,
+        filterBookChapterNotes: undefined,
         enableToolExecution: true,
         upstreamUrl: undefined,
         timeout: undefined,
@@ -60,7 +63,6 @@ describe('LLMHelper', () => {
     it('should create helper with custom config', () => {
       const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'gpt-4o-mini',
         enabledTools: ['fetch_scripture'],
         hiddenParams: ['language', 'organization'],
         maxToolIterations: 10,
@@ -73,6 +75,7 @@ describe('LLMHelper', () => {
         enabledTools: ['fetch_scripture'],
         hiddenParams: ['language', 'organization'],
         maxToolIterations: 10,
+        filterBookChapterNotes: undefined,
         enableToolExecution: true,
         upstreamUrl: 'https://custom.url',
         timeout: 60000,
@@ -83,23 +86,13 @@ describe('LLMHelper', () => {
       expect(() => {
         new LLMHelper({
           apiKey: '',
-          model: 'gpt-4o-mini',
         });
       }).toThrow('API key is required');
     });
-
-    it('should throw error for missing model', () => {
-      expect(() => {
-        new LLMHelper({
-          apiKey: 'test-key',
-          model: '',
-        });
-      }).toThrow('Model is required');
-    });
   });
 
-  describe('chat', () => {
-    it('should call ChatCompletionHandler and return formatted response', async () => {
+  describe('chat.completions.create', () => {
+    it('should call ChatCompletionHandler and return full OpenAI response', async () => {
       const mockResponse = {
         id: 'chatcmpl-123',
         object: 'chat.completion',
@@ -126,12 +119,12 @@ describe('LLMHelper', () => {
 
       const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'gpt-4o-mini',
       });
 
-      const response = await helper.chat([
-        { role: 'user', content: 'Hello' },
-      ]);
+      const response = await helper.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Hello' }],
+      });
 
       expect(mockHandler.handleChatCompletion).toHaveBeenCalledWith(
         {
@@ -141,11 +134,16 @@ describe('LLMHelper', () => {
         'test-key'
       );
 
-      expect(response.message.role).toBe('assistant');
-      expect(response.message.content).toBe('Hello! How can I help you?');
-      expect(response.usage?.promptTokens).toBe(10);
-      expect(response.usage?.completionTokens).toBe(20);
-      expect(response.usage?.totalTokens).toBe(30);
+      // Should return full OpenAI response, not simplified
+      expect(response.id).toBe('chatcmpl-123');
+      expect(response.object).toBe('chat.completion');
+      expect(response.created).toBe(1234567890);
+      expect(response.model).toBe('gpt-4o-mini');
+      expect(response.choices[0].message.role).toBe('assistant');
+      expect(response.choices[0].message.content).toBe('Hello! How can I help you?');
+      expect(response.usage?.prompt_tokens).toBe(10);
+      expect(response.usage?.completion_tokens).toBe(20);
+      expect(response.usage?.total_tokens).toBe(30);
     });
 
     it('should handle response without usage', async () => {
@@ -170,14 +168,109 @@ describe('LLMHelper', () => {
 
       const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'gpt-4o-mini',
       });
 
-      const response = await helper.chat([
-        { role: 'user', content: 'Hello' },
-      ]);
+      const response = await helper.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Hello' }],
+      });
 
       expect(response.usage).toBeUndefined();
+    });
+
+    it('should support n > 1 and return all choices', async () => {
+      const mockResponse = {
+        id: 'chatcmpl-123',
+        object: 'chat.completion',
+        created: 1234567890,
+        model: 'gpt-4o-mini',
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: 'First response',
+            },
+            finish_reason: 'stop',
+          },
+          {
+            index: 1,
+            message: {
+              role: 'assistant',
+              content: 'Second response',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+        usage: {
+          prompt_tokens: 10,
+          completion_tokens: 40,
+          total_tokens: 50,
+        },
+      };
+
+      mockHandler.handleChatCompletion.mockResolvedValue(mockResponse);
+
+      const helper = new LLMHelper({
+        apiKey: 'test-key',
+      });
+
+      const response = await helper.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Hello' }],
+        n: 2,
+      });
+
+      // Should return all choices, not just the first one
+      expect(response.choices).toHaveLength(2);
+      expect(response.choices[0].message.content).toBe('First response');
+      expect(response.choices[1].message.content).toBe('Second response');
+    });
+
+    it('should pass through OpenAI parameters', async () => {
+      const mockResponse = {
+        id: 'chatcmpl-123',
+        object: 'chat.completion',
+        created: 1234567890,
+        model: 'gpt-4o-mini',
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: 'Response',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      };
+
+      mockHandler.handleChatCompletion.mockResolvedValue(mockResponse);
+
+      const helper = new LLMHelper({
+        apiKey: 'test-key',
+      });
+
+      await helper.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Hello' }],
+        temperature: 0.7,
+        top_p: 0.9,
+        n: 2,
+        response_format: { type: 'json_object' },
+      });
+
+      expect(mockHandler.handleChatCompletion).toHaveBeenCalledWith(
+        {
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: 'Hello' }],
+          temperature: 0.7,
+          top_p: 0.9,
+          n: 2,
+          response_format: { type: 'json_object' },
+        },
+        'test-key'
+      );
     });
   });
 
@@ -188,7 +281,6 @@ describe('LLMHelper', () => {
 
       const helper = new LLMHelper({
         apiKey: 'test-key',
-        model: 'gpt-4o-mini',
       });
 
       const client = helper.getClient();

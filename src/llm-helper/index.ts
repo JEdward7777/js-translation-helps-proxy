@@ -1,14 +1,14 @@
 /**
- * LLM Helper - Simplified wrapper around OpenAI API with Translation Helps tools
- * Uses Interface 4's ChatCompletionHandler for consistent OpenAI integration
+ * LLM Helper - Drop-in replacement for OpenAI client with Translation Helps tools
+ * Implements the same interface as OpenAI for seamless interchangeability
  */
 
+import OpenAI from 'openai';
 import { ChatCompletionHandler } from '../openai-api/chat-completion.js';
 import { TranslationHelpsClient } from '../core/index.js';
 
 export interface LLMHelperConfig {
   apiKey: string;
-  model: string;
   enabledTools?: string[];
   hiddenParams?: string[];
   maxToolIterations?: number;
@@ -17,46 +17,43 @@ export interface LLMHelperConfig {
   timeout?: number;
 }
 
-export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
-export interface ChatOptions {
-  temperature?: number;
-  top_p?: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI response_format accepts various formats
-  response_format?: any;
-  n?: number;
-}
-
-export interface ChatResponse {
-  message: ChatMessage;
-  usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-}
-
 /**
- * LLM Helper - Simplified wrapper around OpenAI API with Translation Helps tools
+ * Drop-in replacement for OpenAI client with Translation Helps tools
+ * Implements the same interface as OpenAI for seamless interchangeability
+ * 
+ * @example
+ * ```typescript
+ * // Can be used exactly like OpenAI client
+ * const client = new LLMHelper({ apiKey: process.env.OPENAI_API_KEY });
+ * const response = await client.chat.completions.create({
+ *   model: 'gpt-4o-mini',
+ *   messages: [{ role: 'user', content: 'Hello!' }]
+ * });
+ * console.log(response.choices[0].message.content);
+ * ```
  */
 export class LLMHelper {
   private handler: ChatCompletionHandler;
   private apiKey: string;
-  private model: string;
+  
+  /**
+   * Expose the same structure as OpenAI client
+   * This allows LLMHelper to be a drop-in replacement
+   */
+  public chat: {
+    completions: {
+      create: (
+        request: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming
+      ) => Promise<OpenAI.Chat.Completions.ChatCompletion>;
+    };
+  };
 
   constructor(config: LLMHelperConfig) {
     if (!config.apiKey) {
       throw new Error('API key is required');
     }
-    if (!config.model) {
-      throw new Error('Model is required');
-    }
 
     this.apiKey = config.apiKey;
-    this.model = config.model;
 
     // Reuse Interface 4's ChatCompletionHandler
     // Defaults are applied in ChatCompletionHandler constructor
@@ -69,50 +66,17 @@ export class LLMHelper {
       upstreamUrl: config.upstreamUrl,
       timeout: config.timeout,
     });
-  }
 
-  /**
-   * Send a chat request with automatic tool execution
-   */
-  async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
-    // Convert to OpenAI request format
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenAI request accepts various optional parameters
-    const request: any = {
-      model: this.model,
-      messages: messages.map(m => ({
-        role: m.role,
-        content: m.content,
-      })),
-    };
-
-    // Add optional OpenAI parameters
-    if (options?.temperature !== undefined) {
-      request.temperature = options.temperature;
-    }
-    if (options?.top_p !== undefined) {
-      request.top_p = options.top_p;
-    }
-    if (options?.response_format !== undefined) {
-      request.response_format = options.response_format;
-    }
-    if (options?.n !== undefined) {
-      request.n = options.n;
-    }
-
-    // Use Interface 4's handler
-    const response = await this.handler.handleChatCompletion(request, this.apiKey);
-
-    // Convert response to simplified format
-    return {
-      message: {
-        role: 'assistant',
-        content: response.choices[0].message.content || '',
-      },
-      usage: response.usage ? {
-        promptTokens: response.usage.prompt_tokens,
-        completionTokens: response.usage.completion_tokens,
-        totalTokens: response.usage.total_tokens,
-      } : undefined,
+    // Implement OpenAI client interface
+    this.chat = {
+      completions: {
+        create: async (request) => {
+          // Cast to any to handle the request parameter type compatibility
+          // The OpenAI SDK types are slightly different but structurally compatible
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return await this.handler.handleChatCompletion(request as any, this.apiKey) as OpenAI.Chat.Completions.ChatCompletion;
+        }
+      }
     };
   }
 

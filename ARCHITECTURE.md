@@ -62,7 +62,7 @@ graph TB
         end
         
         subgraph "Interface 5: LLM Helper"
-            Helper[LLMHelper Class<br/>Simplified OpenAI Integration]
+            Helper[LLMHelper Class<br/>OpenAI-Compatible TypeScript Client]
         end
         
         subgraph "Shared Core"
@@ -358,42 +358,68 @@ console.log(response.choices[0].message.content);
 
 ---
 
-### Interface 5: LLM Helper (TypeScript Function Interface)
+### Interface 5: LLM Helper (OpenAI-Compatible TypeScript Client)
 
-**Purpose**: Simplified LLM integration with built-in tool execution
-**Use Case**: Custom LLM applications, agent frameworks
+**Purpose**: Drop-in replacement for OpenAI client as a TypeScript class with Translation Helps tools
+**Use Case**: Custom LLM applications, agent frameworks, anywhere OpenAI SDK is used in TypeScript/JavaScript
+**Transport**: Direct TypeScript API (no HTTP/network serialization)
 **Implementation**: Uses Interface 4's ChatCompletionHandler for consistent behavior
+**API**: Implements `OpenAI.chat.completions.create()` interface
+
+**Key Difference from Interface 4:**
+- **Interface 4**: HTTP/REST API server (network calls required)
+- **Interface 5**: TypeScript class (direct in-process calls, no network overhead)
 
 ```typescript
 import { LLMHelper } from 'js-translation-helps-proxy/llm-helper';
+import OpenAI from 'openai';
 
-// Create helper instance
+// Create helper instance (drop-in replacement for OpenAI)
 const helper = new LLMHelper({
   apiKey: process.env.OPENAI_API_KEY!,
-  model: 'gpt-4o-mini',
   enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
   hiddenParams: ['language', 'organization'],
   maxToolIterations: 5
 });
 
-// Automatic tool execution loop
-const response = await helper.chat([
-  { role: 'user', content: 'What does John 3:16 say?' }
-]);
+// Use the same API as OpenAI client
+const response = await helper.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{ role: 'user', content: 'What does John 3:16 say?' }],
+  temperature: 0.7,
+  n: 2  // Generate 2 completions
+});
 
-console.log(response.message.content);
-console.log('Tokens used:', response.usage?.totalTokens);
+// Returns full OpenAI ChatCompletion response
+console.log(response.choices[0].message.content);
+console.log(response.choices[1].message.content);  // When n > 1
+console.log('Tokens used:', response.usage?.total_tokens);
+
+// Interchangeable with OpenAI client
+const client: OpenAI | LLMHelper = useTranslationHelps
+  ? new LLMHelper({ apiKey })
+  : new OpenAI({ apiKey });
+
+// Same code works for both!
+const result = await client.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
 
 // Access Translation Helps client directly
-const client = helper.getClient();
-const tools = await client.listTools();
-const scripture = await client.fetchScripture({ reference: 'John 3:16' });
+const thClient = helper.getClient();
+const tools = await thClient.listTools();
+const scripture = await thClient.fetchScripture({ reference: 'John 3:16' });
 ```
 
 **Key Features:**
+- **Drop-in OpenAI replacement**: Implements same interface as `OpenAI.chat.completions.create()`
+- **Full response compatibility**: Returns complete OpenAI `ChatCompletion` objects (not simplified)
 - **Shares logic with Interface 4**: Uses same ChatCompletionHandler for consistency (see [OpenAI API docs](docs/OPENAI_API.md))
+- **Supports all OpenAI parameters**: Including `n > 1`, `temperature`, `response_format`, etc.
+- **Fixes `n > 1` bug**: All choices preserved in response (not just first)
 - Automatic iterative tool execution (up to 5 iterations by default)
-- Simplified API with automatic tool schema injection
+- Automatic tool schema injection
 - OpenAI-only (no provider parameter needed)
 - Type-safe TypeScript API
 - Direct access to Translation Helps client via `getClient()`
@@ -1547,7 +1573,10 @@ The project has been successfully implemented with all planned features:
 - Integration tests passing
 
 **Phase 5: Interface 5 - LLM Helper** ✅
-- LLMHelper class implemented using Interface 4's ChatCompletionHandler
+- LLMHelper class refactored as drop-in replacement for OpenAI client
+- Implements `OpenAI.chat.completions.create()` interface
+- Returns full OpenAI `ChatCompletion` responses (not simplified)
+- Fixes `n > 1` bug - all choices now preserved
 - OpenAI-only integration (simplified from multi-provider)
 - Automatic tool schema injection and execution
 - Examples and documentation provided
