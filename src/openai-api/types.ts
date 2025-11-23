@@ -205,4 +205,7 @@ export interface OpenAIBridgeConfig {
   // Upstream settings
   upstreamUrl?: string;
   timeout?: number;
+  
+  // OpenAI client settings
+  baseURL?: string; // Custom API endpoint (e.g., for Grok, Azure OpenAI, local models)
 }

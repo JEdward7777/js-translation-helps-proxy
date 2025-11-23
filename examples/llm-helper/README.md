@@ -28,6 +28,21 @@ Shows how to maintain conversation context across multiple turns.
 OPENAI_API_KEY=your-key tsx examples/llm-helper/multi-turn.ts
 ```
 
+### 4. Alternative Providers (`alternative-providers.ts`)
+
+Demonstrates using the `baseURL` parameter to connect to alternative OpenAI-compatible providers like Grok, Azure OpenAI, or local LLM servers.
+
+```bash
+# Using Grok
+XAI_API_KEY=xai-... tsx examples/llm-helper/alternative-providers.ts
+
+# Using Azure OpenAI
+AZURE_OPENAI_API_KEY=your-key AZURE_OPENAI_ENDPOINT=https://... tsx examples/llm-helper/alternative-providers.ts
+
+# Using local LLM server (e.g., LM Studio, Ollama)
+tsx examples/llm-helper/alternative-providers.ts
+```
+
 ## Running Examples
 
 ### Prerequisites
@@ -46,6 +61,30 @@ OPENAI_API_KEY=your-key tsx examples/llm-helper/multi-turn.ts
 
 ```bash
 OPENAI_API_KEY=sk-... tsx examples/llm-helper/basic-chat.ts
+```
+
+### Running with Alternative Providers
+
+The LLM Helper supports any OpenAI-compatible API endpoint via the `baseURL` parameter:
+
+```typescript
+// Grok (xAI)
+const helper = new LLMHelper({
+  apiKey: 'xai-...',
+  baseURL: 'https://api.x.ai/v1',
+});
+
+// Azure OpenAI
+const helper = new LLMHelper({
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+  baseURL: 'https://YOUR-RESOURCE.openai.azure.com/openai/deployments/YOUR-DEPLOYMENT',
+});
+
+// Local LLM Server
+const helper = new LLMHelper({
+  apiKey: 'local',
+  baseURL: 'http://localhost:1234/v1',
+});
 ```
 
 ## Example Output
@@ -107,6 +146,7 @@ const response = await client.chat.completions.create({
 - Tools are automatically executed and results fed back to the LLM
 - Supports all OpenAI parameters: `n`, `temperature`, `response_format`, etc.
 - Baked-in filters apply: `language=en`, `organization=unfoldingWord`
+- **NEW**: Supports custom `baseURL` for alternative OpenAI-compatible providers (Grok, Azure OpenAI, local models, etc.)
 
 ## See Also
 

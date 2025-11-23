@@ -101,6 +101,9 @@ interface LLMHelperConfig {
   // Required
   apiKey: string;
   
+  // Optional: OpenAI client settings
+  baseURL?: string;                  // Custom API endpoint (e.g., for Grok, Azure OpenAI, local models)
+  
   // Optional: Tool filtering
   enabledTools?: string[];           // Limit which tools are available
   hiddenParams?: string[];           // Hide parameters from LLM (e.g., ['language', 'organization'])
@@ -130,12 +133,52 @@ const helper = new LLMHelper({
 ```typescript
 const helper = new LLMHelper({
   apiKey: 'sk-...',
+  baseURL: 'https://api.openai.com/v1',  // Optional: custom endpoint
   enabledTools: ['fetch_scripture', 'fetch_translation_notes'],
   hiddenParams: ['language', 'organization'],
   filterBookChapterNotes: true,
   maxToolIterations: 10,
   upstreamUrl: 'https://translation-helps-mcp.pages.dev/api/mcp',
   timeout: 60000,
+});
+```
+
+#### Using Alternative LLM Providers
+
+##### Grok (xAI)
+
+```typescript
+const helper = new LLMHelper({
+  apiKey: 'xai-...',
+  baseURL: 'https://api.x.ai/v1',
+});
+
+const response = await helper.chat.completions.create({
+  model: 'grok-beta',
+  messages: [{ role: 'user', content: 'What does John 3:16 say?' }]
+});
+```
+
+##### Azure OpenAI
+
+```typescript
+const helper = new LLMHelper({
+  apiKey: process.env.AZURE_OPENAI_API_KEY!,
+  baseURL: 'https://YOUR-RESOURCE.openai.azure.com/openai/deployments/YOUR-DEPLOYMENT',
+});
+```
+
+##### Local LLM Server (e.g., LM Studio, Ollama)
+
+```typescript
+const helper = new LLMHelper({
+  apiKey: 'local',  // Many local servers don't validate the key
+  baseURL: 'http://localhost:1234/v1',
+});
+
+const response = await helper.chat.completions.create({
+  model: 'local-model',
+  messages: [{ role: 'user', content: 'What does John 3:16 say?' }]
 });
 ```
 
@@ -347,7 +390,8 @@ constructor(config: LLMHelperConfig)
 Creates a new LLM Helper instance.
 
 **Parameters:**
-- `config.apiKey` (required): OpenAI API key
+- `config.apiKey` (required): OpenAI API key (or API key for alternative provider)
+- `config.baseURL` (optional): Custom API endpoint for OpenAI-compatible services (e.g., Grok, Azure OpenAI, local models)
 - `config.enabledTools` (optional): Array of tool names to enable
 - `config.hiddenParams` (optional): Array of parameter names to hide from LLM
 - `config.filterBookChapterNotes` (optional): Filter notes by book/chapter, default: true

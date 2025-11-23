@@ -9,6 +9,7 @@ import { TranslationHelpsClient } from '../core/index.js';
 
 export interface LLMHelperConfig {
   apiKey: string;
+  baseURL?: string;
   enabledTools?: string[];
   hiddenParams?: string[];
   maxToolIterations?: number;
@@ -65,6 +66,7 @@ export class LLMHelper {
       enableToolExecution: true,
       upstreamUrl: config.upstreamUrl,
       timeout: config.timeout,
+      baseURL: config.baseURL,
     });
 
     // Implement OpenAI client interface

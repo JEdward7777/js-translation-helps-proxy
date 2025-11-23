@@ -30,6 +30,7 @@ export class ChatCompletionHandler {
     enableToolExecution: boolean;
     upstreamUrl: string;
     timeout: number;
+    baseURL?: string;
   };
 
   constructor(config: OpenAIBridgeConfig = {}) {
@@ -41,6 +42,7 @@ export class ChatCompletionHandler {
       enableToolExecution: config.enableToolExecution ?? true,
       upstreamUrl: config.upstreamUrl || 'https://translation-helps-mcp.pages.dev/api/mcp',
       timeout: config.timeout || 30000,
+      baseURL: config.baseURL,
     };
 
     // Initialize translation helps client with filter configuration
@@ -82,8 +84,11 @@ export class ChatCompletionHandler {
         throw new OpenAIAPIError('Streaming is not yet supported', 400, 'invalid_request_error');
       }
 
-      // Initialize OpenAI client with user's API key
-      const openai = new OpenAI({ apiKey });
+      // Initialize OpenAI client with user's API key and optional baseURL
+      const openai = new OpenAI({
+        apiKey,
+        ...(this.config.baseURL && { baseURL: this.config.baseURL })
+      });
 
       // Get translation helps tools
       const mcpTools = await this.client.listTools();
