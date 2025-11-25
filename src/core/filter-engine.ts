@@ -67,6 +67,7 @@ export class FilterEngine {
   /**
    * Filter book and chapter notes from translation notes response
    * Preserves exact logic from Python implementation
+   * Handles both raw response format and MCP-wrapped format
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
   filterBookChapterNotes(response: any): any {
@@ -74,12 +75,47 @@ export class FilterEngine {
       return response;
     }
 
-    // Only filter if response has items
-    if (!response.items || !Array.isArray(response.items)) {
-      return response;
+    // Handle MCP-wrapped response format (content array with JSON string)
+    if (response && response.content && Array.isArray(response.content) && response.content.length > 0) {
+      const firstContent = response.content[0];
+      if (firstContent.type === 'text' && typeof firstContent.text === 'string') {
+        try {
+          // Parse the JSON string to get the actual data
+          const parsedData = JSON.parse(firstContent.text);
+          
+          // Apply filtering to the parsed data
+          const filteredData = this.filterBookChapterNotesFromData(parsedData);
+          
+          // Re-wrap the filtered data back into MCP format
+          return {
+            ...response,
+            content: [{
+              type: 'text',
+              text: JSON.stringify(filteredData)
+            }]
+          };
+        } catch (error) {
+          logger.warn('Failed to parse MCP content for filtering', error);
+          return response;
+        }
+      }
     }
 
-    const items = response.items;
+    // Handle raw response format (direct items array)
+    return this.filterBookChapterNotesFromData(response);
+  }
+
+  /**
+   * Internal method to filter book and chapter notes from the actual data structure
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
+  private filterBookChapterNotesFromData(data: any): any {
+    // Only filter if data has items
+    if (!data.items || !Array.isArray(data.items)) {
+      return data;
+    }
+
+    const items = data.items;
 
     // Filter out book-level and chapter-level notes
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic upstream response format
@@ -99,19 +135,19 @@ export class FilterEngine {
       return true;
     });
 
-    // Create a copy of the response with filtered items
-    const filteredResponse = { ...response, items: filteredItems };
+    // Create a copy of the data with filtered items
+    const filteredData = { ...data, items: filteredItems };
 
     // Update metadata totalCount if it exists
-    if (filteredResponse.metadata && typeof filteredResponse.metadata.totalCount === 'number') {
-      filteredResponse.metadata = {
-        ...filteredResponse.metadata,
+    if (filteredData.metadata && typeof filteredData.metadata.totalCount === 'number') {
+      filteredData.metadata = {
+        ...filteredData.metadata,
         totalCount: filteredItems.length
       };
     }
 
     logger.debug(`Filtered notes: ${items.length} -> ${filteredItems.length}`);
-    return filteredResponse;
+    return filteredData;
   }
 
   /**
