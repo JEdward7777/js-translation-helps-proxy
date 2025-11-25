@@ -150,6 +150,29 @@ describe('Full Workflow (E2E)', () => {
 
       console.log('✅ Note filtering workflow successful!\n');
     }, 60000);
+
+    it('should filter out "Introduction to Matthew" when filterBookChapterNotes is true', async () => {
+      console.log('\n🔄 Testing that book introductions are filtered out...');
+
+      // Create client with note filtering enabled
+      const filteringClient = new TranslationHelpsClient({
+        upstreamUrl: UPSTREAM_URL,
+        filterBookChapterNotes: true,
+        timeout: 30000
+      });
+
+      console.log('   Step 1: Fetching translation notes for Mat 1:5...');
+      const notes = await filteringClient.callTool('fetch_translation_notes', { reference: 'Mat 1:5' });
+      expect(notes).toBeDefined();
+      console.log('   ✅ Notes retrieved');
+
+      console.log('   Step 2: Verifying "Introduction to Matthew" is filtered out...');
+      const notesText = JSON.stringify(notes);
+      expect(notesText).not.toContain('Introduction to Matthew');
+      console.log('   ✅ "Introduction to Matthew" successfully filtered out');
+
+      console.log('✅ Book introduction filtering successful!\n');
+    }, 60000);
   });
 
   describe('Multi-Reference Workflow', () => {
