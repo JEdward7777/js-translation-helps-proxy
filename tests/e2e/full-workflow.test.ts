@@ -125,6 +125,59 @@ describe('Full Workflow (E2E)', () => {
 
       console.log('✅ Parameter hiding workflow successful!\n');
     }, 60000);
+
+    it('should filter hidden parameters from tool calls and schema', async () => {
+      console.log('\n🔄 Testing that hidden parameters are filtered...');
+
+      // Create client with language parameter hidden
+      const clientWithHiddenLanguage = new TranslationHelpsClient({
+        upstreamUrl: UPSTREAM_URL,
+        hiddenParams: ['language'],
+        timeout: 30000
+      });
+
+      // Create client without hidden parameters for comparison
+      const normalClient = new TranslationHelpsClient({
+        upstreamUrl: UPSTREAM_URL,
+        timeout: 30000
+      });
+
+      console.log('   Step 1: Checking schema without hidden params...');
+      const normalTools = await normalClient.listTools();
+      const normalScriptureTool = normalTools.find(t => t.name === 'fetch_scripture');
+      expect(normalScriptureTool).toBeDefined();
+      expect(normalScriptureTool!.inputSchema.properties).toHaveProperty('language');
+      console.log('   ✅ Normal schema includes language parameter');
+
+      console.log('   Step 2: Checking schema with hidden params...');
+      const filteredTools = await clientWithHiddenLanguage.listTools();
+      const filteredScriptureTool = filteredTools.find(t => t.name === 'fetch_scripture');
+      expect(filteredScriptureTool).toBeDefined();
+      expect(filteredScriptureTool!.inputSchema.properties).not.toHaveProperty('language');
+      console.log('   ✅ Filtered schema does not include language parameter');
+
+      console.log('   Step 3: Calling tool with hidden language parameter...');
+      const resultWithHiddenParam = await clientWithHiddenLanguage.callTool('fetch_scripture', {
+        reference: 'John 3:16',
+        language: 'gr'  // This should be filtered out since language is hidden
+      });
+      expect(resultWithHiddenParam).toBeDefined();
+      console.log('   ✅ Tool call with hidden parameter succeeded');
+
+      console.log('   Step 4: Calling tool without language parameter...');
+      const resultWithoutParam = await normalClient.callTool('fetch_scripture', {
+        reference: 'John 3:16'
+      });
+      expect(resultWithoutParam).toBeDefined();
+      console.log('   ✅ Tool call without parameter succeeded');
+
+      console.log('   Step 5: Verifying both results are the same...');
+      // Both should return the same result (default English) because the hidden param was filtered out
+      expect(JSON.stringify(resultWithHiddenParam)).toBe(JSON.stringify(resultWithoutParam));
+      console.log('   ✅ Results are identical - hidden parameter was filtered out');
+
+      console.log('✅ Hidden parameter filtering successful!\n');
+    }, 60000);
   });
 
   describe('Book/Chapter Note Filtering Workflow', () => {

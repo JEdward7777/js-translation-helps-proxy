@@ -99,8 +99,11 @@ export class TranslationHelpsClient {
 
       logger.debug(`Calling tool: ${name}`, args);
 
+      // Filter out hidden parameters from arguments before calling upstream
+      const filteredArgs = this.filterEngine.filterArguments(args);
+
       // Call upstream (returns raw response now)
-      const rawResponse = await this.upstreamClient.callTool(name, args);
+      const rawResponse = await this.upstreamClient.callTool(name, filteredArgs);
 
       // Apply response filtering BEFORE formatting (works on structured data)
       const filteredResponse = this.filterEngine.filterBookChapterNotes(rawResponse);

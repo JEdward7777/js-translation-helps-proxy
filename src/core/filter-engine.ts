@@ -151,6 +151,29 @@ export class FilterEngine {
   }
 
   /**
+   * Filter hidden parameters from tool arguments
+   * Removes any parameters that are in the hiddenParams list
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tool arguments
+  filterArguments(args: Record<string, any>): Record<string, any> {
+    if (!this.config.hiddenParams || this.config.hiddenParams.length === 0) {
+      return args;
+    }
+
+    // Create a copy of args without hidden parameters
+    const filteredArgs = Object.fromEntries(
+      Object.entries(args).filter(([key]) => !this.config.hiddenParams!.includes(key))
+    );
+
+    if (Object.keys(args).length !== Object.keys(filteredArgs).length) {
+      const removedParams = Object.keys(args).filter(key => !Object.keys(filteredArgs).includes(key));
+      logger.debug(`Filtered out hidden parameters from arguments: ${removedParams.join(', ')}`);
+    }
+
+    return filteredArgs;
+  }
+
+  /**
    * Update filter configuration
    */
   updateConfig(config: Partial<FilterConfig>): void {
