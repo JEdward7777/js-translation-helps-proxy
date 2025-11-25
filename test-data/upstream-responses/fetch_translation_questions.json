@@ -1,33 +1,68 @@
 {
   "tool": "fetch_translation_questions",
-  "timestamp": "2025-11-14T22:19:29.461Z",
+  "timestamp": "2025-11-25T20:56:29.578Z",
   "request": {
     "reference": "John 3:16",
     "language": "en",
-    "organization": "unfoldingWord"
+    "organization": "unfoldingWord",
+    "search": "believe"
   },
   "response": {
-    "reference": "John 3:16",
-    "language": "en",
-    "organization": "unfoldingWord",
-    "items": [
+    "content": [
       {
-        "Reference": "3:16",
-        "ID": "th1d",
-        "Tags": "",
-        "Quote": "",
-        "Occurrence": "",
-        "Question": "How did God show he loved the world?",
-        "Response": "He showed his love by giving his Only Son, that whoever believes in him should not perish but have everlasting life."
+        "type": "text",
+        "text": "{\"reference\":\"John 3:16\",\"language\":\"en\",\"organization\":\"unfoldingWord\",\"items\":[],\"metadata\":{\"totalCount\":0,\"source\":\"TQ\",\"language\":\"en\",\"organization\":\"unfoldingWord\",\"resourceType\":\"tq\",\"license\":\"CC BY-SA 4.0\",\"searchQuery\":\"believe\",\"totalMatches\":0,\"searchApplied\":true}}"
       }
     ],
     "metadata": {
-      "totalCount": 1,
-      "source": "TQ",
-      "language": "en",
-      "organization": "unfoldingWord",
-      "resourceType": "tq",
-      "license": "CC BY-SA 4.0"
+      "cacheStatus": "hit",
+      "responseTime": 866,
+      "traceId": null,
+      "xrayTrace": {
+        "traceId": "tq-1764104188681",
+        "mainEndpoint": "translation-questions",
+        "startTime": 1764104188681,
+        "totalDuration": 866,
+        "apiCalls": [
+          {
+            "url": "internal://kv/catalog/en/unfoldingWord/TSV Translation Questions",
+            "duration": 103,
+            "status": 200,
+            "size": 102720,
+            "cached": true,
+            "timestamp": 1764104188784
+          },
+          {
+            "url": "https://git.door43.org/api/v1/catalog/search?lang=en&owner=unfoldingWord&type=text&stage=prod&subject=TSV+Translation+Questions&metadataType=rc&includeMetadata=true",
+            "duration": 450,
+            "status": 200,
+            "size": 0,
+            "cached": false,
+            "timestamp": 1764104189234
+          },
+          {
+            "url": "internal://cache/zip-url/unfoldingWord/en_tq:v87",
+            "duration": 9,
+            "status": 200,
+            "size": 464489,
+            "cached": true,
+            "timestamp": 1764104189541
+          },
+          {
+            "url": "internal://cache/file/zip:unfoldingWord/en_tq:v87/files/tq_JHN.tsv",
+            "duration": 6,
+            "status": 200,
+            "size": 78087,
+            "cached": true,
+            "timestamp": 1764104189547
+          }
+        ],
+        "cacheStats": {
+          "hits": 3,
+          "misses": 1,
+          "total": 4
+        }
+      }
     }
   }
 }

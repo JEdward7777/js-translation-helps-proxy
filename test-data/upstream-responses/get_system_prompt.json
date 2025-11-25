@@ -1,0 +1,15 @@
+{
+  "tool": "get_system_prompt",
+  "timestamp": "2025-11-25T20:56:26.075Z",
+  "request": {
+    "includeImplementationDetails": false
+  },
+  "response": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Unknown tool: get_system_prompt"
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "tool": "get_context",
-  "timestamp": "2025-11-25T20:56:29.648Z",
+  "tool": "get_words_for_reference",
+  "timestamp": "2025-11-25T20:56:29.752Z",
   "request": {
     "reference": "John 3:16",
     "language": "en",
@@ -10,7 +10,7 @@
     "content": [
       {
         "type": "text",
-        "text": "Unknown tool: get_context"
+        "text": "Unknown tool: get_words_for_reference"
       }
     ]
   }

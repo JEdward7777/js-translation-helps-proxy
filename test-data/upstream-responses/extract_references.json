@@ -1,52 +1,16 @@
 {
   "tool": "extract_references",
-  "timestamp": "2025-11-14T22:19:31.095Z",
+  "timestamp": "2025-11-25T20:56:29.683Z",
   "request": {
     "text": "See John 3:16 and Romans 8:28",
     "includeContext": true
   },
   "response": {
-    "text": "See John 3:16 and Romans 8:28",
-    "references": [
+    "content": [
       {
-        "reference": "John 3:16",
-        "normalized": "John 3:16",
-        "book": "John",
-        "chapter": 3,
-        "verseStart": 16,
-        "position": {
-          "start": 4,
-          "end": 13
-        },
-        "context": {
-          "before": "See",
-          "text": "John 3:16",
-          "after": "and Romans 8:28"
-        }
-      },
-      {
-        "reference": "Romans 8:28",
-        "normalized": "Romans 8:28",
-        "book": "Romans",
-        "chapter": 8,
-        "verseStart": 28,
-        "position": {
-          "start": 18,
-          "end": 29
-        },
-        "context": {
-          "before": "See John 3:16 and",
-          "text": "Romans 8:28",
-          "after": ""
-        }
+        "type": "text",
+        "text": "Unknown tool: extract_references"
       }
-    ],
-    "metadata": {
-      "totalFound": 2,
-      "includesContext": true,
-      "contextWords": 10,
-      "textLength": 29,
-      "uniqueBooks": 2
-    }
+    ]
   }
 }

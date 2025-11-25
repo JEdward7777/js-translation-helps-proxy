@@ -1,0 +1,19 @@
+{
+  "tool": "search_biblical_resources",
+  "timestamp": "2025-11-25T20:56:30.363Z",
+  "request": {
+    "query": "love",
+    "language": "en",
+    "organization": "unfoldingWord",
+    "reference": "John 3:16",
+    "limit": 10
+  },
+  "response": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"took_ms\":566,\"query\":\"love\",\"language\":\"en\",\"owner\":\"unfoldingWord\",\"resourceCount\":4,\"hits\":[{\"id\":\"0-2200\",\"score\":24.921781200125334,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"...igs-metaphor ἡ ἀγάπη ἣν ἠγάπησάς με, ἐν αὐτοῖς ᾖ 1 Jesus speaks of God’s **love** as if it were an object that could be inside a person. If this use o...\",\"match\":{\"terms\":[\"love\",\"loved\"]}},{\"id\":\"0-2607\",\"score\":22.400071241667593,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"...figs-explicit φιλεῖς με & φιλεῖς με & φιλῶ σε 1 The three occurrences of **love** in this verse are all the same word in the original language. Howeve...\",\"match\":{\"terms\":[\"love\"]}},{\"id\":\"0-2599\",\"score\":22.108031894019952,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"...h Jesus and Peter. This meaning would indicate Jesus is asking Peter if he loves Jesus more than the other disciples love him. Alternate translation: ...\",\"match\":{\"terms\":[\"love\",\"loves\"]}},{\"id\":\"0-680\",\"score\":21.20667542810933,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\".../figs-possession τὴν ἀγάπην τοῦ Θεοῦ 1 This could mean: (1) they did not **love** **God**. Alternate translation: [love for God]; (2) they had not rec...\",\"match\":{\"terms\":[\"love\"]}},{\"id\":\"0-2560\",\"score\":20.789455136543154,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"...[[rc://*/ta/man/translate/figs-metaphor]])\\\\n\\\\n### “The disciple whom Jesus loved”\\\\n\\\\nThe apostle John referred to himself as the disciple “whom Jesus ...\",\"match\":{\"terms\":[\"love\",\"loved\"]}},{\"id\":\"0-2598\",\"score\":20.432432147705757,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"...man/translate/figs-explicit ἀγαπᾷς με & φιλῶ σε 1 The two occurrences of **love** in this verse are two different words in the original language. If i...\",\"match\":{\"terms\":[\"love\"]}},{\"id\":\"0-2002\",\"score\":20.323264926060446,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"...ψυχὴν αὐτοῦ θῇ ὑπὲρ τῶν φίλων αὐτοῦ 1 Alternate translation: [The greatest love a person can have for his friends is to voluntarily die for them] or [...\",\"match\":{\"terms\":[\"love\",\"loves\"]}},{\"id\":\"0-1767\",\"score\":19.11563458703257,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"...slate this phrase in a way that could imply that Jesus did not continue to love them after his death. Alternate translation: [he loved them to the tim...\",\"match\":{\"terms\":[\"love\",\"loved\"]}},{\"id\":\"0-1479\",\"score\":18.515392746408413,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"... verse in order to indicate that Jesus delayed going to Lazarus because he loved him and his sisters. Jesus’ delay is not in contrast to his love for ...\",\"match\":{\"terms\":[\"love\",\"loved\"]}},{\"id\":\"0-1850\",\"score\":17.88636192850169,\"path\":\"en_tn/tn_JHN.tsv\",\"resource\":\"en_tn\",\"type\":\"notes\",\"preview\":\"... more natural form for instruction. Alternate translation: [just as I have loved you, so also you must love one another]\",\"match\":{\"terms\":[\"love\",\"loved\"]}}],\"failures\":[]}"
+      }
+    ]
+  }
+}

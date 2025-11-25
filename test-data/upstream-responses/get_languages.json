@@ -1,0 +1,13 @@
+{
+  "tool": "get_languages",
+  "timestamp": "2025-11-25T20:56:28.666Z",
+  "request": {},
+  "response": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Unknown tool: get_languages"
+      }
+    ]
+  }
+}

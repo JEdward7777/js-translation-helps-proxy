@@ -1,0 +1,19 @@
+{
+  "tool": "browse_translation_words",
+  "timestamp": "2025-11-25T20:56:29.615Z",
+  "request": {
+    "language": "en",
+    "organization": "unfoldingWord",
+    "category": "kt",
+    "search": "believe",
+    "limit": 10
+  },
+  "response": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Unknown tool: browse_translation_words"
+      }
+    ]
+  }
+}

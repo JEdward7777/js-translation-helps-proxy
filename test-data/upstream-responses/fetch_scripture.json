@@ -1,66 +1,100 @@
 {
   "tool": "fetch_scripture",
-  "timestamp": "2025-11-23T20:33:04.661Z",
+  "timestamp": "2025-11-25T20:56:27.753Z",
   "request": {
     "reference": "John 3:16",
     "language": "en",
-    "organization": "unfoldingWord"
+    "organization": "unfoldingWord",
+    "search": "believe"
   },
   "response": {
-    "scripture": [
+    "content": [
       {
-        "text": "For God so loved the world, that he gave his One and Only Son, so that everyone believing in him would not perish but would have eternal life.",
-        "translation": "ULT v87"
-      },
-      {
-        "text": "This is because God loved the world’s people in this way, so that he gave his Unique Son in order that anyone who trusts in his Son would not die but would live forever.",
-        "translation": "UST v87"
-      },
-      {
-        "text": "God loved us people [MTY] in the world so much that he gave his only Son as a sacrifice for us, in order that everyone who believes in him would not be separated from God forever. Instead, they would have eternal life.",
-        "translation": "T4T v1"
-      },
-      {
-        "text": "For God so loved the world, that he gave his one and only Son, that whoever believes in him will not perish but have eternal life.",
-        "translation": "UEB v0"
-      },
-      {
-        "text": "For God so loved the world, that he gave his One and Only Son, so that everyone believing in him would not perish but would have eternal life.",
-        "translation": "ULT v87"
-      },
-      {
-        "text": "This is because God loved the world’s people in this way, so that he gave his Unique Son in order that anyone who trusts in his Son would not die but would live forever.",
-        "translation": "UST v87"
+        "type": "text",
+        "text": "{\"scripture\":[{\"text\":\"God loved us people [MTY] in the world so much that he gave his only Son as a sacrifice for us, in order that everyone who believes in him would not be separated from God forever. Instead, they would have eternal life.\",\"translation\":\"T4T v1\"},{\"text\":\"For God so loved the world, that he gave his one and only Son, that whoever believes in him will not perish but have eternal life.\",\"translation\":\"UEB v0\"}],\"reference\":\"John 3:16\",\"language\":\"en\",\"organization\":\"unfoldingWord\",\"metadata\":{\"totalCount\":2,\"resources\":[\"T4T v1\",\"UEB v0\"],\"license\":\"CC BY-SA 4.0\",\"requestedResources\":[\"ult\",\"ust\",\"t4t\",\"ueb\"],\"foundResources\":[\"t4t\",\"ueb\"],\"searchQuery\":\"believe\",\"totalMatches\":2,\"searchApplied\":true}}"
       }
     ],
-    "reference": "John 3:16",
-    "language": "en",
-    "organization": "unfoldingWord",
     "metadata": {
-      "totalCount": 6,
-      "resources": [
-        "ULT v87",
-        "UST v87",
-        "T4T v1",
-        "UEB v0"
-      ],
-      "license": "CC BY-SA 4.0",
-      "requestedResources": [
-        "ult",
-        "ust",
-        "t4t",
-        "ueb",
-        "glt",
-        "gst"
-      ],
-      "foundResources": [
-        "ult",
-        "ust",
-        "t4t",
-        "ueb",
-        "ult",
-        "ust"
-      ]
+      "cacheStatus": "hit",
+      "responseTime": 1580,
+      "traceId": null,
+      "xrayTrace": {
+        "traceId": "scripture-1764104186111",
+        "mainEndpoint": "fetch-scripture",
+        "startTime": 1764104186111,
+        "totalDuration": 1580,
+        "apiCalls": [
+          {
+            "url": "https://git.door43.org/api/v1/catalog/search?lang=en&owner=unfoldingWord&type=text&stage=prod&subject=Bible%2CAligned+Bible&metadataType=rc&includeMetadata=true",
+            "duration": 721,
+            "status": 200,
+            "size": 0,
+            "cached": false,
+            "timestamp": 1764104187139
+          },
+          {
+            "url": "internal://cache/file/by-url/git.door43.org/unfoldingWord/en_ult/archive/v87.zip/files/44-JHN.usfm",
+            "duration": 17,
+            "status": 200,
+            "size": 3016135,
+            "cached": true,
+            "timestamp": 1764104187643
+          },
+          {
+            "url": "internal://memory/catalog/en/unfoldingWord/Bible,Aligned Bible",
+            "duration": 1,
+            "status": 200,
+            "size": 279103,
+            "cached": true,
+            "timestamp": 1764104187643
+          },
+          {
+            "url": "internal://cache/file/by-url/git.door43.org/unfoldingWord/en_ust/archive/v87.zip/files/44-JHN.usfm",
+            "duration": 34,
+            "status": 200,
+            "size": 3396400,
+            "cached": true,
+            "timestamp": 1764104187677
+          },
+          {
+            "url": "internal://memory/catalog/en/unfoldingWord/Bible,Aligned Bible",
+            "duration": 1,
+            "status": 200,
+            "size": 279103,
+            "cached": true,
+            "timestamp": 1764104187677
+          },
+          {
+            "url": "internal://cache/file/by-url/git.door43.org/unfoldingWord/en_t4t/archive/v1.zip/files/44-JHN.usfm",
+            "duration": 7,
+            "status": 200,
+            "size": 185649,
+            "cached": true,
+            "timestamp": 1764104187684
+          },
+          {
+            "url": "internal://memory/catalog/en/unfoldingWord/Bible,Aligned Bible",
+            "duration": 1,
+            "status": 200,
+            "size": 279103,
+            "cached": true,
+            "timestamp": 1764104187684
+          },
+          {
+            "url": "internal://cache/file/by-url/git.door43.org/unfoldingWord/en_ueb/archive/v0.zip/files/44-JHN.usfm",
+            "duration": 7,
+            "status": 200,
+            "size": 105500,
+            "cached": true,
+            "timestamp": 1764104187691
+          }
+        ],
+        "cacheStats": {
+          "hits": 7,
+          "misses": 1,
+          "total": 8
+        }
+      }
     }
   }
 }

@@ -2,7 +2,10 @@
 /**
  * Script to fetch real responses from the upstream Translation Helps API
  * and save them as reference files for testing and validation.
- * 
+ *
+ * This script dynamically discovers all available tools from upstream and
+ * generates appropriate test parameters based on the tool's input schema.
+ *
  * Usage: npx tsx scripts/fetch-upstream-responses.ts
  */
 
@@ -11,69 +14,119 @@ import { join } from 'path';
 
 const UPSTREAM_URL = 'https://translation-helps-mcp.pages.dev';
 
-interface TestCase {
-  tool: string;
-  params: Record<string, any>;
+interface Tool {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: 'object';
+    properties: Record<string, any>;
+    required: string[];
+  };
 }
 
-const testCases: TestCase[] = [
-  {
-    tool: 'fetch_scripture',
-    params: {
-      reference: 'John 3:16',
-      language: 'en',
-      organization: 'unfoldingWord'
-    }
-  },
-  {
-    tool: 'fetch_translation_notes',
-    params: {
-      reference: 'John 3:16',
-      language: 'en',
-      organization: 'unfoldingWord'
-    }
-  },
-  {
-    tool: 'fetch_translation_questions',
-    params: {
-      reference: 'John 3:16',
-      language: 'en',
-      organization: 'unfoldingWord'
-    }
-  },
-  {
-    tool: 'get_translation_word',
-    params: {
-      reference: 'John 3:16',
-      wordId: 'believe',
-      language: 'en',
-      organization: 'unfoldingWord'
-    }
-  },
-  {
-    tool: 'browse_translation_words',
-    params: {
-      language: 'en',
-      organization: 'unfoldingWord',
-      limit: 10
-    }
-  },
-  {
-    tool: 'get_context',
-    params: {
-      reference: 'John 3:16',
-      language: 'en',
-      organization: 'unfoldingWord'
-    }
-  },
-  {
-    tool: 'extract_references',
-    params: {
-      text: 'See John 3:16 and Romans 8:28',
-      includeContext: true
+/**
+ * Mapping of parameter names to test values
+ * Add new mappings here as needed for new parameters
+ */
+const PARAM_VALUE_MAP: Record<string, any> = {
+  reference: 'John 3:16',
+  language: 'en',
+  organization: 'unfoldingWord',
+  wordId: 'believe',
+  limit: 10,
+  text: 'See John 3:16 and Romans 8:28',
+  includeContext: true,
+  query: 'love',
+  category: 'kt',
+  search: 'believe',
+  includeImplementationDetails: false
+};
+
+/**
+ * Fetch available tools from upstream via MCP protocol
+ */
+async function fetchToolsList(): Promise<Tool[]> {
+  const url = `${UPSTREAM_URL}/api/mcp`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: Date.now(),
+      method: 'tools/list',
+      params: {}
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  const mcpResponse = await response.json();
+  
+  if (mcpResponse.error) {
+    throw new Error(`MCP Error: ${mcpResponse.error.message}`);
+  }
+  
+  // Handle different response formats
+  // Direct tools array: {"tools": [...]}
+  if (Array.isArray(mcpResponse.tools)) {
+    return mcpResponse.tools;
+  }
+  
+  // Nested in result: {"result": {"tools": [...]}}
+  if (mcpResponse.result) {
+    if (Array.isArray(mcpResponse.result.tools)) {
+      return mcpResponse.result.tools;
+    } else if (Array.isArray(mcpResponse.result)) {
+      return mcpResponse.result;
     }
   }
-];
+  
+  throw new Error(`Unexpected response format: ${JSON.stringify(mcpResponse)}`);
+}
+
+/**
+ * Generate test parameters for a tool based on its input schema
+ * Throws an error if a required parameter doesn't have a mapping
+ */
+function generateTestParams(tool: Tool): Record<string, any> {
+  const params: Record<string, any> = {};
+  const unmappedParams: string[] = [];
+  
+  // Get all required parameters
+  const requiredParams = tool.inputSchema.required || [];
+  
+  // Map required parameters
+  for (const paramName of requiredParams) {
+    if (paramName in PARAM_VALUE_MAP) {
+      params[paramName] = PARAM_VALUE_MAP[paramName];
+    } else {
+      unmappedParams.push(paramName);
+    }
+  }
+  
+  // Check for unmapped required parameters
+  if (unmappedParams.length > 0) {
+    throw new Error(
+      `Tool '${tool.name}' has required parameters without mappings: ${unmappedParams.join(', ')}\n` +
+      `Please add mappings for these parameters in PARAM_VALUE_MAP`
+    );
+  }
+  
+  // Add optional parameters that have mappings
+  const allParams = Object.keys(tool.inputSchema.properties || {});
+  for (const paramName of allParams) {
+    if (!requiredParams.includes(paramName) && paramName in PARAM_VALUE_MAP) {
+      params[paramName] = PARAM_VALUE_MAP[paramName];
+    }
+  }
+  
+  return params;
+}
 
 /**
  * Fetch tool response via MCP protocol
@@ -109,16 +162,23 @@ async function fetchViaMCP(tool: string, params: Record<string, any>): Promise<a
     throw new Error(`MCP Error: ${mcpResponse.error.message}`);
   }
   
-  return mcpResponse.result;
+  // Return the result, or the whole response if no result field
+  if (mcpResponse.result !== undefined) {
+    return mcpResponse.result;
+  }
+  
+  return mcpResponse;
 }
 
-async function fetchResponse(testCase: TestCase): Promise<any> {
-  console.log(`Fetching ${testCase.tool}...`);
+async function fetchResponse(toolName: string, params: Record<string, any>): Promise<any> {
+  console.log(`Fetching ${toolName}...`);
+  console.log(`  Params: ${JSON.stringify(params)}`);
   console.log(`  Via MCP: ${UPSTREAM_URL}/api/mcp`);
   
   try {
-    const data = await fetchViaMCP(testCase.tool, testCase.params);
-    console.log(`  ✓ Success (${JSON.stringify(data).length} bytes)`);
+    const data = await fetchViaMCP(toolName, params);
+    const dataStr = JSON.stringify(data);
+    console.log(`  ✓ Success (${dataStr.length} bytes)`);
     return data;
   } catch (error) {
     console.error(`  ✗ Failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -128,6 +188,51 @@ async function fetchResponse(testCase: TestCase): Promise<any> {
 
 async function main() {
   console.log('Fetching upstream responses...\n');
+  console.log('Step 1: Discovering available tools from upstream...\n');
+
+  // Fetch available tools from upstream
+  let tools: Tool[];
+  try {
+    tools = await fetchToolsList();
+    console.log(`✓ Discovered ${tools.length} tools from upstream\n`);
+    console.log('Available tools:');
+    tools.forEach(tool => {
+      const requiredParams = tool.inputSchema.required || [];
+      console.log(`  - ${tool.name} (requires: ${requiredParams.join(', ') || 'none'})`);
+    });
+    console.log('');
+  } catch (error) {
+    console.error('✗ Failed to fetch tools list:', error);
+    process.exit(1);
+  }
+
+  console.log('Step 2: Generating test parameters for each tool...\n');
+
+  // Generate test cases for each tool
+  const testCases: Array<{ tool: string; params: Record<string, any> }> = [];
+  const paramGenerationErrors: Array<{ tool: string; error: string }> = [];
+
+  for (const tool of tools) {
+    try {
+      const params = generateTestParams(tool);
+      testCases.push({ tool: tool.name, params });
+      console.log(`✓ ${tool.name}: ${Object.keys(params).length} parameters`);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      paramGenerationErrors.push({ tool: tool.name, error: errorMsg });
+      console.error(`✗ ${tool.name}: ${errorMsg}`);
+    }
+  }
+  console.log('');
+
+  // Exit if there are parameter generation errors
+  if (paramGenerationErrors.length > 0) {
+    console.error('Cannot proceed: Some tools have unmapped required parameters.\n');
+    console.error('Please update PARAM_VALUE_MAP in this script with appropriate test values.\n');
+    process.exit(1);
+  }
+
+  console.log('Step 3: Fetching responses from upstream...\n');
 
   // Create output directory
   const outputDir = join(process.cwd(), 'test-data', 'upstream-responses');
@@ -139,7 +244,7 @@ async function main() {
   // Fetch each test case
   for (const testCase of testCases) {
     try {
-      const response = await fetchResponse(testCase);
+      const response = await fetchResponse(testCase.tool, testCase.params);
       
       // Save to file
       const outputFile = join(outputDir, `${testCase.tool}.json`);
@@ -169,6 +274,9 @@ async function main() {
 
 This directory contains real responses from the upstream Translation Helps API, captured for testing and validation purposes.
 
+**Note**: This directory is automatically generated by running \`npx tsx scripts/fetch-upstream-responses.ts\`.
+The script dynamically discovers all available tools from upstream and generates appropriate test parameters.
+
 ## Files
 
 ${testCases.map(tc => `- \`${tc.tool}.json\` - Response for ${tc.tool}`).join('\n')}
@@ -189,6 +297,17 @@ To refresh these files with current upstream responses:
 npx tsx scripts/fetch-upstream-responses.ts
 \`\`\`
 
+The script will:
+1. Dynamically discover all available tools from upstream
+2. Generate appropriate test parameters based on tool schemas
+3. Fetch responses for each tool
+4. Save responses as JSON files
+
+## Parameter Mapping
+
+Test parameters are automatically generated using the mapping defined in \`PARAM_VALUE_MAP\`:
+${Object.entries(PARAM_VALUE_MAP).map(([key, value]) => `- \`${key}\`: \`${JSON.stringify(value)}\``).join('\n')}
+
 ## File Format
 
 Each file contains:
@@ -204,6 +323,21 @@ ${new Date().toISOString()}
 ## Results
 
 ${results.map(r => `- ${r.success ? '✓' : '✗'} ${r.tool}${r.error ? ` - ${r.error}` : ''}`).join('\n')}
+
+## Tool Schemas
+
+Total tools discovered: ${tools.length}
+
+${tools.map(tool => {
+  const required = tool.inputSchema.required || [];
+  const optional = Object.keys(tool.inputSchema.properties || {}).filter(p => !required.includes(p));
+  return `### ${tool.name}
+
+${tool.description}
+
+**Required parameters**: ${required.length > 0 ? required.join(', ') : 'none'}
+**Optional parameters**: ${optional.length > 0 ? optional.join(', ') : 'none'}`;
+}).join('\n\n')}
 `;
 
   writeFileSync(join(outputDir, 'README.md'), readmeContent);

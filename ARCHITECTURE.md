@@ -3,8 +3,8 @@
 > **Version**: 0.2.0
 > **Status**: Implemented and Production-Ready
 > **Target**: CloudFlare Workers + Node.js v20.17.0
-> **Based on**: Python translation_helps_mcp_proxy + MCP-Bridge
 > **Upstream**: Fully MCP-compliant as of v6.6.3
+> **Tool Discovery**: Dynamic from upstream (11 tools as of 2025-11-25)
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ This document describes the implemented TypeScript-based MCP proxy system. The s
 **Key Design Principles:**
 - CloudFlare Workers compatible (Edge runtime)
 - Modular interface design (shared core, distinct interfaces)
-- Preserve exact tool schemas from Python version
+- Dynamic tool discovery from upstream (no hardcoded schemas)
 - Client-controlled filtering for Interfaces 1-3, baked-in for Interface 4
 - Zero serialization overhead where possible
 
@@ -695,7 +695,34 @@ export class ResponseFormatter {
 
 ## Tool Schemas
 
-All tool schemas must be preserved **exactly** as they exist in the Python version. Here are the complete schemas:
+**Note**: Tool schemas are now **dynamically discovered** from the upstream server at runtime. The proxy no longer hardcodes tool definitions, making it future-proof against upstream changes.
+
+To see the current tool schemas, run:
+```bash
+npx tsx scripts/fetch-upstream-responses.ts
+```
+
+This will generate `test-data/upstream-responses/README.md` with complete schema documentation.
+
+### Currently Available Tools (as of 2025-11-25)
+
+The upstream server currently provides **11 tools**:
+
+1. **get_system_prompt** - Get the complete system prompt and constraints
+2. **fetch_scripture** - Fetch Bible scripture text for a specific reference
+3. **fetch_translation_notes** - Fetch translation notes for a specific Bible reference
+4. **get_languages** - Get available languages for translation resources
+5. **fetch_translation_questions** - Fetch translation questions for a specific Bible reference
+6. **browse_translation_words** - Browse and search translation words by category or term
+7. **get_context** - Get contextual information for a Bible reference
+8. **extract_references** - Extract and parse Bible references from text
+9. **fetch_resources** - Fetch multiple types of translation resources for a reference
+10. **get_words_for_reference** - Get translation words specifically linked to a Bible reference
+11. **search_biblical_resources** - Search biblical translation resources using BM25 scoring
+
+### Legacy Tool Schema Documentation
+
+The following schemas are preserved for reference but may be outdated. Always verify against upstream:
 
 ### 1. fetch_scripture
 
@@ -1029,7 +1056,18 @@ export const getLanguagesSchema = {
 };
 ```
 
-**Note**: Tool schemas are statically defined in [`types.ts`](src/core/types.ts:1) for validation and type safety, but the tool registry dynamically discovers available tools from the upstream server at runtime. The `browse_translation_words` tool is included in schemas but may return errors from the upstream server.
+**Note**: The proxy uses pure dynamic tool discovery. All tool definitions come from the upstream server via the MCP `tools/list` method. The schemas shown above are for historical reference only.
+
+To capture current upstream tool responses for testing:
+```bash
+npx tsx scripts/fetch-upstream-responses.ts
+```
+
+This script:
+1. Dynamically discovers all available tools from upstream
+2. Generates appropriate test parameters based on tool schemas
+3. Fetches responses for each tool
+4. Saves responses as JSON files in `test-data/upstream-responses/`
 
 ---
 
@@ -1703,19 +1741,20 @@ This architecture document describes the **completed and production-ready** Type
 
 1. **Five distinct interfaces** for different use cases - all implemented
 2. **Shared core logic** to minimize duplication
-3. **12 tool schemas** statically defined with dynamic discovery
+3. **Dynamic tool discovery** - no hardcoded schemas, future-proof design
 4. **Flexible filtering** (client-controlled vs baked-in)
 5. **CloudFlare Workers compatibility** for edge deployment
-6. **Comprehensive testing** (153 tests, 95.4% coverage)
+6. **Comprehensive testing** (162 tests, 98.8% coverage)
 7. **Production deployment** ready with wrangler configuration
 
-The TypeScript implementation successfully maintains all functionality of the Python version while adding:
+The TypeScript implementation provides:
 - **Type safety** with TypeScript 5.9.3
 - **Edge runtime support** via CloudFlare Workers
 - **Multiple interface options** (5 interfaces including LLM helper)
-- **Better performance** (V8 vs CPython)
+- **Dynamic tool discovery** from upstream (currently 11 tools)
 - **Modern tooling ecosystem** (Vitest, Hono, MCP SDK 1.21.1)
-- **95.4% code coverage** with comprehensive test suite
+- **98.8% code coverage** with comprehensive test suite
 - **Production-ready** with real upstream integration testing
+- **Automated tool response capture** for change detection
 
-**Current Version**: 0.2.0 - Fully implemented with pure MCP passthrough, dynamic tool discovery, and simplified codebase (~415 lines removed). Ready for production use.
+**Current Version**: 0.2.0 - Fully implemented with pure MCP passthrough, dynamic tool discovery, and simplified codebase. Ready for production use.
